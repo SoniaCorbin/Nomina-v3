@@ -130,6 +130,21 @@ function UsersInner() {
     setUsers(list);
   }
 
+  async function onRefreshClick() {
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
+    try {
+      await refreshList();
+      setSuccess("Liste rafraîchie");
+    } catch (e) {
+      const msg = e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e);
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -343,7 +358,7 @@ function UsersInner() {
         <Card className="p-4 border-[#d4c5f9] lg:col-span-2">
           <div className="flex items-center justify-between gap-3 mb-3">
             <h2 className="text-lg font-semibold">Liste</h2>
-            <Button variant="outline" onClick={() => refreshList().catch(() => undefined)} disabled={loading}>
+            <Button variant="outline" onClick={() => onRefreshClick().catch(() => undefined)} disabled={loading}>
               Rafraîchir
             </Button>
           </div>

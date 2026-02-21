@@ -1,5 +1,5 @@
 import { Button } from "./ui/button";
-import { LogOut, Menu, X } from "lucide-react";
+import { LogOut, Menu, Moon, Sun, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SignedIn, SignedOut, UserButton, useAuth, useClerk, useUser } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
@@ -8,14 +8,34 @@ import { apiFetch } from "../lib/api";
 
 import logoUrl from "../../assets/logo5.png";
 
+const THEME_KEY = "nomina-theme";
+
 export function Header() {
   const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
   const { isSignedIn, getToken } = useAuth();
   const { signOut } = useClerk();
   const { user } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
+  const [theme, setTheme] = useState<"light" | "dark">("light");
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    const saved = localStorage.getItem(THEME_KEY);
+    const initial = saved === "dark" || saved === "light"
+      ? saved
+      : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+
+    setTheme(initial);
+    document.documentElement.classList.toggle("dark", initial === "dark");
+  }, []);
+
+  function toggleTheme() {
+    const next: "light" | "dark" = theme === "dark" ? "light" : "dark";
+    setTheme(next);
+    localStorage.setItem(THEME_KEY, next);
+    document.documentElement.classList.toggle("dark", next === "dark");
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -85,6 +105,15 @@ export function Header() {
 
           {/* CTA Buttons */}
           <div className="hidden md:flex items-center gap-4">
+            <Button
+              variant="ghost"
+              className="text-[#d4c5f9] hover:text-white hover:bg-[#7b3ff2]/20 px-2"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
+              title={theme === "dark" ? "Mode clair" : "Mode sombre"}
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
             {clerkEnabled ? (
               <>
                 <SignedOut>
@@ -134,6 +163,15 @@ export function Header() {
 
           {/* Mobile Actions */}
           <div className="md:hidden flex items-center gap-2">
+            <Button
+              variant="ghost"
+              className="text-[#d4c5f9] hover:text-white hover:bg-[#7b3ff2]/20 px-2"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
+              title={theme === "dark" ? "Mode clair" : "Mode sombre"}
+            >
+              {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            </Button>
             {clerkEnabled ? (
               <SignedIn>
                 <Button

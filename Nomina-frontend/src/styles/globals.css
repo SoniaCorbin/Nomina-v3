@@ -25,6 +25,31 @@
     font-weight: 400;
   }
 
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html.dark body {
+    background: #120d24;
+    color: #f3efff;
+  }
+
+  html.dark .bg-white {
+    background-color: #1a1230 !important;
+  }
+
+  html.dark .text-\[\#2d1b4e\] {
+    color: #f3efff !important;
+  }
+
+  html.dark .border-\[\#d4c5f9\] {
+    border-color: #4c2d79 !important;
+  }
+
+  html.dark .bg-\[\#f8f6fc\] {
+    background-color: #120d24 !important;
+  }
+
   h1 {
     font-family: 'Cinzel', serif;
     font-weight: 700;
