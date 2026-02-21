@@ -20,6 +20,12 @@ const getClerkClient = () => {
   return createClerkClient({ secretKey });
 };
 
+const allowFirstAdminBootstrap = (): boolean => {
+  if (process.env.BOOTSTRAP_FIRST_ADMIN === 'true') return true;
+  if (process.env.BOOTSTRAP_FIRST_ADMIN === 'false') return false;
+  return process.env.NODE_ENV !== 'production';
+};
+
 const resolvePrimaryEmail = (user: any): string | null => {
   const primaryId = user?.primaryEmailAddressId;
   const emailAddresses = Array.isArray(user?.emailAddresses) ? user.emailAddresses : [];
@@ -55,7 +61,30 @@ export const isUserAdmin = async (userId: string): Promise<boolean> => {
   if (!email) return false;
 
   const row = await prisma.user.findUnique({ where: { email } });
-  return Boolean(row && row.isActive && row.role === 'Admin');
+  if (row) {
+    return Boolean(row.isActive && row.role === 'Admin');
+  }
+
+  if (!allowFirstAdminBootstrap()) return false;
+
+  const activeAdmins = await prisma.user.count({
+    where: { role: 'Admin', isActive: true },
+  });
+
+  if (activeAdmins > 0) return false;
+
+  const username = await makeUniqueUsername(email.split('@')[0] || 'admin');
+  await prisma.user.create({
+    data: {
+      username,
+      email,
+      password: `clerk-managed-${Date.now()}`,
+      role: 'Admin',
+      isActive: true,
+    },
+  });
+
+  return true;
 };
 
 const toBaseUsername = (candidate: string) =>

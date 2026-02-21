@@ -73,11 +73,6 @@ export function Header() {
                 <Link to="/dashboard" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
                   Dashboard
                 </Link>
-                {isAdmin ? (
-                  <Link to="/cultures" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                    Cultures
-                  </Link>
-                ) : null}
               </SignedIn>
             ) : null}
             <Link to="/generate" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
@@ -180,11 +175,6 @@ export function Header() {
                   <Link to="/dashboard" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
                     Dashboard
                   </Link>
-                  {isAdmin ? (
-                    <Link to="/cultures" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                      Cultures
-                    </Link>
-                  ) : null}
                 </SignedIn>
               ) : null}
               <Link to="/generate" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">

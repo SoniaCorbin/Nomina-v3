@@ -83,8 +83,17 @@ export function LoginPage() {
 				return;
 			}
 
+			const openSignIn = (clerk as unknown as { openSignIn?: (opts?: unknown) => Promise<void> }).openSignIn;
+			if (openSignIn) {
+				await openSignIn({
+					redirectUrl: "/sso-callback",
+					afterSignInUrl: accountType === "admin" ? "/admin" : "/dashboard",
+				});
+				return;
+			}
+
 			setError(
-				"Connexion partielle: une étape additionnelle est requise (ex.: 2FA) selon la configuration Clerk."
+				"Une vérification supplémentaire est requise (ex. 2FA). Termine la connexion via l’interface Clerk, puis réessaie."
 			);
 		} catch (e: any) {
 			const msg =

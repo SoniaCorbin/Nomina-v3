@@ -322,6 +322,86 @@ function DashboardInner() {
                     variant="outline"
                     className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
                   >
+                    <Link to="/categories">
+                      <Tag className="w-4 h-4 mr-2" />
+                      Gérer les catégories
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                  >
+                    <Link to="/concepts">
+                      <Lightbulb className="w-4 h-4 mr-2" />
+                      Gérer les concepts
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                  >
+                    <Link to="/titres">
+                      <Award className="w-4 h-4 mr-2" />
+                      Gérer les titres
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                  >
+                    <Link to="/fragments-histoire">
+                      <BookOpen className="w-4 h-4 mr-2" />
+                      Gérer les fragments d’histoire
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                  >
+                    <Link to="/nom-personnages">
+                      <User className="w-4 h-4 mr-2" />
+                      Gérer les noms de personnages
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                  >
+                    <Link to="/univers">
+                      <Globe className="w-4 h-4 mr-2" />
+                      Gérer les univers thématiques
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                  >
+                    <Link to="/nom-familles">
+                      <Users className="w-4 h-4 mr-2" />
+                      Gérer les noms de famille
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                  >
+                    <Link to="/lieux">
+                      <MapPin className="w-4 h-4 mr-2" />
+                      Gérer les lieux
+                    </Link>
+                  </Button>
+                  <Button
+                    asChild
+                    variant="outline"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                  >
                     <Link to="/creatures">
                       <Sparkles className="w-4 h-4 mr-2" />
                       Gérer les créatures

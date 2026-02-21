@@ -51,6 +51,10 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     };
     next();
   } catch (err) {
+    if (devAdminBypassEnabled()) {
+      req.auth = { userId: devAdminUserId(), sessionId: 'dev-bypass' };
+      return next();
+    }
     console.error('Clerk token verification failed:', err);
     return res.status(401).json({ error: 'Token invalide ou expiré' });
   }
