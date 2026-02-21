@@ -5,19 +5,19 @@ import { ImageWithFallback } from "./nomina/imageWithFallback";
 const useCases = [
   {
     title: "Développeurs de jeux",
-    description: "Générez des milliers de PNJ avec des noms et des backstories uniques pour enrichir votre univers de jeu.",
+    description: "Génération de milliers de PNJ avec des noms et des backstories uniques pour enrichir un univers de jeu.",
     image: "https://images.unsplash.com/photo-1595623654300-b27329804025?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxkaWdpdGFsJTIwY29kZSUyMHRlY2hub2xvZ3l8ZW58MXx8fHwxNzYzNzI4MDc4fDA&ixlib=rb-4.1.0&q=80&w=1080",
     tags: ["Gaming", "NPCs", "Worldbuilding"]
   },
   {
     title: "Auteurs et écrivains",
-    description: "Trouvez l'inspiration pour vos personnages avec des noms évocateurs accompagnés de mini-biographies.",
+    description: "Inspiration pour les personnages avec des noms évocateurs accompagnés de mini-biographies.",
     image: "https://images.unsplash.com/photo-1726377240070-19b747fc9f19?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmYW50YXN5JTIwd3JpdGluZyUyMGNyZWF0aXZlfGVufDF8fHx8MTc2MzcyODA3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
     tags: ["Écriture", "Fiction", "Personnages"]
   },
   {
     title: "Studios créatifs",
-    description: "Accélérez votre processus créatif en générant rapidement des concepts de noms pour vos projets.",
+    description: "Accélération du processus créatif grâce à la génération rapide de concepts de noms pour les projets.",
     image: "https://images.unsplash.com/photo-1647529735399-c922b8c3f7c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxzdG9yeXRlbGxpbmclMjBib29rc3xlbnwxfHx8fDE3NjM3MjgwNzh8MA&ixlib=rb-4.1.0&q=80&w=1080",
     tags: ["Design", "Branding", "Créativité"]
   }
@@ -25,14 +25,17 @@ const useCases = [
 
 export function UseCases() {
   return (
-    <section id="usecases" className="py-20 bg-gradient-to-b from-[#f8f6fc] to-white">
+    <section
+      id="usecases"
+      className="py-20 bg-gradient-to-b from-[#f8f6fc] to-white dark:from-[#120b22] dark:to-[#0b0714]"
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl text-[#2d1b4e] mb-4" style={{ fontFamily: 'Cinzel, serif' }}>
             Cas d'usage
           </h2>
           <p className="text-lg text-[#c5bfd9] max-w-2xl mx-auto">
-            Nomina s'adapte à tous vos besoins créatifs
+            Nomina s’adapte à de nombreux besoins créatifs
           </p>
         </div>
 

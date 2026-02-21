@@ -176,7 +176,7 @@ export function Hero() {
           </div>
 
           <p className="text-sm text-[#d4c5f9] -mt-8 mb-12">
-            Déjà un compte ?{" "}
+            Compte existant ?{" "}
             <Link to="/login" className="text-[#e8b4f0] hover:underline">
               Se connecter
             </Link>
@@ -189,7 +189,7 @@ export function Hero() {
                 Générer un nom
               </CardTitle>
               <p className="text-sm text-[#c5bfd9]">
-                Un aperçu UI (sans code affiché). Tu brancheras l’API ensuite.
+                Aperçu de l’interface de génération.
               </p>
             </CardHeader>
             <CardContent>
@@ -256,7 +256,7 @@ export function Hero() {
                   </div>
                 ) : (
                   <div className="text-sm text-[#c5bfd9]">
-                    Clique sur “Générer” pour voir un exemple.
+                    Un exemple apparaît après génération.
                   </div>
                 )}
               </div>

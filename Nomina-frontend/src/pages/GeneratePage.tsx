@@ -484,7 +484,7 @@ export function GeneratePage() {
 
             {/* Type de génération */}
             <div>
-              <label className="text-sm text-[#2d1b4e]">Que voulez-vous générer ?</label>
+              <label className="text-sm text-[#2d1b4e]">Type de contenu à générer</label>
               <select
                 value={generateWhat}
                 onChange={(e) => setGenerateWhat(e.target.value as GenerateWhat)}
@@ -692,10 +692,10 @@ export function GeneratePage() {
           {result ? (
             <div className="bg-white border border-[#d4c5f9] rounded-lg p-6 shadow-sm">
               <h3 className="text-lg font-semibold text-[#2d1b4e] mb-2" style={{ fontFamily: "Cinzel, serif" }}>
-                ✨ Vos créations narratives
+                ✨ Créations narratives
               </h3>
               <p className="text-sm text-[#6b5aa3] mb-4">
-                Découvrez les éléments générés pour enrichir votre univers
+                Éléments générés pour enrichir l’univers
               </p>
               
               <div className="flex flex-wrap gap-3 mb-4 p-3 bg-[#f8f6fc] rounded-md">
@@ -824,21 +824,21 @@ export function GeneratePage() {
                         const clamp = (s: string, n = 180) => (s.length > n ? `${s.slice(0, n).trim()}…` : s);
                         switch (generateWhat) {
                           case "npcs":
-                            return item.backstory ? String(item.backstory) : "Biographie générée pour votre univers.";
+                            return item.backstory ? String(item.backstory) : "Biographie générée pour l’univers.";
                           case "nomPersonnages":
                             return "Prénom généré.";
                           case "nomFamille":
                             return item.cultureId 
                               ? `Nom de famille lié à la culture #${item.cultureId}`
-                              : "Nom de famille disponible pour vos personnages.";
+                              : "Nom de famille disponible pour les personnages.";
                           case "lieux":
-                            return item.type ? `Type: ${item.type}` : "Lieu prêt à être intégré à votre monde.";
+                            return item.type ? `Type: ${item.type}` : "Lieu prêt à être intégré au monde.";
                           case "fragmentsHistoire":
                             return item.texte ? clamp(String(item.texte), 220) : "Fragment narratif.";
                           case "titres":
                             return item.valeur
                               ? getTitreDescription({ valeur: String(item.valeur), type: item.type ?? null, genre: item.genre ?? null })
-                              : (item.type ? `Type: ${item.type}` : "Un titre pour enrichir vos personnages et factions.");
+                              : (item.type ? `Type: ${item.type}` : "Titre pour enrichir personnages et factions.");
                           case "concepts":
                             return item.elevatorPitch
                               ? clamp(String(item.elevatorPitch), 220)
@@ -848,11 +848,11 @@ export function GeneratePage() {
                           case "categories":
                             return item.universId 
                               ? `Catégorie de l'univers #${item.universId}`
-                              : "Catégorie pour organiser vos éléments.";
+                              : "Catégorie pour organiser les éléments.";
                           case "cultures":
-                            return "Culture pour contextualiser vos personnages et lieux.";
+                            return "Culture pour contextualiser personnages et lieux.";
                           case "universThematique":
-                            return "Univers thématique pour structurer votre monde.";
+                            return "Univers thématique pour structurer le monde.";
                           default:
                             return "";
                         }
@@ -947,7 +947,7 @@ export function GeneratePage() {
                 <div className="text-center py-8">
                   <div className="text-4xl mb-3">📭</div>
                   <p className="text-[#6b5aa3] font-medium">Aucun récit à raconter pour l'instant</p>
-                  <p className="text-sm text-[#c5bfd9] mt-1">Ajustez vos filtres et lancez la magie narrative</p>
+                  <p className="text-sm text-[#c5bfd9] mt-1">Ajustement des filtres et lancement de la génération narrative</p>
                 </div>
               )}
 
@@ -967,7 +967,7 @@ export function GeneratePage() {
                 Prêt à créer ?
               </h3>
               <p className="text-[#6b5aa3] text-sm">
-                Configurez vos filtres et lancez la génération.<br />
+                Configuration des filtres et lancement de la génération.<br />
                 Les résultats apparaîtront ici comme par magie.
               </p>
             </div>

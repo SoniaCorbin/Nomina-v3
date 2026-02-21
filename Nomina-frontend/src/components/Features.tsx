@@ -8,20 +8,20 @@ const features = [
   {
     icon: Wand2,
     title: "Génération intelligente",
-    description: "Algorithmes avancés pour créer des noms uniques et mémorables adaptés à votre univers narratif.",
+    description: "Algorithmes avancés pour créer des noms uniques et mémorables adaptés à un univers narratif.",
     details: [
       "Choix du type (personnage / lieu / créature) et du genre.",
       "Préfixe optionnel (seed) pour guider la génération.",
-      "Résultats cohérents avec le style de ton univers.",
+      "Résultats cohérents avec le style de l’univers.",
     ],
   },
   {
     icon: BookOpen,
     title: "Narration intégrée",
-    description: "Obtenez des mini-biographies et descriptions narratives pour donner vie à vos créations.",
+    description: "Mini-biographies et descriptions narratives pour donner vie aux créations.",
     details: [
-      "Génère une description courte (bio) en plus du nom.",
-      "Ton narratif configurable selon le contexte.",
+      "Génération d’une description courte (bio) en plus du nom.",
+      "Style narratif configurable selon le contexte.",
       "Parfait pour amorcer des fiches de personnages et de lieux.",
     ],
   },
@@ -40,7 +40,7 @@ const features = [
     title: "Multi-langues",
     description: "Support de plusieurs langues et cultures pour des noms authentiques et diversifiés.",
     details: [
-      "Approche extensible: tu peux ajouter des dictionnaires par langue.",
+      "Approche extensible: ajout de dictionnaires par langue.",
       "Variantes culturelles (sons, suffixes, styles).",
       "Idéal pour univers fantasy / SF / historique.",
     ],
@@ -84,7 +84,7 @@ export function Features() {
             Fonctionnalités puissantes
           </h2>
           <p className="text-lg text-[#c5bfd9] max-w-2xl mx-auto">
-            Tout ce dont vous avez besoin pour créer des noms et des histoires captivantes
+            Tout le nécessaire pour créer des noms et des histoires captivantes
           </p>
         </div>
 

@@ -74,7 +74,7 @@ export function LoginPage() {
 					const isAdmin = await ensureAdminAccess();
 					if (!isAdmin) {
 						await clerk.signOut().catch(() => undefined);
-						setError("Impossible de valider les droits admin (session expirée ou droits insuffisants). Reconnecte-toi puis réessaie.");
+						setError("Impossible de valider les droits admin (session expirée ou droits insuffisants). Reconnexion requise puis nouvel essai.");
 						return;
 					}
 				}
@@ -93,7 +93,7 @@ export function LoginPage() {
 			}
 
 			setError(
-				"Une vérification supplémentaire est requise (ex. 2FA). Termine la connexion via l’interface Clerk, puis réessaie."
+				"Une vérification supplémentaire est requise (ex. 2FA). Finaliser la connexion via l’interface Clerk, puis relancer l’essai."
 			);
 		} catch (e: any) {
 			const msg =
@@ -132,11 +132,11 @@ export function LoginPage() {
 		<main className="min-h-screen p-6 bg-gradient-to-b from-[#171029] via-[#24193f] to-[#171029] text-[#f3efff]">
 			<div className="w-full max-w-6xl mx-auto py-6">
 				<div className="text-center mb-8">
-					<h1 className="text-3xl font-semibold mb-2 text-white">Accédez à votre espace</h1>
-					<p className="text-sm text-[#b9a3e3]">Choisissez votre type de compte pour commencer</p>
+					<h1 className="text-3xl font-semibold mb-2 text-white">Accès à l’espace</h1>
+					<p className="text-sm text-[#b9a3e3]">Sélection du type de compte pour commencer</p>
 				</div>
 				{clerkEnabled && isSignedIn ? (
-					<p className="text-sm text-[#b9a3e3] mb-4">Tu es déjà connecté. Redirection…</p>
+					<p className="text-sm text-[#b9a3e3] mb-4">Session déjà active. Redirection…</p>
 				) : (
 					<p className="text-sm text-[#b9a3e3] mb-6 text-center">
 						Pas encore de compte ?{" "}
@@ -156,11 +156,11 @@ export function LoginPage() {
 						<div className="pointer-events-none absolute -bottom-16 -left-8 h-28 w-28 rounded-full bg-[#5c2bb8]/20 blur-xl" />
 						<div className="w-12 h-12 rounded-full bg-[#2f1d55] border border-[#5f34a8] flex items-center justify-center text-[#cdb7ff] text-xl mb-4">👤</div>
 						<h2 className="text-2xl font-semibold mb-3 text-white">Compte Client</h2>
-						<p className="text-[#b9a3e3] mb-4">Réservez, générez et collaborez sur vos univers narratifs.</p>
+						<p className="text-[#b9a3e3] mb-4">Réservation, génération et collaboration sur des univers narratifs.</p>
 						<ul className="space-y-2 text-sm mb-5">
 							<li>• Génération de noms et concepts</li>
-							<li>• Historique de vos essais</li>
-							<li>• Gestion de votre profil</li>
+							<li>• Historique des essais</li>
+							<li>• Gestion du profil</li>
 							<li>• Accès rapide au dashboard</li>
 						</ul>
 						<Button
@@ -168,7 +168,7 @@ export function LoginPage() {
 							variant={accountType === "client" ? "default" : "outline"}
 							onClick={() => startLoginStep("client")}
 						>
-							Accéder à mon compte
+							Accéder au compte
 						</Button>
 					</Card>
 

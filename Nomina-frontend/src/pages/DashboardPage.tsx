@@ -36,9 +36,9 @@ export function DashboardPage() {
 
   if (!clerkEnabled) {
     return (
-      <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50">
+      <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50 dark:from-[#120b22] dark:via-[#0f0a1b] dark:to-[#140b24]">
         <div className="mx-auto w-full max-w-5xl">
-          <Card className="bg-white border-[#d4c5f9] p-6">
+          <Card className="bg-white border-[#d4c5f9] p-6 dark:bg-[#1a1230] dark:border-[#3e2a66]">
             <h1 className="text-3xl font-semibold mb-2">Dashboard</h1>
             <p className="opacity-80">Auth désactivée (clé Clerk manquante).</p>
           </Card>
@@ -50,11 +50,11 @@ export function DashboardPage() {
   return (
     <>
       <SignedOut>
-        <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50">
+        <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50 dark:from-[#120b22] dark:via-[#0f0a1b] dark:to-[#140b24]">
           <div className="mx-auto w-full max-w-5xl">
-            <Card className="bg-white border-[#d4c5f9] p-6">
+            <Card className="bg-white border-[#d4c5f9] p-6 dark:bg-[#1a1230] dark:border-[#3e2a66]">
               <h1 className="text-3xl font-semibold mb-2">Dashboard</h1>
-              <p className="opacity-80 mb-4">Connecte-toi pour accéder au dashboard.</p>
+              <p className="opacity-80 mb-4">Connexion requise pour accéder au dashboard.</p>
               <Button asChild className="bg-[#7b3ff2] hover:bg-[#a67be8] text-white">
                 <Link to="/login">Connexion</Link>
               </Button>
@@ -146,24 +146,24 @@ function DashboardInner() {
   }, [getToken, me?.isAdmin]);
 
   return (
-    <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50">
+    <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50 dark:from-[#120b22] dark:via-[#0f0a1b] dark:to-[#140b24]">
       <div className="mx-auto w-full max-w-7xl space-y-6">
         {/* Header */}
-        <Card className="bg-white border-[#d4c5f9] p-6">
+        <Card className="bg-white border-[#d4c5f9] p-6 dark:bg-[#1a1230] dark:border-[#3e2a66]">
           <div className="flex items-start justify-between gap-4">
             <div>
               <h1 className="text-3xl font-semibold flex items-center gap-3">
                 <Activity className="w-8 h-8 text-[#7b3ff2]" />
                 Dashboard
               </h1>
-              <p className="opacity-80 mt-1">Bienvenue sur ta plateforme de génération créative</p>
+              <p className="opacity-80 mt-1">Bienvenue sur la plateforme de génération créative</p>
             </div>
             {me ? (
               <div className="flex items-center gap-2">
                 <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${
                   me.isAdmin 
                     ? "bg-[#7b3ff2] text-white" 
-                    : "border border-[#d4c5f9] text-[#2d1b4e]"
+                    : "border border-[#d4c5f9] text-[#2d1b4e] dark:border-[#4f3a7a] dark:text-[#efe7ff]"
                 }`}>
                   {me.isAdmin ? "🛡️ Admin" : "👤 Utilisateur"}
                 </span>
@@ -177,7 +177,7 @@ function DashboardInner() {
 
         {/* Stats Grid */}
         {statsLoading ? (
-          <Card className="bg-white border-[#d4c5f9] p-6">
+          <Card className="bg-white border-[#d4c5f9] p-6 dark:bg-[#1a1230] dark:border-[#3e2a66]">
             <p className="text-center text-[#7b3ff2]">Chargement des statistiques…</p>
           </Card>
         ) : stats ? (
@@ -260,7 +260,7 @@ function DashboardInner() {
                   isAdmin={true}
                 />
               ) : (
-                <Card className="bg-gradient-to-br from-[#7b3ff2] to-[#a67be8] text-white p-6 border-0">
+                <Card className="bg-gradient-to-br from-[#7b3ff2] to-[#a67be8] text-white p-6 border-0 dark:from-[#5d2ab8] dark:to-[#7f53d1]">
                   <div className="flex items-center gap-3">
                     <div className="bg-white/20 p-3 rounded-lg">
                       <TrendingUp className="w-5 h-5" />
@@ -280,7 +280,7 @@ function DashboardInner() {
 
         {/* Quick Actions */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-white p-6 border-[#d4c5f9]">
+          <Card className="bg-white p-6 border-[#d4c5f9] dark:bg-[#1a1230] dark:border-[#3e2a66]">
             <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-[#7b3ff2]" />
               Actions rapides
@@ -298,7 +298,7 @@ function DashboardInner() {
               <Button
                 asChild
                 variant="outline"
-                className="justify-start border-[#d4c5f9] bg-[#7b3ff2]/10 hover:bg-[#7b3ff2]/20 text-[#2d1b4e]"
+                className="justify-start border-[#d4c5f9] bg-[#7b3ff2]/10 hover:bg-[#7b3ff2]/20 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#7b3ff2]/20 dark:hover:bg-[#7b3ff2]/30 dark:text-[#efe7ff]"
               >
                 <Link to="/docs">
                   <BookOpen className="w-4 h-4 mr-2" />
@@ -310,7 +310,7 @@ function DashboardInner() {
                   <Button
                     asChild
                     variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
                   >
                     <Link to="/cultures">
                       <Globe className="w-4 h-4 mr-2" />
@@ -320,7 +320,7 @@ function DashboardInner() {
                   <Button
                     asChild
                     variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
                   >
                     <Link to="/categories">
                       <Tag className="w-4 h-4 mr-2" />
@@ -330,7 +330,7 @@ function DashboardInner() {
                   <Button
                     asChild
                     variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
                   >
                     <Link to="/concepts">
                       <Lightbulb className="w-4 h-4 mr-2" />
@@ -340,7 +340,7 @@ function DashboardInner() {
                   <Button
                     asChild
                     variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
                   >
                     <Link to="/titres">
                       <Award className="w-4 h-4 mr-2" />
@@ -350,7 +350,7 @@ function DashboardInner() {
                   <Button
                     asChild
                     variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
                   >
                     <Link to="/fragments-histoire">
                       <BookOpen className="w-4 h-4 mr-2" />
@@ -360,7 +360,7 @@ function DashboardInner() {
                   <Button
                     asChild
                     variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
                   >
                     <Link to="/nom-personnages">
                       <User className="w-4 h-4 mr-2" />
@@ -370,7 +370,7 @@ function DashboardInner() {
                   <Button
                     asChild
                     variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
                   >
                     <Link to="/univers">
                       <Globe className="w-4 h-4 mr-2" />
@@ -380,7 +380,7 @@ function DashboardInner() {
                   <Button
                     asChild
                     variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
                   >
                     <Link to="/nom-familles">
                       <Users className="w-4 h-4 mr-2" />
@@ -390,7 +390,7 @@ function DashboardInner() {
                   <Button
                     asChild
                     variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
                   >
                     <Link to="/lieux">
                       <MapPin className="w-4 h-4 mr-2" />
@@ -400,7 +400,7 @@ function DashboardInner() {
                   <Button
                     asChild
                     variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
                   >
                     <Link to="/creatures">
                       <Sparkles className="w-4 h-4 mr-2" />
@@ -410,7 +410,7 @@ function DashboardInner() {
                   <Button
                     asChild
                     variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e]"
+                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
                   >
                     <Link to="/users">
                       <Users className="w-4 h-4 mr-2" />
@@ -422,13 +422,13 @@ function DashboardInner() {
             </div>
           </Card>
 
-          <Card className="bg-white p-6 border-[#d4c5f9]">
+          <Card className="bg-white p-6 border-[#d4c5f9] dark:bg-[#1a1230] dark:border-[#3e2a66]">
             <h2 className="text-lg font-semibold mb-3">Session</h2>
             {me ? (
               <div className="space-y-3">
                 <div className="text-sm">
                   <span className="opacity-70 block mb-1">Identifiant</span>
-                  <div className="font-mono text-xs bg-[#7b3ff2]/5 p-2 rounded border border-[#d4c5f9] break-all">
+                  <div className="font-mono text-xs bg-[#7b3ff2]/5 p-2 rounded border border-[#d4c5f9] break-all dark:bg-[#241842] dark:border-[#4f3a7a]">
                     {me.userId}
                   </div>
                 </div>
@@ -444,7 +444,7 @@ function DashboardInner() {
                       </>
                     ) : (
                       <>
-                        <span className="border border-[#d4c5f9] text-[#2d1b4e] px-3 py-1 rounded-full text-xs font-medium">
+                        <span className="border border-[#d4c5f9] text-[#2d1b4e] px-3 py-1 rounded-full text-xs font-medium dark:border-[#4f3a7a] dark:text-[#efe7ff]">
                           Utilisateur
                         </span>
                         <span className="text-xs opacity-70">Accès standard</span>
@@ -484,8 +484,8 @@ function StatCard({
         {icon}
       </div>
       <div>
-        <div className="text-2xl font-bold text-[#2d1b4e]">{value.toLocaleString()}</div>
-        <div className="text-sm text-[#2d1b4e]/70">{label}</div>
+        <div className="text-2xl font-bold text-[#2d1b4e] dark:text-[#efe7ff]">{value.toLocaleString()}</div>
+        <div className="text-sm text-[#2d1b4e]/70 dark:text-[#d6c6ff]">{label}</div>
       </div>
     </div>
   );
@@ -493,7 +493,7 @@ function StatCard({
   if (isAdmin) {
     return (
       <Link to={link}>
-        <Card className="bg-white border-[#d4c5f9] p-6 hover:border-[#7b3ff2] hover:shadow-md transition-all cursor-pointer">
+        <Card className="bg-white border-[#d4c5f9] p-6 hover:border-[#7b3ff2] hover:shadow-md transition-all cursor-pointer dark:bg-[#1a1230] dark:border-[#3e2a66] dark:hover:border-[#8f67dd]">
           {content}
         </Card>
       </Link>
@@ -501,7 +501,7 @@ function StatCard({
   }
 
   return (
-    <Card className="bg-white border-[#d4c5f9] p-6">
+    <Card className="bg-white border-[#d4c5f9] p-6 dark:bg-[#1a1230] dark:border-[#3e2a66]">
       {content}
     </Card>
   );

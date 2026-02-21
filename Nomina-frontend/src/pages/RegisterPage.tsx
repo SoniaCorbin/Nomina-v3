@@ -109,7 +109,7 @@ export function RegisterPage() {
 					setStep("verify-email");
 					setInfo(
 						accountType === "admin"
-							? "Un code de vérification a été envoyé. Après validation, ta demande Admin sera soumise à Nomina."
+							? "Un code de vérification a été envoyé. Après validation, la demande Admin sera soumise à Nomina."
 							: "Un code de vérification a été envoyé par courriel."
 					);
 					return;
@@ -138,7 +138,7 @@ export function RegisterPage() {
 			}
 
 			setError(
-				`Vérification incomplète (statut: ${attempt.status}). Clique sur “Renvoyer le code” puis réessaie avec le dernier code reçu.`
+				`Vérification incomplète (statut: ${attempt.status}). Un nouveau code peut être envoyé via “Renvoyer le code”, puis validé à nouveau.`
 			);
 		} catch (e: any) {
 			const msg =
@@ -177,7 +177,7 @@ export function RegisterPage() {
 			}
 
 			await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
-			setInfo("Nouveau code envoyé. Utilise le plus récent dans ta boîte courriel.");
+			setInfo("Nouveau code envoyé. Le plus récent doit être utilisé depuis la boîte courriel.");
 			setResendCooldown(30);
 		} catch (e: any) {
 			const retryAfter = e?.errors?.[0]?.meta?.retryAfterSeconds ?? e?.errors?.[0]?.meta?.retry_after_seconds;
@@ -213,10 +213,10 @@ export function RegisterPage() {
 					</Button>
 				</div>
 				{clerkEnabled && isSignedIn ? (
-					<p className="text-sm text-[#4c3575] mb-4">Tu es déjà connecté. Redirection…</p>
+					<p className="text-sm text-[#4c3575] mb-4">Session déjà active. Redirection…</p>
 				) : (
 				<p className="text-sm text-[#4c3575] mb-4">
-					Déjà un compte ? <Link to="/login" className="text-[#7b3ff2] hover:underline">Se connecter</Link>
+					Compte existant ? <Link to="/login" className="text-[#7b3ff2] hover:underline">Se connecter</Link>
 				</p>
 				)}
 				<Card className="bg-white/96 border-[#bfa1ea] p-6 backdrop-blur-sm shadow-[0_14px_32px_rgba(74,36,130,0.18)]">
@@ -277,7 +277,7 @@ export function RegisterPage() {
 								<div>
 									<label className="text-sm text-[#3b275f]">Code reçu par courriel</label>
 									<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea]" value={emailCode} onChange={(e) => setEmailCode(e.target.value)} inputMode="numeric" />
-									<p className="text-xs text-[#5b4a7f] mt-1">Vérifie ta boîte courriel (et le spam).</p>
+									<p className="text-xs text-[#5b4a7f] mt-1">Vérifier la boîte courriel (et le dossier spam).</p>
 									<Button
 										variant="outline"
 										className="mt-3"

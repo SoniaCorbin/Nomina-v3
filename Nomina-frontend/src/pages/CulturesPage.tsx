@@ -51,7 +51,7 @@ export function CulturesPage() {
       <SignedOut>
         <main className="min-h-screen p-6">
           <h1 className="text-3xl font-semibold mb-2">Cultures</h1>
-          <p className="opacity-80">Connecte-toi pour gérer les cultures.</p>
+          <p className="opacity-80">Connexion requise pour gérer les cultures.</p>
         </main>
       </SignedOut>
       <SignedIn>

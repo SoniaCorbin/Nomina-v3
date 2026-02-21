@@ -59,14 +59,17 @@ export function Documentation() {
   }
 
   return (
-    <section id="docs" className="py-20 bg-gradient-to-b from-[#f8f6fc] to-white">
+    <section
+      id="docs"
+      className="py-20 bg-gradient-to-b from-[#f8f6fc] to-white dark:from-[#120b22] dark:to-[#0b0714]"
+    >
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
           <h2 className="text-3xl md:text-5xl text-[#2d1b4e] mb-4" style={{ fontFamily: 'Cinzel, serif' }}>
             Documentation
           </h2>
-          <p className="text-lg text-[#c5bfd9] max-w-2xl mx-auto">
-            Tout ce dont vous avez besoin pour intégrer Nomina
+          <p className="text-lg text-[#c5bfd9] dark:text-[#b9b3cf] max-w-2xl mx-auto">
+            Les informations essentielles pour intégrer Nomina
           </p>
         </div>
 
@@ -78,40 +81,40 @@ export function Documentation() {
               onClick={() => scrollToSection(section.id)}
               className="text-left"
             >
-              <Card className="bg-white border-[#d4c5f9] p-6 hover:shadow-lg hover:shadow-[#7b3ff2]/10 transition-all duration-300 hover:border-[#7b3ff2] cursor-pointer group">
+              <Card className="bg-white dark:bg-[#120b22] border-[#d4c5f9] dark:border-[#2a1d45] p-6 hover:shadow-lg hover:shadow-[#7b3ff2]/10 transition-all duration-300 hover:border-[#7b3ff2] cursor-pointer group">
                 <div className="w-12 h-12 bg-gradient-to-br from-[#7b3ff2] to-[#a67be8] rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
                   <section.icon className="w-6 h-6 text-white" />
                 </div>
                 <h3 className="text-lg text-[#2d1b4e] mb-2">{section.title}</h3>
-                <p className="text-sm text-[#c5bfd9]">{section.description}</p>
+                <p className="text-sm text-[#c5bfd9] dark:text-[#b9b3cf]">{section.description}</p>
               </Card>
             </button>
           ))}
         </div>
 
         <div className="max-w-5xl mx-auto space-y-8">
-          <Card id="docs-demarrage" className="bg-white border-[#d4c5f9] p-8">
+          <Card id="docs-demarrage" className="bg-white dark:bg-[#120b22] border-[#d4c5f9] dark:border-[#2a1d45] p-8">
             <h3 className="text-2xl text-[#2d1b4e] mb-3" style={{ fontFamily: "Cinzel, serif" }}>
               Démarrage rapide
             </h3>
             <div className="text-sm text-[#2d1b4e] space-y-3">
               <p>
-                Objectif : lancer Nomina (web) et pouvoir générer des contenus (personnages, univers, etc.).
-                Pour les fonctionnalités qui appellent l’API, démarrez aussi le backend.
+                Objectif : lancer Nomina (web) et générer des contenus (personnages, univers, etc.).
+                Pour les fonctionnalités qui appellent l’API, le backend doit aussi être démarré.
               </p>
               <ul className="list-disc pl-5 space-y-1">
                 <li><b>Mode en ligne</b> : l’app appelle l’API du backend (Express + Prisma).</li>
                 <li><b>Mode hors‑ligne</b> : les écritures peuvent être mises en attente (outbox) et rejouées au retour en ligne; la lecture dépend du cache.</li>
-                <li><b>Génération</b> : allez sur la page “Génération”, choisissez un type, puis générez.</li>
+                <li><b>Génération</b> : page “Génération” → choix du type → génération.</li>
               </ul>
-              <p className="text-[#6b5b8a]">
-                Astuce : si vous voyez des erreurs réseau, vérifiez que le backend tourne et que <code>VITE_API_URL</code>
+              <p className="text-[#6b5b8a] dark:text-[#b9b3cf]">
+                Astuce : en cas d’erreurs réseau, vérifier que le backend tourne et que <code>VITE_API_URL</code>
                 pointe vers la bonne URL.
               </p>
             </div>
           </Card>
 
-          <Card id="docs-api" className="bg-white border-[#d4c5f9] p-8">
+          <Card id="docs-api" className="bg-white dark:bg-[#120b22] border-[#d4c5f9] dark:border-[#2a1d45] p-8">
             <h3 className="text-2xl text-[#2d1b4e] mb-3" style={{ fontFamily: "Cinzel, serif" }}>
               Référence API
             </h3>
@@ -127,12 +130,12 @@ export function Documentation() {
               </ul>
 
               <div className="mt-4 flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-[#6b5b8a]">
+                <p className="text-[#6b5b8a] dark:text-[#b9b3cf]">
                   Les exemples de code sont disponibles en “mode développeur”.
                 </p>
                 <Button
                   variant="outline"
-                  className="border-[#d4c5f9] text-[#2d1b4e] hover:bg-[#7b3ff2]/10"
+                  className="border-[#d4c5f9] dark:border-[#2a1d45] text-[#2d1b4e] hover:bg-[#7b3ff2]/10"
                   onClick={() => setShowDevExamples((v) => !v)}
                 >
                   {showDevExamples ? "Masquer" : "Afficher"} les exemples de code
@@ -187,7 +190,7 @@ export function Documentation() {
             </div>
           </Card>
 
-          <Card id="docs-sdk" className="bg-white border-[#d4c5f9] p-8">
+          <Card id="docs-sdk" className="bg-white dark:bg-[#120b22] border-[#d4c5f9] dark:border-[#2a1d45] p-8">
             <h3 className="text-2xl text-[#2d1b4e] mb-3" style={{ fontFamily: "Cinzel, serif" }}>
               SDK & Bibliothèques
             </h3>
@@ -199,18 +202,18 @@ export function Documentation() {
                 L’intégration se fait donc via des appels HTTP (fetch/axios côté JS, requests côté Python).
               </p>
               <ul className="list-disc pl-5 space-y-1">
-                <li><b>Web/React</b> : utilisez le helper déjà présent (<code>apiFetch</code>) pour centraliser base URL + token.</li>
+                <li><b>Web/React</b> : utilisation du helper déjà présent (<code>apiFetch</code>) pour centraliser base URL + token.</li>
                 <li><b>Hors‑ligne</b> : les requêtes d’écriture peuvent être mises en attente (outbox) et rejouées au retour en ligne.</li>
                 <li><b>Backend-to-backend</b> : même principe, juste une base URL différente.</li>
               </ul>
-              <p className="text-[#6b5b8a]">
-                Si vous voulez aller plus loin, on peut générer un “SDK” interne (TypeScript) ou un client à partir
+              <p className="text-[#6b5b8a] dark:text-[#b9b3cf]">
+                Pour aller plus loin, il est possible de générer un “SDK” interne (TypeScript) ou un client à partir
                 d’un contrat (ex: OpenAPI) — mais ce n’est pas nécessaire pour le cours.
               </p>
             </div>
           </Card>
 
-          <Card id="docs-guides" className="bg-white border-[#d4c5f9] p-8">
+          <Card id="docs-guides" className="bg-white dark:bg-[#120b22] border-[#d4c5f9] dark:border-[#2a1d45] p-8">
             <h3 className="text-2xl text-[#2d1b4e] mb-3" style={{ fontFamily: "Cinzel, serif" }}>
               Guides & Tutoriels
             </h3>
@@ -227,7 +230,7 @@ export function Documentation() {
                   <b>Passer en ligne</b> : dès que le backend est accessible, l’outbox se resynchronise automatiquement.
                 </li>
               </ul>
-              <p className="text-[#6b5b8a]">
+              <p className="text-[#6b5b8a] dark:text-[#b9b3cf]">
                 Note : selon les pages, certaines fonctionnalités peuvent être limitées en mode hors‑ligne (normal).
               </p>
             </div>

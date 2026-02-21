@@ -28,8 +28,8 @@ export function HomePage() {
 								accélérer l’idéation sans perdre le ton, la logique et le style.
 							</p>
 							<p className="mt-4 text-white leading-relaxed">
-								Que tu écrives un roman, prépares une campagne de jeu de rôle, construises un worldbuilding ou prototypages un projet créatif,
-								Nomina te fournit des propositions variées et “prêtes à utiliser”, tout en gardant une direction artistique forte.
+								Qu’il s’agisse d’un roman, d’une campagne de jeu de rôle, d’un worldbuilding ou d’un prototype créatif,
+								Nomina fournit des propositions variées et “prêtes à utiliser”, tout en gardant une direction artistique forte.
 							</p>
 
 							<div className="mt-8 flex flex-wrap gap-3">
@@ -63,19 +63,19 @@ export function HomePage() {
 								<div className="mt-6 grid gap-4">
 									<div className="rounded-xl bg-[#1a0f33]/40 border border-[#7b3ff2]/15 p-4">
 										<div className="text-white font-medium">Cohérence</div>
-										<div className="text-sm text-[#c5bfd9] mt-1">
+										<div className="text-sm text-[#f3efff] mt-1">
 											Des sorties structurées (noms, genres, descriptions) pour garder un univers crédible.
 										</div>
 									</div>
 									<div className="rounded-xl bg-[#1a0f33]/40 border border-[#7b3ff2]/15 p-4">
 										<div className="text-white font-medium">Variété</div>
-										<div className="text-sm text-[#c5bfd9] mt-1">
+										<div className="text-sm text-[#f3efff] mt-1">
 											Plusieurs propositions par requête pour explorer rapidement des directions créatives.
 										</div>
 									</div>
 									<div className="rounded-xl bg-[#1a0f33]/40 border border-[#7b3ff2]/15 p-4">
 										<div className="text-white font-medium">Mode hors‑ligne</div>
-										<div className="text-sm text-[#c5bfd9] mt-1">
+										<div className="text-sm text-[#f3efff] mt-1">
 											En cas de coupure réseau, certaines actions peuvent être mises en attente (outbox).
 										</div>
 									</div>
@@ -88,15 +88,15 @@ export function HomePage() {
 						{[ 
 							{
 								title: "Créer des univers",
-								desc: "Définis l’ambiance, les thèmes et les repères du monde. Nomina t’aide à poser des fondations solides.",
+								desc: "Définition de l’ambiance, des thèmes et des repères du monde. Nomina aide à poser des fondations solides.",
 							},
 							{
 								title: "Nommer avec style",
-								desc: "Génère des noms adaptés (culture, sonorités, genre) et évite les incohérences d’un chapitre à l’autre.",
+								desc: "Génération de noms adaptés (culture, sonorités, genre) et réduction des incohérences d’un chapitre à l’autre.",
 							},
 							{
 								title: "Raconter en fragments",
-								desc: "Obtiens des micro‑histoires, motivations et conflits pour alimenter intrigues et personnages.",
+								desc: "Obtention de micro‑histoires, motivations et conflits pour alimenter intrigues et personnages.",
 							},
 						].map((card) => (
 							<div

@@ -87,7 +87,7 @@ export function UsersPage() {
       <SignedOut>
         <main className="min-h-screen p-6">
           <h1 className="text-3xl font-semibold mb-2">Utilisateurs</h1>
-          <p className="opacity-80">Connecte-toi pour gérer les utilisateurs.</p>
+          <p className="opacity-80">Connexion requise pour gérer les utilisateurs.</p>
         </main>
       </SignedOut>
       <SignedIn>

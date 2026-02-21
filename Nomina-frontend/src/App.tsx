@@ -162,7 +162,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      <FluidBackground variant="light" />
+      <FluidBackground />
       <Header />
       <ClerkTokenBridge />
       {!isHome ? (

@@ -20,34 +20,90 @@
   }
 
   body {
-    @apply bg-[#f8f6fc] text-[#2d1b4e];
+    background: var(--white-off);
+    color: var(--violet-deep);
     font-family: 'Poppins', sans-serif;
     font-weight: 400;
   }
 
   html.dark {
     color-scheme: dark;
+
+    --white-pure: #0b0714;
+    --white-off: #120b22;
+
+    --silver: #b9b3cf;
+
+    --violet-deep: #e9e2ff;
+    --violet-vibrant: #9a6bff;
+    --violet-light: #c7b0ff;
+    --lavender: #2a1d45;
+
+    --rose-gold: #f0a6ff;
+
+    --success: #4ade80;
+    --error: #fb7185;
+    --attention: #fbbf24;
   }
 
   html.dark body {
-    background: #120d24;
-    color: #f3efff;
-  }
-
-  html.dark .bg-white {
-    background-color: #1a1230 !important;
+    background: var(--white-pure);
+    color: var(--violet-deep);
   }
 
   html.dark .text-\[\#2d1b4e\] {
-    color: #f3efff !important;
+    color: var(--violet-deep) !important;
   }
 
-  html.dark .border-\[\#d4c5f9\] {
-    border-color: #4c2d79 !important;
+  html.dark .text-\[\#c5bfd9\] {
+    color: var(--silver) !important;
   }
 
+  html.dark .text-\[\#6b5aa3\] {
+    color: var(--silver) !important;
+  }
+
+  html.dark .bg-\[\#ffffff\],
   html.dark .bg-\[\#f8f6fc\] {
-    background-color: #120d24 !important;
+    background-color: var(--white-off) !important;
+  }
+
+  html.dark .bg-white {
+    background-color: var(--white-off) !important;
+  }
+
+  html.dark .border-\[\#d4c5f9\],
+  html.dark .border {
+    border-color: var(--lavender) !important;
+  }
+
+  html.dark input,
+  html.dark textarea,
+  html.dark select {
+    background: var(--white-off) !important;
+    color: var(--violet-deep) !important;
+    border-color: var(--lavender) !important;
+  }
+
+  html.dark input::placeholder,
+  html.dark textarea::placeholder {
+    color: var(--silver) !important;
+  }
+
+  html.dark table {
+    color: var(--violet-deep);
+  }
+
+  html.dark tr:hover {
+    background: rgba(123, 63, 242, 0.12);
+  }
+
+  html.dark .text-red-600 {
+    color: var(--error) !important;
+  }
+
+  html.dark .text-green-700 {
+    color: var(--success) !important;
   }
 
   h1 {

@@ -201,7 +201,7 @@ export function ApiDemo() {
               <div className="mt-3">
                 <SignedOut>
                   <div className="text-sm text-[#d4c5f9]">
-                    Connecte-toi (bouton “Connexion” en haut) pour tester `/auth/me`.
+                    Connexion requise (bouton “Connexion” en haut) pour tester `/auth/me`.
                   </div>
                 </SignedOut>
                 <SignedIn>

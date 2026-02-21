@@ -58,7 +58,7 @@ export function Pricing() {
             Tarifs transparents
           </h2>
           <p className="text-lg text-[#c5bfd9] max-w-2xl mx-auto">
-            Choisissez le plan qui correspond à vos besoins
+            Sélection du plan correspondant aux besoins
           </p>
         </div>
 
