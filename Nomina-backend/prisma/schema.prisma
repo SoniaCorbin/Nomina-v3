@@ -263,6 +263,7 @@ model SocialClass {
   personnages Personnage[]
 
   @@unique([name, universId, categorieId, cultureId])
+  @@index([universId, categorieId])
   @@index([universId])
   @@index([categorieId])
   @@index([cultureId])
@@ -286,6 +287,7 @@ model Occupation {
   personnages Personnage[]
 
   @@unique([name, universId, categorieId, cultureId])
+  @@index([universId, categorieId])
   @@index([universId])
   @@index([categorieId])
   @@index([cultureId])
@@ -311,6 +313,7 @@ model Organization {
   memberships PersonnageOrganization[]
 
   @@unique([name, universId, categorieId, cultureId])
+  @@index([universId, categorieId])
   @@index([universId])
   @@index([categorieId])
   @@index([cultureId])
@@ -353,6 +356,7 @@ model RelationType {
   relations   PersonnageRelation[]
 
   @@unique([code, universId, categorieId, cultureId])
+  @@index([universId, categorieId])
   @@index([universId])
   @@index([categorieId])
   @@index([cultureId])
@@ -407,6 +411,7 @@ model Event {
   participants PersonnageEvent[]
 
   @@index([placeId])
+  @@index([universId, categorieId])
   @@index([universId])
   @@index([categorieId])
   @@index([cultureId])
