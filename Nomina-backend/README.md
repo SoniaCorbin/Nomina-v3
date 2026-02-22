@@ -55,6 +55,7 @@ npm start                # exécution en production (dist)
 npm run migrate          # migration locale Prisma
 npm run migrate:deploy   # migration de déploiement
 npm run seed             # seed principal
+npm run seed:realism     # seed des données de réalisme (classes, métiers, relations, etc.)
 npm test                 # tests backend (Jest)
 ```
 
@@ -76,11 +77,26 @@ npm test                 # tests backend (Jest)
 - `GET /generate/titres`
 - `GET /generate/concepts`
 
-Paramètres query fréquents: `count`, `cultureId`, `categorieId`, `genre`, `seed`.
+Paramètres query fréquents: `count`, `cultureId`, `categorieId`, `genre`, `seed`, `keywords`.
+
+Paramètres additionnels (génération réaliste):
+- `socialClassId` (PNJ)
+- `occupationId` (PNJ)
+- `universId` (ex. fragments d'histoire)
+
+Comportement mots-clés: si aucun match strict n'est trouvé, l'API renvoie des suggestions triées par pertinence au lieu d'une réponse vide.
 
 ### Données (CRUD)
 
 Routes CRUD disponibles pour plusieurs ressources (`cultures`, `categories`, `concepts`, `titres`, `lieux`, `fragmentsHistoire`, `univers`, etc.).
+
+Nouvelles ressources réalisme:
+
+- `GET/POST/PUT/DELETE /socialClasses`
+- `GET/POST/PUT/DELETE /occupations`
+- `GET/POST/PUT/DELETE /organizations`
+- `GET/POST/PUT/DELETE /relationTypes`
+- `GET/POST/PUT/DELETE /events`
 
 Exemple:
 

@@ -61,6 +61,7 @@ Commandes proxy vers le backend (depuis ce dossier):
 npm run backend:migrate
 npm run backend:migrate:deploy
 npm run backend:seed
+npm run backend:seed:realism
 ```
 
 ---
@@ -81,10 +82,16 @@ npm run dev
 ## Pages principales
 
 - Accueil / présentation
-- Génération créative
+- Génération créative (filtres avancés: univers, catégorie, culture, mots-clés, et filtres réalisme selon le type)
 - Tableau de bord (stats + raccourcis)
 - Authentification (login/register, Clerk)
 - Gestion des entités (cultures, catégories, concepts, titres, lieux, créatures, etc.)
+
+### Détails page Génération
+
+- Les résultats PNJ peuvent être filtrés avec `socialClassId` et `occupationId`.
+- Les fragments d'histoire utilisent aussi le filtre `universId`.
+- Les recherches par mots-clés affichent maintenant des suggestions pertinentes même sans match exact.
 
 ---
 

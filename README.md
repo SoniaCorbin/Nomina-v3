@@ -13,6 +13,8 @@ Application **full‑stack** :
 - UI : navigation cohérente, page d’accueil, dashboard après connexion, feedback (loading/erreurs/succès)
 - Intégration API : appels HTTP, gestion d’erreurs, formulaires avec validation
 - CRUD complet (exigence) : ressource **Cultures** (Create/Read/Update/Delete)
+- Génération enrichie : filtres avancés (`univers`, `catégorie`, `culture`, mots-clés) + fallback de suggestions si aucun match strict
+- Réalisme (backend + UI) : classes sociales, métiers, organisations, types de relation, événements
 
 ## Technologies (versions)
 
@@ -30,6 +32,8 @@ Application **full‑stack** :
 cd Nomina-backend
 npm install
 npm run dev
+# optionnel: injecter les données de réalisme
+npm run seed:realism
 ```
 
 Backend : `http://localhost:3000`
@@ -85,3 +89,9 @@ Ajoute au moins **3 captures** montrant :
 ## Dépôt
 
 - Monorepo : https://github.com/Nocturne1975/Nomina-v3
+
+## Notes de mise à jour (février 2026)
+
+- Nouveaux endpoints backend: `/socialClasses`, `/occupations`, `/organizations`, `/relationTypes`, `/events`
+- Nouvelle commande backend: `npm run seed:realism`
+- Page Génération mise à jour: filtres réalisme (`socialClassId`, `occupationId`) et meilleure gestion des résultats par mots-clés
