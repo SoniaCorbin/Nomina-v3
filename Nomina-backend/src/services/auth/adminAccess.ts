@@ -23,7 +23,7 @@ const getClerkClient = () => {
 const allowFirstAdminBootstrap = (): boolean => {
   if (process.env.BOOTSTRAP_FIRST_ADMIN === 'true') return true;
   if (process.env.BOOTSTRAP_FIRST_ADMIN === 'false') return false;
-  return process.env.NODE_ENV !== 'production';
+  return false;
 };
 
 const resolvePrimaryEmail = (user: any): string | null => {

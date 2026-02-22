@@ -8,7 +8,9 @@ export const meController = async (req: Request, res: Response) => {
     if (!userId) return res.status(401).json({ error: 'Non authentifié' });
 
     const devBypass = process.env.ALLOW_DEV_ADMIN_BYPASS === 'true';
-    const isAdmin = devBypass ? true : await isUserAdmin(userId);
+    const devAdminUserId = (process.env.DEV_ADMIN_USER_ID || 'local-admin').trim();
+    const isDevBypassAdmin = devBypass && userId === devAdminUserId;
+    const isAdmin = isDevBypassAdmin ? true : await isUserAdmin(userId);
     return res.json({ userId, isAdmin });
 };
 

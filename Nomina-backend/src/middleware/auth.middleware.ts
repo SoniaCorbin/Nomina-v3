@@ -61,7 +61,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 };
 
 export const requireAdmin = async (req: Request, res: Response, next: NextFunction) => {
-  if (devAdminBypassEnabled()) {
+  if (devAdminBypassEnabled() && req.auth?.userId === devAdminUserId()) {
     return next();
   }
 

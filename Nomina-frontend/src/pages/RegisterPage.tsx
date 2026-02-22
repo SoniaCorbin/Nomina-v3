@@ -11,7 +11,7 @@ export function RegisterPage() {
 	const navigate = useNavigate();
 	const { isSignedIn } = useUser();
 	const { isLoaded, signUp, setActive } = useSignUp();
-	const [accountType, setAccountType] = useState<"client" | "admin">("client");
+	const [accountType, setAccountType] = useState<"client" | "admin" | null>(null);
 
 	const [step, setStep] = useState<"form" | "verify-email">("form");
 	const [pending, setPending] = useState(false);
@@ -27,18 +27,37 @@ export function RegisterPage() {
 	const [passwordConfirm, setPasswordConfirm] = useState("");
 	const [emailCode, setEmailCode] = useState("");
 
+	function normalizeEmailCode(raw: string): string {
+		return raw.replace(/[\s-]/g, "").trim();
+	}
+
+	function buildUsername(): string {
+		const rawBase = `${firstName}-${lastName}`.trim() || email.trim().split("@")[0] || "nomina-user";
+		const slug = rawBase
+			.normalize("NFD")
+			.replace(/[\u0300-\u036f]/g, "")
+			.toLowerCase()
+			.replace(/[^a-z0-9_-]+/g, "")
+			.slice(0, 24);
+
+		const safeBase = slug.length >= 3 ? slug : "nomina-user";
+		const suffix = Math.random().toString(36).slice(2, 8);
+		return `${safeBase}-${suffix}`;
+	}
+
 	const canSubmit = useMemo(() => {
 		if (pending) return false;
 		if (isSignedIn) return false;
-		if (step === "verify-email") return emailCode.trim().length > 0;
+		if (step === "verify-email") return normalizeEmailCode(emailCode).length >= 4;
 		return (
+			accountType !== null &&
 			firstName.trim().length > 0 &&
 			lastName.trim().length > 0 &&
 			email.trim().length > 0 &&
 			password.trim().length >= 8 &&
 			passwordConfirm.trim().length >= 8
 		);
-	}, [email, emailCode, firstName, isSignedIn, lastName, password, passwordConfirm, pending, step]);
+	}, [accountType, email, emailCode, firstName, isSignedIn, lastName, password, passwordConfirm, pending, step]);
 
 	useEffect(() => {
 		if (!clerkEnabled) return;
@@ -63,6 +82,46 @@ export function RegisterPage() {
 		return String(base);
 	}
 
+	function isAlreadyVerifiedError(e: any): boolean {
+		const msg = String(
+			e?.errors?.[0]?.longMessage ||
+				e?.errors?.[0]?.message ||
+				e?.message ||
+				""
+		).toLowerCase();
+		return msg.includes("already been verified") || msg.includes("already verified");
+	}
+
+	async function completeAlreadyVerifiedFlow() {
+		const maybeSubmitAdminRequest = async () => {
+			if (accountType !== "admin") return;
+			const displayName = `${firstName} ${lastName}`.trim();
+			await apiFetch<{ status: string; message: string }>("/auth/admin-request", {
+				method: "POST",
+				body: {
+					email: email.trim(),
+					username: displayName || email.trim().split("@")[0],
+				},
+			});
+		};
+
+		if (signUp?.createdSessionId) {
+			await setActive?.({ session: signUp.createdSessionId });
+			if (accountType === "admin") {
+				try {
+					await maybeSubmitAdminRequest();
+				} catch {
+					setInfo("Compte vérifié. La demande Admin n’a pas pu être envoyée automatiquement.");
+				}
+			}
+			navigate("/dashboard", { replace: true });
+			return;
+		}
+
+		setInfo("Adresse déjà vérifiée. Connecte-toi pour terminer l’accès.");
+		navigate("/login", { replace: true });
+	}
+
 	async function handleSubmit() {
 		if (!clerkEnabled) return;
 		if (isSignedIn) return;
@@ -71,35 +130,37 @@ export function RegisterPage() {
 
 		setError(null);
 		setInfo(null);
+		if (step === "form" && !accountType) {
+			setError("Choisis d’abord un type d’inscription: Client ou Admin.");
+			return;
+		}
 		if (step === "form" && password !== passwordConfirm) {
 			setError("Les mots de passe ne correspondent pas.");
 			return;
 		}
+
+		const maybeSubmitAdminRequest = async () => {
+			if (accountType !== "admin") return;
+			const displayName = `${firstName} ${lastName}`.trim();
+			await apiFetch<{ status: string; message: string }>("/auth/admin-request", {
+				method: "POST",
+				body: {
+					email: email.trim(),
+					username: displayName || email.trim().split("@")[0],
+				},
+			});
+		};
+
 		setPending(true);
 		try {
-			const maybeSubmitAdminRequest = async () => {
-				if (accountType !== "admin") return;
-				const displayName = `${firstName} ${lastName}`.trim();
-				await apiFetch<{ status: string; message: string }>("/auth/admin-request", {
-					method: "POST",
-					body: {
-						email: email.trim(),
-						username: displayName || email.trim().split("@")[0],
-					},
-				});
-			};
-
 			if (step === "form") {
+				const username = buildUsername();
 				await signUp.create({
 					emailAddress: email.trim(),
 					password: password,
+					username,
 					firstName: firstName.trim(),
 					lastName: lastName.trim(),
-					...(phone.trim()
-						? {
-							phoneNumber: phone.trim(),
-						}
-						: {}),
 				});
 
 				// Selon la config Clerk, une vérification email peut être requise.
@@ -129,11 +190,43 @@ export function RegisterPage() {
 			}
 
 			// Step verify email
-			const attempt = await signUp.attemptEmailAddressVerification({ code: emailCode.trim() });
+			const normalizedCode = normalizeEmailCode(emailCode);
+			if (!normalizedCode) {
+				setError("Le code de vérification est requis.");
+				return;
+			}
+
+			const attempt = await signUp.attemptEmailAddressVerification({ code: normalizedCode });
 			if (attempt.status === "complete") {
-				await maybeSubmitAdminRequest();
 				await setActive?.({ session: attempt.createdSessionId });
+
+				if (accountType === "admin") {
+					try {
+						await maybeSubmitAdminRequest();
+					} catch {
+						setInfo(
+							"Compte vérifié et session ouverte. La demande Admin n’a pas pu être envoyée automatiquement; réessaie depuis le formulaire ou contacte l’équipe Nomina."
+						);
+					}
+				}
+
 				navigate("/dashboard", { replace: true });
+				return;
+			}
+
+			if (attempt.status === "missing_requirements") {
+				const missingFields = Array.isArray((attempt as any).missingFields)
+					? (attempt as any).missingFields
+					: [];
+				const unverifiedFields = Array.isArray((attempt as any).unverifiedFields)
+					? (attempt as any).unverifiedFields
+					: [];
+				const details = [...missingFields, ...unverifiedFields].join(", ");
+				setError(
+					details.length > 0
+						? `Vérification incomplète: exigences Clerk manquantes (${details}). Retire le téléphone du formulaire, renvoie un code puis revalide.`
+						: "Vérification incomplète: exigences Clerk manquantes. Retire le téléphone du formulaire, renvoie un code puis revalide."
+				);
 				return;
 			}
 
@@ -141,12 +234,15 @@ export function RegisterPage() {
 				`Vérification incomplète (statut: ${attempt.status}). Un nouveau code peut être envoyé via “Renvoyer le code”, puis validé à nouveau.`
 			);
 		} catch (e: any) {
-			const msg =
-				e?.errors?.[0]?.longMessage ||
-				e?.errors?.[0]?.message ||
-				e?.message ||
-				"Impossible de créer le compte.";
-			setError(String(msg));
+			if (step === "verify-email") {
+				if (isAlreadyVerifiedError(e)) {
+					await completeAlreadyVerifiedFlow();
+					return;
+				}
+				setError(getClerkErrorMessage(e, "Code invalide ou expiré. Demande un nouveau code."));
+			} else {
+				setError(getClerkErrorMessage(e, "Impossible de créer le compte."));
+			}
 		} finally {
 			setPending(false);
 		}
@@ -163,16 +259,13 @@ export function RegisterPage() {
 		setPending(true);
 		try {
 			if (!signUp.emailAddress) {
+				const username = buildUsername();
 				await signUp.create({
 					emailAddress: email.trim(),
 					password,
+					username,
 					firstName: firstName.trim(),
 					lastName: lastName.trim(),
-					...(phone.trim()
-						? {
-							phoneNumber: phone.trim(),
-						}
-						: {}),
 				});
 			}
 
@@ -180,6 +273,10 @@ export function RegisterPage() {
 			setInfo("Nouveau code envoyé. Le plus récent doit être utilisé depuis la boîte courriel.");
 			setResendCooldown(30);
 		} catch (e: any) {
+			if (isAlreadyVerifiedError(e)) {
+				await completeAlreadyVerifiedFlow();
+				return;
+			}
 			const retryAfter = e?.errors?.[0]?.meta?.retryAfterSeconds ?? e?.errors?.[0]?.meta?.retry_after_seconds;
 			if (typeof retryAfter === "number" && retryAfter > 0) {
 				setResendCooldown(retryAfter);
@@ -191,14 +288,15 @@ export function RegisterPage() {
 	}
 
 	return (
-		<main className="min-h-screen p-6 flex items-center justify-center bg-gradient-to-b from-[#d6c9ec] via-[#e3d7f1] to-[#ead5e2]">
+		<main className="min-h-screen p-6 flex items-center justify-center bg-gradient-to-b from-[#d6c9ec] via-[#e3d7f1] to-[#ead5e2] dark:from-[#171029] dark:via-[#24193f] dark:to-[#171029]">
 			<div className="w-full max-w-[480px]">
-				<h1 className="text-3xl font-semibold mb-4 text-[#2d1b4e]">Créer un compte</h1>
+				<h1 className="text-3xl font-semibold mb-4 text-[#2d1b4e] dark:text-white">Créer un compte</h1>
 				<div className="flex gap-2 mb-4">
 					<Button
 						type="button"
 						variant={accountType === "client" ? "default" : "outline"}
 						className="flex-1"
+						disabled={pending || step === "verify-email"}
 						onClick={() => setAccountType("client")}
 					>
 						Compte Client
@@ -207,25 +305,29 @@ export function RegisterPage() {
 						type="button"
 						variant={accountType === "admin" ? "default" : "outline"}
 						className="flex-1"
+						disabled={pending || step === "verify-email"}
 						onClick={() => setAccountType("admin")}
 					>
 						Demande Admin
 					</Button>
 				</div>
+				{!accountType ? (
+					<p className="text-xs text-[#5b4a7f] dark:text-[#b9a3e3] mb-4">Sélectionne le type d’inscription avant de continuer.</p>
+				) : null}
 				{clerkEnabled && isSignedIn ? (
-					<p className="text-sm text-[#4c3575] mb-4">Session déjà active. Redirection…</p>
+					<p className="text-sm text-[#4c3575] dark:text-[#b9a3e3] mb-4">Session déjà active. Redirection…</p>
 				) : (
-				<p className="text-sm text-[#4c3575] mb-4">
+				<p className="text-sm text-[#4c3575] dark:text-[#b9a3e3] mb-4">
 					Compte existant ? <Link to="/login" className="text-[#7b3ff2] hover:underline">Se connecter</Link>
 				</p>
 				)}
-				<Card className="bg-white/96 border-[#bfa1ea] p-6 backdrop-blur-sm shadow-[0_14px_32px_rgba(74,36,130,0.18)]">
+				<Card className="bg-white/96 border-[#bfa1ea] p-6 backdrop-blur-sm shadow-[0_14px_32px_rgba(74,36,130,0.18)] dark:bg-[#1a1230] dark:border-[#4c2d79] dark:text-[#e7defc] dark:shadow-[0_10px_30px_rgba(45,27,78,0.45)]">
 					{clerkEnabled ? (
 						<div className="space-y-4">
 							{error ? <p className="text-sm text-red-600">{error}</p> : null}
 							{info ? <p className="text-sm text-emerald-700">{info}</p> : null}
 							{accountType === "admin" ? (
-								<p className="text-xs text-[#4c3575]">
+								<p className="text-xs text-[#4c3575] dark:text-[#b9a3e3]">
 									Le compte sera créé normalement, mais l’accès administrateur restera en attente jusqu’à approbation de l’équipe Nomina.
 								</p>
 							) : null}
@@ -233,37 +335,37 @@ export function RegisterPage() {
 							{step === "form" ? (
 								<>
 									<div>
-										<label className="text-sm text-[#3b275f]">Prénom</label>
-										<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea]" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+										<label className="text-sm text-[#3b275f] dark:text-[#b9a3e3]">Prénom</label>
+										<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea] dark:bg-[#f4efff] dark:text-[#2b1748] dark:placeholder:text-[#6f4da5] dark:border-[#bda3ec]" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
 									</div>
 									<div>
-										<label className="text-sm text-[#3b275f]">Nom</label>
-										<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea]" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+										<label className="text-sm text-[#3b275f] dark:text-[#b9a3e3]">Nom</label>
+										<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea] dark:bg-[#f4efff] dark:text-[#2b1748] dark:placeholder:text-[#6f4da5] dark:border-[#bda3ec]" value={lastName} onChange={(e) => setLastName(e.target.value)} />
 									</div>
 									<div>
-										<label className="text-sm text-[#3b275f]">Courriel</label>
-										<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea]" value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
+										<label className="text-sm text-[#3b275f] dark:text-[#b9a3e3]">Courriel</label>
+										<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea] dark:bg-[#f4efff] dark:text-[#2b1748] dark:placeholder:text-[#6f4da5] dark:border-[#bda3ec]" value={email} onChange={(e) => setEmail(e.target.value)} type="email" />
 									</div>
 									<div>
-										<label className="text-sm text-[#3b275f]">Téléphone</label>
+										<label className="text-sm text-[#3b275f] dark:text-[#b9a3e3]">Téléphone</label>
 										<Input
-											className="bg-white text-[#2d1b4e] border-[#bfa1ea] placeholder:text-[#7b6a9f]"
+											className="bg-white text-[#2d1b4e] border-[#bfa1ea] placeholder:text-[#7b6a9f] dark:bg-[#f4efff] dark:text-[#2b1748] dark:placeholder:text-[#6f4da5] dark:border-[#bda3ec]"
 											value={phone}
 											onChange={(e) => setPhone(e.target.value)}
 											type="tel"
 											placeholder="+1 555 555 5555"
 										/>
-										<p className="text-xs text-[#5b4a7f] mt-1">Optionnel (selon config Clerk).</p>
+										<p className="text-xs text-[#5b4a7f] dark:text-[#b9a3e3] mt-1">Optionnel (non requis pour l’inscription actuelle).</p>
 									</div>
 									<div>
-										<label className="text-sm text-[#3b275f]">Mot de passe</label>
-										<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea]" value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
-										<p className="text-xs text-[#5b4a7f] mt-1">Minimum 8 caractères.</p>
+										<label className="text-sm text-[#3b275f] dark:text-[#b9a3e3]">Mot de passe</label>
+										<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea] dark:bg-[#f4efff] dark:text-[#2b1748] dark:placeholder:text-[#6f4da5] dark:border-[#bda3ec]" value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
+										<p className="text-xs text-[#5b4a7f] dark:text-[#b9a3e3] mt-1">Minimum 8 caractères.</p>
 									</div>
 									<div>
-										<label className="text-sm text-[#3b275f]">Confirmation du mot de passe</label>
+										<label className="text-sm text-[#3b275f] dark:text-[#b9a3e3]">Confirmation du mot de passe</label>
 										<Input
-											className="bg-white text-[#2d1b4e] border-[#bfa1ea]"
+											className="bg-white text-[#2d1b4e] border-[#bfa1ea] dark:bg-[#f4efff] dark:text-[#2b1748] dark:placeholder:text-[#6f4da5] dark:border-[#bda3ec]"
 											value={passwordConfirm}
 											onChange={(e) => setPasswordConfirm(e.target.value)}
 											type="password"
@@ -275,9 +377,9 @@ export function RegisterPage() {
 								</>
 							) : (
 								<div>
-									<label className="text-sm text-[#3b275f]">Code reçu par courriel</label>
-									<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea]" value={emailCode} onChange={(e) => setEmailCode(e.target.value)} inputMode="numeric" />
-									<p className="text-xs text-[#5b4a7f] mt-1">Vérifier la boîte courriel (et le dossier spam).</p>
+									<label className="text-sm text-[#3b275f] dark:text-[#b9a3e3]">Code reçu par courriel</label>
+									<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea] dark:bg-[#f4efff] dark:text-[#2b1748] dark:placeholder:text-[#6f4da5] dark:border-[#bda3ec]" value={emailCode} onChange={(e) => setEmailCode(e.target.value)} inputMode="numeric" />
+									<p className="text-xs text-[#5b4a7f] dark:text-[#b9a3e3] mt-1">Vérifier la boîte courriel (et le dossier spam).</p>
 									<Button
 										variant="outline"
 										className="mt-3"

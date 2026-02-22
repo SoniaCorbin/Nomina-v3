@@ -1,65 +1,73 @@
-# NOMINA — Générateur d'idées (noms, personnages, mondes, concepts)
+# NOMINA Backend
 
-Nomina est une API qui aide à **inventer** :
-- des **noms** (personnages, lieux, familles, titres),
-- des **concepts** (idées de jeux, thèmes, mots-clés),
-- des **fragments d'histoire** (mini‑backstories, hooks narratifs),
-- des **PNJ** (combinaison nom + éléments narratifs).
+API Node.js/TypeScript pour générer des idées de noms, personnages, lieux, concepts et fragments d’histoire.
 
-L'idée : accélérer l'inspiration pour des univers fantasy/sci‑fi, des scénarios, des personnages, ou des mécaniques de jeu.
-
-Dossier de présentation : `docs/Dossier_Presentation_Nomina.md`
+- Stack: Express + Prisma + PostgreSQL
+- Auth: Clerk (optionnel selon les routes)
+- Référence projet: `docs/Dossier_Presentation_Nomina.md`
 
 ---
 
-## Démarrage local
-
-### Prérequis
+## Prérequis
 
 - Node.js 20+
-- Une base PostgreSQL accessible via `DATABASE_URL` (local ou cloud)
+- PostgreSQL accessible via `DATABASE_URL`
 
-### Installation
+---
+
+## Installation
 
 ```bash
 npm install
 ```
 
-### Variables d'environnement (Nomina-backend/.env)
+---
 
-- `DATABASE_URL` : chaîne de connexion PostgreSQL (utilisée par Prisma)
-- `CORS_ORIGINS` : origins autorisées (séparées par virgules)
-- `FRONTEND_URL` : origin principale du frontend (optionnel)
-- `PORT` : port de l'API (défaut : 3000)
+## Variables d’environnement
 
-Authentification (optionnel selon ton usage) :
-- `CLERK_SECRET_KEY` : requis pour les endpoints `/auth/*`
+Créer `Nomina-backend/.env` avec les variables suivantes:
+
+### Obligatoire
+
+- `DATABASE_URL` : chaîne de connexion PostgreSQL
+
+### Recommandées
+
+- `PORT` : port du serveur (défaut: `3000`)
+- `CORS_ORIGINS` : liste d’origins autorisées, séparées par des virgules
+- `FRONTEND_URL` : URL principale du frontend
+
+### Authentification Clerk (routes protégées)
+
+- `CLERK_SECRET_KEY` : requis pour `/auth/*`
 - `ADMIN_CLERK_USER_IDS` (ou `ADMIN_CLERK_USER_ID`) : requis pour `/auth/admin/ping`
+- `ALLOW_DEV_ADMIN_BYPASS` : laisser `false` en usage normal (si `true`, seul `DEV_ADMIN_USER_ID` peut bypass en local)
+- `BOOTSTRAP_FIRST_ADMIN` : laisser `false` pour éviter toute promotion admin implicite du premier compte
 
-### Lancer le serveur
+---
 
-```bash
-npm run dev
-```
-
-### Migrations / seed
+## Commandes utiles
 
 ```bash
-npm run migrate
-npm run seed
+npm run dev              # développement
+npm run build            # build TypeScript + génération Prisma
+npm start                # exécution en production (dist)
+npm run migrate          # migration locale Prisma
+npm run migrate:deploy   # migration de déploiement
+npm run seed             # seed principal
+npm test                 # tests backend (Jest)
 ```
 
 ---
 
-## Endpoints
+## Endpoints principaux
 
 ### Santé
 
-- `GET /healthz` : état du serveur
+- `GET /` : message de service
+- `GET /healthz` : état de santé
 
 ### Génération (public)
-
-Ces routes sont accessibles sans token (elles tirent et combinent des données de la base) :
 
 - `GET /generate/npcs`
 - `GET /generate/nom-personnages`
@@ -68,21 +76,28 @@ Ces routes sont accessibles sans token (elles tirent et combinent des données d
 - `GET /generate/titres`
 - `GET /generate/concepts`
 
-Paramètres (query) typiques : `count`, `cultureId`, `categorieId`, `genre`, `seed`.
+Paramètres query fréquents: `count`, `cultureId`, `categorieId`, `genre`, `seed`.
 
 ### Données (CRUD)
 
-- `GET /cultures`, `POST /cultures`, `PUT /cultures/:id`, `DELETE /cultures/:id` (+ `GET /cultures/total`)
-- Routes similaires existent pour `categories`, `concepts`, `titres`, `lieux`, `fragmentsHistoire`, `univers`, etc.
+Routes CRUD disponibles pour plusieurs ressources (`cultures`, `categories`, `concepts`, `titres`, `lieux`, `fragmentsHistoire`, `univers`, etc.).
+
+Exemple:
+
+- `GET /cultures`
+- `POST /cultures`
+- `PUT /cultures/:id`
+- `DELETE /cultures/:id`
+- `GET /cultures/total`
 
 ### Auth (protégé)
 
-- `GET /auth/me` : nécessite un token Clerk (Bearer)
-- `GET /auth/admin/ping` : nécessite un token Clerk + rôle admin (via `ADMIN_CLERK_USER_IDS` ou `ADMIN_CLERK_USER_ID`)
+- `GET /auth/me` : token Bearer Clerk requis
+- `GET /auth/admin/ping` : token Clerk + utilisateur admin requis
 
 ---
 
-## Exemples
+## Exemples d’appel
 
 ### curl
 
@@ -90,136 +105,30 @@ Paramètres (query) typiques : `count`, `cultureId`, `categorieId`, `genre`, `se
 curl "http://localhost:3000/generate/npcs?count=5&seed=demo"
 ```
 
-### JavaScript (minimal)
+### JavaScript
 
 ```js
-const res = await fetch("http://localhost:3000/generate/concepts?count=10&seed=demo");
-console.log(await res.json());
-```
-
----
-
-## Notes techniques
-
-- Base : PostgreSQL + Prisma (schéma dans `prisma/schema.prisma`)
-- Déploiement : Vercel (`vercel.json`) ou Docker + Fly.io (`fly.toml`)
-
-* * *
-
-## Spécification API (exemples)
-
-Les routes ci-dessous reflètent l’implémentation actuelle (Express).
-
-### GET /healthz
-
--   Statut de santé du backend.
-
-### GET /generate/npcs
-
--   Génère des idées de PNJ (noms + mini‑backstories).
--   Paramètres (query) possibles : `count`, `cultureId`, `categorieId`, `genre`, `seed`.
-
-### GET /generate/nom-personnages
-
--   Génère des personnages « format court » (nom + mini‑biographie).
--   Paramètres (query) possibles : `count`, `cultureId`, `categorieId`, `genre`, `seed`.
-
-### GET /generate/lieux
-
--   Tire des lieux depuis la base selon filtres.
--   Paramètres (query) possibles : `count`, `categorieId`, `seed`.
-
-### GET /generate/fragments-histoire
-
--   Tire des fragments d’histoire selon filtres.
--   Paramètres (query) possibles : `count`, `cultureId`, `categorieId`, `genre`, `appliesTo`, `seed`.
-
-### GET /generate/titres
-
--   Tire des titres selon filtres.
--   Paramètres (query) possibles : `count`, `cultureId`, `categorieId`, `genre`, `seed`.
-
-* * *
-
-## Exemples d'utilisation
-
-### curl
-
-```bash
-curl "http://localhost:3000/generate/npcs?count=5&seed=demo"
-```
-
-### Client JavaScript (exemple minimal)
-
-```js
-const res = await fetch("http://localhost:3000/generate/nom-personnages?count=10&seed=demo");
-const data = await res.json();
+const response = await fetch("http://localhost:3000/generate/concepts?count=10&seed=demo");
+const data = await response.json();
 console.log(data);
 ```
 
-* * *
+---
 
-## Architecture technique (version locale / gratuite)
+## Déploiement
 
--   Backend : Node.js + TypeScript + Express
--   Accès aux données : Prisma
--   Base de données : PostgreSQL
--   Authentification : Clerk (token Bearer) + rôles (Admin via variable d’environnement)
--   Déploiement : Vercel (serverless via `api/index.ts`) ou Docker + Fly.io (release command de migration Prisma)
+- Vercel (configuration: `vercel.json`, entrée serverless: `api/index.ts`)
+- Docker / Fly.io (configuration: `Dockerfile`, `fly.toml`)
 
-Schéma simplifié : Utilisateur → UI (web/desktop) → API Nomina (Express) → PostgreSQL (Prisma) → Résultat
+---
 
-* * *
+## Documentation et contribution
 
-## Design & Branding
+- Dépôt: https://github.com/Nocturne1975/Nomina-v3
+- Ouvrir une issue ou une PR pour proposer des changements.
 
-### Palette & typographie
-
--   Fond : bleu nuit / gris foncé (#0f1724 ou #1b2430)
--   Couleur principale : bleu-turquoise / vert d’eau (#36c6c6 ou #5fd7d7)
--   Accent : blanc cassé (#f7f7f7) ou doré léger pour détails
--   Police recommandée : fonte moderne et lisible (ex. Montserrat, Poppins, Lora pour le serif)
-
-### Iconographie recommandée (pour logo)
-
--   Plume stylisée (écriture) + encrier (narration)
--   Petit engrenage discret (tech/API) intégré à la base de l’encrier
--   Petite étoile ou pixel proche de la plume (inspiration numérique)
--   Variante monochrome pour favicon / icône d’app
-
-### Slogans courts possibles (pour le logo)
-
--   Créez, Nommez, Racontez
--   L’art du nom, la magie du récit
--   Des noms, des histoires
-
-* * *
-
-## Déploiement (options simples)
-
--   Local : `npm install` puis `npm run dev`
--   Vercel : configuration via `vercel.json`.
--   Fly.io : déploiement Docker (voir `fly.toml`) avec exécution des migrations Prisma au déploiement.
-
-* * *
-
-## Contribution & contact
-
--   Contributions : ouvre une issue ou une PR sur le dépôt GitHub.
--   Dépôt : https://github.com/Nocturne1975/Nomina-v3
-
-* * *
+---
 
 ## Licence
 
--   Aucune licence explicite n’est définie dans ce dépôt pour le moment.
-
-* * *
-
-## Annexes (à inclure dans le dossier)
-
--   `docs/` : documentation détaillée des endpoints, exemples supplémentaires
--   `assets/` : logos, icônes, palette couleur (PNG / SVG)
--   `examples/` : scripts d'exemple (client Node.js), mock data
--   `LICENSE` : fichier de licence (optionnel selon remise)
--   `CONTRIBUTING.md` : guide de contribution (optionnel)
+Aucune licence explicite n’est définie pour le moment dans ce dépôt.
