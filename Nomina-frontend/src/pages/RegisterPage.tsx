@@ -75,6 +75,16 @@ export function RegisterPage() {
 	function getClerkErrorMessage(e: any, fallback: string): string {
 		const details = e?.errors?.[0];
 		const base = details?.longMessage || details?.message || e?.message || fallback;
+		const normalized = String(base).toLowerCase();
+
+		if (
+			normalized.includes("found in an online data breach") ||
+			normalized.includes("compromised") ||
+			normalized.includes("breached")
+		) {
+			return "Ce mot de passe a déjà été compromis dans une fuite de données. Pour ta sécurité, choisis un mot de passe différent, long et unique.";
+		}
+
 		const retryAfter = details?.meta?.retryAfterSeconds ?? details?.meta?.retry_after_seconds;
 		if (typeof retryAfter === "number" && retryAfter > 0) {
 			return `${base} Réessaie dans ${retryAfter}s.`;
@@ -111,7 +121,7 @@ export function RegisterPage() {
 				try {
 					await maybeSubmitAdminRequest();
 				} catch {
-					setInfo("Compte vérifié. La demande Admin n’a pas pu être envoyée automatiquement.");
+					setInfo("Compte vérifié. La demande Administrateur n’a pas pu être envoyée automatiquement.");
 				}
 			}
 			navigate("/dashboard", { replace: true });
@@ -131,7 +141,7 @@ export function RegisterPage() {
 		setError(null);
 		setInfo(null);
 		if (step === "form" && !accountType) {
-			setError("Choisis d’abord un type d’inscription: Client ou Admin.");
+			setError("Choisis d’abord un type d’inscription: Client ou Administrateur.");
 			return;
 		}
 		if (step === "form" && password !== passwordConfirm) {
@@ -170,7 +180,7 @@ export function RegisterPage() {
 					setStep("verify-email");
 					setInfo(
 						accountType === "admin"
-							? "Un code de vérification a été envoyé. Après validation, la demande Admin sera soumise à Nomina."
+							? "Un code de vérification a été envoyé. Après validation, la demande Administrateur sera soumise à Nomina."
 							: "Un code de vérification a été envoyé par courriel."
 					);
 					return;
@@ -205,7 +215,7 @@ export function RegisterPage() {
 						await maybeSubmitAdminRequest();
 					} catch {
 						setInfo(
-							"Compte vérifié et session ouverte. La demande Admin n’a pas pu être envoyée automatiquement; réessaie depuis le formulaire ou contacte l’équipe Nomina."
+							"Compte vérifié et session ouverte. La demande Administrateur n’a pas pu être envoyée automatiquement; réessaie depuis le formulaire ou contacte l’équipe Nomina."
 						);
 					}
 				}
@@ -288,29 +298,48 @@ export function RegisterPage() {
 	}
 
 	return (
-		<main className="min-h-screen p-6 flex items-center justify-center bg-gradient-to-b from-[#d6c9ec] via-[#e3d7f1] to-[#ead5e2] dark:from-[#171029] dark:via-[#24193f] dark:to-[#171029]">
-			<div className="w-full max-w-[480px]">
+		<main className="relative min-h-screen overflow-hidden p-6 flex items-center justify-center bg-gradient-to-br from-[#f7f1ff] via-[#e7dbf9] to-[#f4d9ea] dark:from-[#100a1d] dark:via-[#1a1230] dark:to-[#23163c]">
+			<div className="pointer-events-none absolute inset-0">
+				<div className="absolute -top-24 -left-20 h-72 w-72 rounded-full bg-[#d7b4ff]/45 blur-3xl dark:bg-[#6a3bb7]/30" />
+				<div className="absolute top-1/3 -right-24 h-80 w-80 rounded-full bg-[#f7bdd7]/40 blur-3xl dark:bg-[#8b3f75]/25" />
+				<div className="absolute -bottom-28 left-1/3 h-80 w-80 rounded-full bg-[#cbb8ff]/35 blur-3xl dark:bg-[#4b2a82]/30" />
+				<div className="absolute inset-0 bg-gradient-to-t from-white/35 via-transparent to-transparent dark:from-black/25" />
+			</div>
+
+			<div className="relative z-10 w-full max-w-[480px]">
 				<h1 className="text-3xl font-semibold mb-4 text-[#2d1b4e] dark:text-white">Créer un compte</h1>
-				<div className="flex gap-2 mb-4">
+				<p className="text-sm font-medium text-[#2d1b4e] dark:text-[#e7defc] mb-2">Quel type d’inscription voulez-vous ?</p>
+				<div className="grid grid-cols-1 gap-2 mb-2">
 					<Button
 						type="button"
 						variant={accountType === "client" ? "default" : "outline"}
-						className="flex-1"
+						className="h-auto py-3 px-3 justify-start text-left whitespace-normal"
 						disabled={pending || step === "verify-email"}
 						onClick={() => setAccountType("client")}
 					>
-						Compte Client
+						<div>
+							<div className="font-medium">Inscription Client</div>
+							<div className="text-xs opacity-90">Accès aux fonctions utilisateur</div>
+						</div>
 					</Button>
 					<Button
 						type="button"
 						variant={accountType === "admin" ? "default" : "outline"}
-						className="flex-1"
+						className="h-auto py-3 px-3 justify-start text-left whitespace-normal"
 						disabled={pending || step === "verify-email"}
 						onClick={() => setAccountType("admin")}
 					>
-						Demande Admin
+						<div>
+							<div className="font-medium">Inscription Administrateur</div>
+							<div className="text-xs opacity-90">Soumettre une demande d’accès administrateur</div>
+						</div>
 					</Button>
 				</div>
+				{accountType ? (
+					<p className="text-xs text-[#4c3575] dark:text-[#b9a3e3] mb-4">
+						Choix actuel: {accountType === "client" ? "Inscription Client" : "Inscription Administrateur"}.
+					</p>
+				) : null}
 				{!accountType ? (
 					<p className="text-xs text-[#5b4a7f] dark:text-[#b9a3e3] mb-4">Sélectionne le type d’inscription avant de continuer.</p>
 				) : null}
@@ -328,7 +357,7 @@ export function RegisterPage() {
 							{info ? <p className="text-sm text-emerald-700">{info}</p> : null}
 							{accountType === "admin" ? (
 								<p className="text-xs text-[#4c3575] dark:text-[#b9a3e3]">
-									Le compte sera créé normalement, mais l’accès administrateur restera en attente jusqu’à approbation de l’équipe Nomina.
+									Le compte sera créé normalement, mais l’accès Administrateur restera en attente jusqu’à approbation de l’équipe Nomina.
 								</p>
 							) : null}
 
@@ -360,7 +389,7 @@ export function RegisterPage() {
 									<div>
 										<label className="text-sm text-[#3b275f] dark:text-[#b9a3e3]">Mot de passe</label>
 										<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea] dark:bg-[#f4efff] dark:text-[#2b1748] dark:placeholder:text-[#6f4da5] dark:border-[#bda3ec]" value={password} onChange={(e) => setPassword(e.target.value)} type="password" />
-										<p className="text-xs text-[#5b4a7f] dark:text-[#b9a3e3] mt-1">Minimum 8 caractères.</p>
+										<p className="text-xs text-[#5b4a7f] dark:text-[#b9a3e3] mt-1">Minimum 8 caractères, et évite un mot de passe déjà utilisé ailleurs.</p>
 									</div>
 									<div>
 										<label className="text-sm text-[#3b275f] dark:text-[#b9a3e3]">Confirmation du mot de passe</label>
