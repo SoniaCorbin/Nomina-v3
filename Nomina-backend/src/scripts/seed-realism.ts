@@ -311,12 +311,184 @@ async function seedPerUnivers() {
   }
 }
 
+type ScopedPool = {
+  socialClassIds: number[];
+  occupationIds: number[];
+  organizationIds: number[];
+  relationTypeIds: number[];
+  eventIds: number[];
+};
+
+function pickDeterministic(ids: number[], key: number): number | null {
+  if (ids.length === 0) return null;
+  const idx = Math.abs(key) % ids.length;
+  return ids[idx];
+}
+
+async function buildScopedPool(args: {
+  universId: number | null;
+  categorieId: number | null;
+  cultureId: number | null;
+}): Promise<ScopedPool> {
+  const { universId, categorieId, cultureId } = args;
+
+  const scopedWhere = {
+    AND: [
+      { OR: [{ universId: null }, ...(universId !== null ? [{ universId }] : [])] },
+      { OR: [{ categorieId: null }, ...(categorieId !== null ? [{ categorieId }] : [])] },
+      { OR: [{ cultureId: null }, ...(cultureId !== null ? [{ cultureId }] : [])] },
+    ],
+  };
+
+  const [socialClasses, occupations, organizations, relationTypes, events] = await Promise.all([
+    prisma.socialClass.findMany({ where: scopedWhere, select: { id: true }, orderBy: { id: 'asc' } }),
+    prisma.occupation.findMany({ where: scopedWhere, select: { id: true }, orderBy: { id: 'asc' } }),
+    prisma.organization.findMany({ where: scopedWhere, select: { id: true }, orderBy: { id: 'asc' } }),
+    prisma.relationType.findMany({ where: scopedWhere, select: { id: true }, orderBy: { id: 'asc' } }),
+    prisma.event.findMany({ where: scopedWhere, select: { id: true }, orderBy: { id: 'asc' } }),
+  ]);
+
+  return {
+    socialClassIds: socialClasses.map((x) => x.id),
+    occupationIds: occupations.map((x) => x.id),
+    organizationIds: organizations.map((x) => x.id),
+    relationTypeIds: relationTypes.map((x) => x.id),
+    eventIds: events.map((x) => x.id),
+  };
+}
+
+async function seedPersonnageRealismLinks() {
+  const personnages = await prisma.personnage.findMany({
+    select: {
+      id: true,
+      socialClassId: true,
+      occupationId: true,
+      cultureId: true,
+      categorieId: true,
+      categorie: { select: { universId: true } },
+    },
+    orderBy: { id: 'asc' },
+    take: 500,
+  });
+
+  if (personnages.length === 0) {
+    console.log('No Personnage rows found. Skipping realism links.');
+    return;
+  }
+
+  const poolCache = new Map<string, ScopedPool>();
+  const getPool = async (universId: number | null, categorieId: number | null, cultureId: number | null) => {
+    const k = `${universId ?? 'null'}|${categorieId ?? 'null'}|${cultureId ?? 'null'}`;
+    if (poolCache.has(k)) return poolCache.get(k)!;
+    const built = await buildScopedPool({ universId, categorieId, cultureId });
+    poolCache.set(k, built);
+    return built;
+  };
+
+  for (const p of personnages) {
+    const universId = p.categorie?.universId ?? null;
+    const categorieId = p.categorieId ?? null;
+    const cultureId = p.cultureId ?? null;
+    const pool = await getPool(universId, categorieId, cultureId);
+
+    const socialClassId = p.socialClassId ?? pickDeterministic(pool.socialClassIds, p.id * 7);
+    const occupationId = p.occupationId ?? pickDeterministic(pool.occupationIds, p.id * 11);
+
+    if (socialClassId !== p.socialClassId || occupationId !== p.occupationId) {
+      await prisma.personnage.update({
+        where: { id: p.id },
+        data: {
+          socialClassId: socialClassId ?? undefined,
+          occupationId: occupationId ?? undefined,
+        },
+      });
+    }
+
+    const organizationId = pickDeterministic(pool.organizationIds, p.id * 13);
+    if (organizationId !== null) {
+      await prisma.personnageOrganization.upsert({
+        where: {
+          personnageId_organizationId: {
+            personnageId: p.id,
+            organizationId,
+          },
+        },
+        update: {},
+        create: {
+          personnageId: p.id,
+          organizationId,
+          role: 'Membre',
+        },
+      });
+    }
+
+    const eventId = pickDeterministic(pool.eventIds, p.id * 17);
+    if (eventId !== null) {
+      await prisma.personnageEvent.upsert({
+        where: {
+          personnageId_eventId: {
+            personnageId: p.id,
+            eventId,
+          },
+        },
+        update: {},
+        create: {
+          personnageId: p.id,
+          eventId,
+          role: 'Participant',
+        },
+      });
+    }
+  }
+
+  const relationCandidates = personnages.map((p) => p.id);
+  for (let i = 0; i < relationCandidates.length - 1; i++) {
+    const fromId = relationCandidates[i];
+    const toId = relationCandidates[i + 1];
+
+    const fromPersonnage = personnages[i];
+    const pool = await getPool(
+      fromPersonnage.categorie?.universId ?? null,
+      fromPersonnage.categorieId ?? null,
+      fromPersonnage.cultureId ?? null
+    );
+
+    const relationTypeId = pickDeterministic(pool.relationTypeIds, fromId * 19 + toId);
+    if (relationTypeId === null) continue;
+
+    const existing = await prisma.personnageRelation.findFirst({
+      where: {
+        fromPersonnageId: fromId,
+        toPersonnageId: toId,
+        relationTypeId,
+      },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      await prisma.personnageRelation.create({
+        data: {
+          fromPersonnageId: fromId,
+          toPersonnageId: toId,
+          relationTypeId,
+          strength: 50,
+        },
+      });
+    }
+  }
+
+  console.log(`Realism links seeded for ${personnages.length} personnages.`);
+}
+
 async function main() {
   console.log('Seeding realism: global reference data...');
   await seedGlobal();
 
   console.log('Seeding realism: per-univers signature packs...');
   await seedPerUnivers();
+
+  console.log('Seeding realism: personnage links (class/job/org/relation/event)...');
+  await seedPersonnageRealismLinks();
 
   console.log('Realism seed complete.');
 }
