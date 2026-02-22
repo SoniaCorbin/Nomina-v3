@@ -5,7 +5,7 @@ import prisma from "../utils/prisma";
 export const getUniversThematiques = async (_req: Request, res: Response) => {
   try {
         const univers = await prisma.universThematique.findMany({
-          select: { id: true, name: true },
+          select: { id: true, name: true, imageUrl: true },
           orderBy: { id: "asc" },
         });
 
@@ -24,7 +24,7 @@ export const getUniversThematiques = async (_req: Request, res: Response) => {
 export const getUniversThematiquesAdmin = async (_req: Request, res: Response) => {
   try {
     const univers = await prisma.universThematique.findMany({
-      select: { id: true, name: true, description: true },
+      select: { id: true, name: true, description: true, imageUrl: true },
       orderBy: { id: "asc" },
     });
     res.json(univers);
@@ -42,7 +42,7 @@ export const getUniversThematiqueById = async (req: Request, res: Response) => {
 
     const univers = await prisma.universThematique.findUnique({
       where: { id },
-      select: { id: true, name: true, description: true },
+      select: { id: true, name: true, description: true, imageUrl: true },
     });
     if (!univers) return res.status(404).json({ error: "Univers non trouvé" });
 
@@ -72,7 +72,7 @@ export const createUniversThematique = async (req: Request, res: Response) => {
 
     const created = await prisma.universThematique.create({
       data: { name: trimmedName, description: trimmedDesc },
-      select: { id: true, name: true, description: true },
+      select: { id: true, name: true, description: true, imageUrl: true },
     });
 
     res.status(201).json(created);
@@ -115,7 +115,7 @@ export const updateUniversThematique = async (req: Request, res: Response) => {
     const updated = await prisma.universThematique.update({
       where: { id },
       data,
-      select: { id: true, name: true, description: true },
+      select: { id: true, name: true, description: true, imageUrl: true },
     });
 
     res.json(updated);
@@ -153,5 +153,35 @@ export const deleteUniversThematique = async (req: Request, res: Response) => {
     }
     console.error("Erreur deleteUniversThematique:", error);
     res.status(500).json({ error: "Erreur serveur" });
+  }
+};
+
+export const uploadUniversThematiqueImage = async (req: Request, res: Response) => {
+  try {
+    const universId = Number(req.params.id);
+    if (!Number.isFinite(universId)) {
+      return res.status(400).json({ error: "Id d’univers invalide" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "Aucun fichier image reçu" });
+    }
+
+    const imageUrl = `/uploads/univers/${req.file.filename}`;
+
+    const univers = await prisma.universThematique.update({
+      where: { id: universId },
+      data: { imageUrl },
+      select: { id: true, name: true, description: true, imageUrl: true },
+    });
+
+    return res.json({
+      message: "Image téléversée avec succès",
+      imageUrl,
+      univers,
+    });
+  } catch (error) {
+    console.error("Erreur uploadUniversThematiqueImage:", error);
+    return res.status(500).json({ error: "Erreur serveur" });
   }
 };

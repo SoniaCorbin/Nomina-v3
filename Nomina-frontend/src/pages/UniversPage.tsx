@@ -1,15 +1,17 @@
-import { useEffect, useMemo, useState } from "react";
-import { apiFetch, ApiError } from "../lib/api";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { apiFetch, ApiError, getApiBaseUrl } from "../lib/api";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import { ModelTypeNav } from "../components/ModelTypeNav";
 
 type Univers = {
   id: number;
   name: string;
   description?: string | null;
+  imageUrl?: string | null;
 };
 
 type FormState = {
@@ -38,6 +40,9 @@ export function UniversPage() {
 
   const [mode, setMode] = useState<"create" | "edit">("create");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadTargetId, setUploadTargetId] = useState<number | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [form, setForm] = useState<FormState>({ name: "", description: "" });
   const [formErrors, setFormErrors] = useState<FieldErrors>({});
@@ -80,6 +85,56 @@ export function UniversPage() {
     setSelectedId(u.id);
     setForm({ name: u.name ?? "", description: u.description ?? "" });
     setFormErrors({});
+  }
+
+  function toAbsoluteImageUrl(imageUrl?: string | null): string | null {
+    if (!imageUrl) return null;
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
+    return `${getApiBaseUrl()}${imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`}`;
+  }
+
+  function triggerImageUpload(universId: number) {
+    setUploadTargetId(universId);
+    fileInputRef.current?.click();
+  }
+
+  async function onImageSelected(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+
+    if (!file || !uploadTargetId) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Le fichier doit être une image.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image trop lourde (max 5 Mo).");
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+    setUploadingImage(true);
+
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+
+      await apiFetch<{ message: string; imageUrl: string }>(`/univers/${uploadTargetId}/image`, {
+        method: "POST",
+        body: fd,
+      });
+
+      setSuccess("Image téléversée avec succès.");
+      await refreshList();
+    } catch (err) {
+      setError(String((err as any)?.message ?? err));
+    } finally {
+      setUploadingImage(false);
+      setUploadTargetId(null);
+    }
   }
 
   async function onSubmit() {
@@ -152,12 +207,21 @@ export function UniversPage() {
   return (
     <main className="min-h-screen p-6">
       <h1 className="text-3xl font-semibold mb-6">Univers thématiques</h1>
+      <ModelTypeNav />
 
       {loading ? <p>Chargement…</p> : null}
       {error ? <p className="text-red-600 mb-4">{error}</p> : null}
       {success ? <p className="text-green-700 mb-4">{success}</p> : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => onImageSelected(e).catch(() => undefined)}
+        />
+
         <Card className="p-4 border-[#d4c5f9] lg:col-span-2">
           <div className="flex items-center justify-between gap-3 mb-3">
             <h2 className="text-lg font-semibold">Liste</h2>
@@ -171,6 +235,7 @@ export function UniversPage() {
               <TableRow>
                 <TableHead>ID</TableHead>
                 <TableHead>Nom</TableHead>
+                <TableHead>Image</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -178,7 +243,7 @@ export function UniversPage() {
             <TableBody>
               {items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={4} className="opacity-70">
+                  <TableCell colSpan={5} className="opacity-70">
                     Aucun univers.
                   </TableCell>
                 </TableRow>
@@ -192,6 +257,17 @@ export function UniversPage() {
                   >
                     <TableCell>{u.id}</TableCell>
                     <TableCell className="font-medium">{u.name}</TableCell>
+                    <TableCell>
+                      {u.imageUrl ? (
+                        <img
+                          src={toAbsoluteImageUrl(u.imageUrl) ?? undefined}
+                          alt={`Illustration de ${u.name}`}
+                          className="w-12 h-12 rounded-md border border-[#d4c5f9] object-cover"
+                        />
+                      ) : (
+                        <span className="opacity-60">—</span>
+                      )}
+                    </TableCell>
                     <TableCell className="max-w-[520px] truncate" title={u.description ?? ""}>
                       {u.description ?? ""}
                     </TableCell>
@@ -207,6 +283,17 @@ export function UniversPage() {
                           disabled={isSubmitting}
                         >
                           Modifier
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            triggerImageUpload(u.id);
+                          }}
+                          disabled={isSubmitting || uploadingImage}
+                        >
+                          {uploadingImage && uploadTargetId === u.id ? "Upload…" : "Image"}
                         </Button>
                         <Button
                           size="sm"

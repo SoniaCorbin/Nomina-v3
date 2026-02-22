@@ -28,6 +28,7 @@ model UniversThematique {
   id          Int         @id @default(autoincrement())
   name        String      @unique
   description String?
+  imageUrl    String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   categories  Categorie[]
@@ -37,6 +38,7 @@ model Categorie {
   id          Int               @id @default(autoincrement())
   name        String
   description String?
+  imageUrl    String?
   universId   Int
   univers     UniversThematique @relation(fields: [universId], references: [id])
   createdAt   DateTime          @default(now())
@@ -56,6 +58,7 @@ model Culture {
   id          Int      @id @default(autoincrement())
   name        String   @unique
   description String?
+  imageUrl    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -102,6 +105,7 @@ model Lieux {
   id          Int        @id @default(autoincrement())
   value       String
   type        String?
+  imageUrl    String?
   categorieId Int?
   categorie   Categorie? @relation(fields: [categorieId], references: [id])
   createdAt   DateTime   @default(now())

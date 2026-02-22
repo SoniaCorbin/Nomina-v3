@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
-import { apiFetch, ApiError } from "../lib/api";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { apiFetch, ApiError, getApiBaseUrl } from "../lib/api";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Card } from "../components/ui/card";
@@ -106,6 +106,7 @@ type GenerateWhat =
   | "fragmentsHistoire" 
   | "titres" 
   | "concepts"
+  | "creatures"
   | "categories"
   | "cultures"
   | "universThematique";
@@ -140,6 +141,43 @@ export function GeneratePage() {
 
   const [result, setResult] = useState<NpcResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [imagePreview, setImagePreview] = useState<{ url: string; title: string } | null>(null);
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
+  const imagePreviewCloseTimer = useRef<number | null>(null);
+
+  function toAbsoluteImageUrl(imageUrl?: string | null): string | null {
+    if (!imageUrl) return null;
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
+    return `${getApiBaseUrl()}${imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`}`;
+  }
+
+  function getItemImageUrl(item: any): string | null {
+    return toAbsoluteImageUrl(item?.imageUrl ?? item?.image ?? item?.thumbnailUrl ?? null);
+  }
+
+  function openImagePreview(url: string, title: string) {
+    if (imagePreviewCloseTimer.current) {
+      window.clearTimeout(imagePreviewCloseTimer.current);
+      imagePreviewCloseTimer.current = null;
+    }
+    setImagePreview({ url, title });
+    requestAnimationFrame(() => setImagePreviewOpen(true));
+  }
+
+  function closeImagePreview() {
+    setImagePreviewOpen(false);
+    if (imagePreviewCloseTimer.current) window.clearTimeout(imagePreviewCloseTimer.current);
+    imagePreviewCloseTimer.current = window.setTimeout(() => {
+      setImagePreview(null);
+      imagePreviewCloseTimer.current = null;
+    }, 180);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (imagePreviewCloseTimer.current) window.clearTimeout(imagePreviewCloseTimer.current);
+    };
+  }, []);
 
   const supportsGenre = useMemo(() => {
     return (
@@ -263,6 +301,18 @@ export function GeneratePage() {
     return concepts.find((c) => c.id === conceptId) ?? null;
   }, [concepts, conceptId]);
 
+  const categoryNameById = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const c of categories) map.set(c.id, c.name);
+    return map;
+  }, [categories]);
+
+  const cultureNameById = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const c of cultures) map.set(c.id, c.name);
+    return map;
+  }, [cultures]);
+
   const titreDescriptionById = useMemo(() => {
     const map = new Map<number, string>();
     for (const t of titres) {
@@ -346,6 +396,7 @@ export function GeneratePage() {
         fragmentsHistoire: "/generate/fragments-histoire",
         titres: "/generate/titres",
         concepts: "/generate/concepts",
+        creatures: "/creatures",
         categories: "/generate/categories",
         cultures: "/generate/cultures",
         universThematique: "/generate/univers",
@@ -361,10 +412,19 @@ export function GeneratePage() {
       const trimmedKeywords = keywords.trim();
 
       // Pour catégories, cultures et univers, on utilise l'API de liste directe
-      if (generateWhat === "categories" || generateWhat === "cultures" || generateWhat === "universThematique") {
-        const directEndpoint = generateWhat === "categories" ? "/categories" 
-          : generateWhat === "cultures" ? "/cultures"
-          : "/univers";
+      if (
+        generateWhat === "categories" ||
+        generateWhat === "cultures" ||
+        generateWhat === "universThematique" ||
+        generateWhat === "creatures"
+      ) {
+        const directEndpoint = generateWhat === "categories"
+          ? "/categories"
+          : generateWhat === "cultures"
+            ? "/cultures"
+            : generateWhat === "universThematique"
+              ? "/univers"
+              : "/creatures";
         
         const data = await apiFetch<any[]>(directEndpoint);
 
@@ -497,6 +557,7 @@ export function GeneratePage() {
                 <option value="titres">👑 Titres</option>
                 <option value="concepts">💡 Concepts</option>
                 <option value="fragmentsHistoire">📜 Fragments d'histoire</option>
+                <option value="creatures">🐉 Créatures</option>
                 <option value="categories">📁 Catégories</option>
                 <option value="cultures">🌍 Cultures</option>
                 <option value="universThematique">🌌 Univers thématique</option>
@@ -809,6 +870,8 @@ export function GeneratePage() {
                             return item.valeur ?? "Titre";
                           case "concepts":
                             return item.valeur ?? "Concept";
+                          case "creatures":
+                            return item.valeur ?? "Créature";
                           case "categories":
                             return item.name ?? "Catégorie";
                           case "cultures":
@@ -845,6 +908,12 @@ export function GeneratePage() {
                               : item.mood
                                 ? `Ambiance: ${item.mood}`
                                 : "Un concept pour déclencher des idées.";
+                          case "creatures":
+                            return item.description
+                              ? clamp(String(item.description), 220)
+                              : item.type
+                                ? `Type: ${item.type}`
+                                : "Créature pour enrichir l’univers narratif.";
                           case "categories":
                             return item.universId 
                               ? `Catégorie de l'univers #${item.universId}`
@@ -858,10 +927,18 @@ export function GeneratePage() {
                         }
                       })();
 
+                      const itemImageUrl = getItemImageUrl(item);
+
                       return (
                         <Card
                           key={idx}
-                          className="bg-white border-[#d4c5f9] overflow-hidden hover:shadow-xl hover:shadow-[#7b3ff2]/10 transition-all duration-300 group"
+                          className={`bg-white border-[#d4c5f9] overflow-hidden hover:shadow-xl hover:shadow-[#7b3ff2]/10 transition-all duration-300 group ${
+                            itemImageUrl ? "cursor-pointer" : ""
+                          }`}
+                          onClick={() => {
+                            if (!itemImageUrl) return;
+                            openImagePreview(itemImageUrl, title);
+                          }}
                         >
                           <div className="p-6">
                             <div className="flex items-start gap-3 mb-4">
@@ -909,6 +986,8 @@ export function GeneratePage() {
                                             ? "Titre"
                                             : generateWhat === "concepts"
                                               ? "Concept"
+                                              : generateWhat === "creatures"
+                                                ? "Créature"
                                               : generateWhat === "categories"
                                                 ? "Catégorie"
                                                 : generateWhat === "cultures"
@@ -922,10 +1001,17 @@ export function GeneratePage() {
                                 <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200">Type: {item.type}</Badge>
                               ) : null}
                               {item.cultureId ? (
-                                <Badge className="bg-green-100 text-green-700 hover:bg-green-200">Culture #{item.cultureId}</Badge>
+                                <Badge className="bg-green-100 text-green-700 hover:bg-green-200">
+                                  Culture: {cultureNameById.get(item.cultureId) ?? `#${item.cultureId}`}
+                                </Badge>
                               ) : null}
                               {item.categorieId ? (
-                                <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200">Catégorie #{item.categorieId}</Badge>
+                                <Badge className="bg-amber-100 text-amber-700 hover:bg-amber-200">
+                                  Catégorie: {categoryNameById.get(item.categorieId) ?? `#${item.categorieId}`}
+                                </Badge>
+                              ) : null}
+                              {itemImageUrl ? (
+                                <Badge className="bg-pink-100 text-pink-700 hover:bg-pink-200">Image disponible</Badge>
                               ) : null}
                             </div>
                           </div>
@@ -974,6 +1060,37 @@ export function GeneratePage() {
           )}
         </div>
       </div>
+
+      {imagePreview ? (
+        <div
+          className={`fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4 transition-opacity duration-200 ${
+            imagePreviewOpen ? "opacity-100" : "opacity-0"
+          }`}
+          onClick={closeImagePreview}
+        >
+          <div
+            className={`relative bg-white rounded-lg max-w-4xl w-full p-3 transition-all duration-200 ${
+              imagePreviewOpen ? "opacity-100 scale-100" : "opacity-0 scale-95"
+            }`}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={closeImagePreview}
+              className="absolute right-3 top-3 bg-black/70 text-white rounded-full w-8 h-8"
+              aria-label="Fermer l'aperçu"
+            >
+              ✕
+            </button>
+            <img
+              src={imagePreview.url}
+              alt={imagePreview.title}
+              className="w-full max-h-[80vh] object-contain rounded-md"
+            />
+            <p className="mt-2 text-sm text-[#2d1b4e] text-center">{imagePreview.title}</p>
+          </div>
+        </div>
+      ) : null}
     </main>
   );
 }

@@ -116,3 +116,35 @@ export const totalLieux = async (_req: Request, res: Response) => {
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
+
+export const uploadLieuImage = async (req: Request, res: Response) => {
+  try {
+    const lieuId = Number(req.params.id);
+    if (!Number.isFinite(lieuId)) {
+      return res.status(400).json({ error: 'Id de lieu invalide' });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'Aucun fichier image reçu' });
+    }
+
+    const imageUrl = `/uploads/lieux/${req.file.filename}`;
+
+    const lieu = await prisma.lieux.update({
+      where: { id: lieuId },
+      data: { imageUrl },
+      include: {
+        categorie: true,
+      },
+    });
+
+    return res.json({
+      message: 'Image téléversée avec succès',
+      imageUrl,
+      lieu,
+    });
+  } catch (error) {
+    console.error('Erreur uploadLieuImage:', error);
+    return res.status(500).json({ error: 'Erreur serveur' });
+  }
+};

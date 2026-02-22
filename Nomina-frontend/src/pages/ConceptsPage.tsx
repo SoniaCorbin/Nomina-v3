@@ -5,6 +5,7 @@ import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import { ModelTypeNav } from "../components/ModelTypeNav";
 
 type Category = { id: number; name: string };
 
@@ -176,6 +177,7 @@ export function ConceptsPage() {
   return (
     <main className="min-h-screen p-6">
       <h1 className="text-3xl font-semibold mb-6">Concepts</h1>
+      <ModelTypeNav />
 
       {loading ? <p>Chargement…</p> : null}
       {error ? <p className="text-red-600 mb-4">{error}</p> : null}

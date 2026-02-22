@@ -110,3 +110,33 @@ export const getCategories = async (req: Request, res: Response) => {
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
+
+export const uploadCategorieImage = async (req: Request, res: Response) => {
+  try {
+    const categorieId = Number(req.params.id);
+    if (!Number.isFinite(categorieId)) {
+      return res.status(400).json({ error: "Id de catégorie invalide" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "Aucun fichier image reçu" });
+    }
+
+    const imageUrl = `/uploads/categories/${req.file.filename}`;
+
+    const categorie = await prisma.categorie.update({
+      where: { id: categorieId },
+      data: { imageUrl },
+      include: { univers: true },
+    });
+
+    return res.json({
+      message: "Image téléversée avec succès",
+      imageUrl,
+      categorie,
+    });
+  } catch (error) {
+    console.error("Erreur uploadCategorieImage:", error);
+    return res.status(500).json({ error: "Erreur serveur" });
+  }
+};

@@ -1,49 +1,111 @@
-﻿# Nomina-frontend — React (Vite)
+﻿# NOMINA Frontend
 
-Interface web (frontend) **React/TSX** (bundlée par **Vite**) qui consomme l'API Nomina.
+Interface web React/TypeScript de Nomina. Elle consomme l’API backend pour générer et administrer des contenus narratifs (personnages, lieux, concepts, titres, cultures, catégories, univers, créatures).
 
-## Présentation
-
-Nomina-frontend est une interface web permettant de générer des noms (personnages, lieux, objets, etc.) et de les enrichir de mini-descriptions narratives. Elle vise les auteurs, MJ, créateurs de jeux ou toute personne en quête d’inspiration.
+---
 
 ## Stack
 
-- **UI** : React 18 + TypeScript (TSX)
-- **Routing** : React Router (BrowserRouter)
-- **Dev server / build** : Vite
-- **Styles** : Tailwind CSS (voir `src/styles/globals.css`)
+- React 18 + TypeScript
+- Vite 6
+- React Router
+- Tailwind CSS
+- Clerk (authentification)
+- Vitest (tests)
 
-## Installation & lancement
+---
 
-### Prérequis
+## Prérequis
 
-- Node.js (LTS recommandé)
+- Node.js 20+
+- Backend Nomina disponible (par défaut: `http://localhost:3000`)
 
-### Dev
+---
+
+## Installation
 
 ```bash
 npm install
+```
+
+---
+
+## Variables d’environnement
+
+Créer un fichier `.env.local` à la racine de `Nomina-frontend`.
+
+```env
+VITE_API_URL=http://localhost:3000
+VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
+```
+
+Notes:
+- `VITE_API_URL` pointe vers le backend.
+- `VITE_CLERK_PUBLISHABLE_KEY` est requis pour les pages/auth flows Clerk.
+
+---
+
+## Commandes utiles
+
+```bash
+npm run dev                 # serveur de dev
+npm run build               # build production
+npm run preview             # prévisualiser le build
+npm test                    # lancer les tests frontend
+npm run test:watch          # tests en mode watch
+```
+
+Commandes proxy vers le backend (depuis ce dossier):
+
+```bash
+npm run backend:migrate
+npm run backend:migrate:deploy
+npm run backend:seed
+```
+
+---
+
+## Démarrage local rapide
+
+1. Démarrer le backend (`Nomina-backend`).
+2. Dans ce dossier:
+
+```bash
 npm run dev
 ```
 
-### Variables d'environnement (Vite)
+3. Ouvrir l’URL affichée par Vite (généralement `http://localhost:5173`).
 
-Créer un fichier `.env.local` à la racine de `Nomina-frontend` :
+---
 
-- `VITE_CLERK_PUBLISHABLE_KEY=pk_test_...`
-- `VITE_API_URL=http://localhost:3000`
+## Pages principales
 
-### Build
+- Accueil / présentation
+- Génération créative
+- Tableau de bord (stats + raccourcis)
+- Authentification (login/register, Clerk)
+- Gestion des entités (cultures, catégories, concepts, titres, lieux, créatures, etc.)
 
-```bash
-npm run build
-```
+---
 
-## Structure du projet
+## Structure
 
-- `src/` : UI React (TSX)
-- `assets/` : ressources (images, icônes, etc.)
+- `src/pages` : pages applicatives
+- `src/components` : composants UI/sections
+- `src/lib` : helpers (API, utilitaires)
+- `src/styles` : styles globaux Tailwind
+- `assets` : images et ressources statiques
 
-## Contact
+---
 
-- soniacorbin4@gmail.com
+## Déploiement
+
+- Build: `npm run build`
+- Déploiement statique possible via Netlify (`netlify.toml`) ou Vercel selon la configuration du projet.
+
+---
+
+## Références
+
+- Dépôt: https://github.com/Nocturne1975/Nomina-v3
+- Issues: https://github.com/Nocturne1975/Nomina-v3/issues

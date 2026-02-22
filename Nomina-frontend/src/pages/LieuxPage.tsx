@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useState } from "react";
-import { apiFetch, ApiError } from "../lib/api";
+import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
+import { apiFetch, ApiError, getApiBaseUrl } from "../lib/api";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import { ModelTypeNav } from "../components/ModelTypeNav";
 
 type Category = { id: number; name: string };
 
@@ -11,6 +12,7 @@ type Lieu = {
   id: number;
   value: string;
   type?: string | null;
+  imageUrl?: string | null;
   categorieId?: number | null;
   categorie?: Category | null;
 };
@@ -44,6 +46,9 @@ export function LieuxPage() {
 
   const [mode, setMode] = useState<"create" | "edit">("create");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [uploadTargetId, setUploadTargetId] = useState<number | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const [form, setForm] = useState<FormState>({ value: "", type: "", categorieId: "" });
   const [formErrors, setFormErrors] = useState<FieldErrors>({});
@@ -89,6 +94,56 @@ export function LieuxPage() {
     setSelectedId(l.id);
     setForm({ value: l.value ?? "", type: l.type ?? "", categorieId: l.categorieId ? String(l.categorieId) : "" });
     setFormErrors({});
+  }
+
+  function toAbsoluteImageUrl(imageUrl?: string | null): string | null {
+    if (!imageUrl) return null;
+    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
+    return `${getApiBaseUrl()}${imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`}`;
+  }
+
+  function triggerImageUpload(lieuId: number) {
+    setUploadTargetId(lieuId);
+    fileInputRef.current?.click();
+  }
+
+  async function onImageSelected(e: ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    e.target.value = "";
+
+    if (!file || !uploadTargetId) return;
+
+    if (!file.type.startsWith("image/")) {
+      setError("Le fichier doit être une image.");
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image trop lourde (max 5 Mo).");
+      return;
+    }
+
+    setError(null);
+    setSuccess(null);
+    setUploadingImage(true);
+
+    try {
+      const fd = new FormData();
+      fd.append("image", file);
+
+      await apiFetch<{ message: string; imageUrl: string }>(`/lieux/${uploadTargetId}/image`, {
+        method: "POST",
+        body: fd,
+      });
+
+      setSuccess("Image téléversée avec succès.");
+      await refreshAll();
+    } catch (err) {
+      setError(String((err as any)?.message ?? err));
+    } finally {
+      setUploadingImage(false);
+      setUploadTargetId(null);
+    }
   }
 
   async function onSubmit() {
@@ -161,12 +216,21 @@ export function LieuxPage() {
   return (
     <main className="min-h-screen p-6">
       <h1 className="text-3xl font-semibold mb-6">Lieux</h1>
+      <ModelTypeNav />
 
       {loading ? <p>Chargement…</p> : null}
       {error ? <p className="text-red-600 mb-4">{error}</p> : null}
       {success ? <p className="text-green-700 mb-4">{success}</p> : null}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => onImageSelected(e).catch(() => undefined)}
+        />
+
         <Card className="p-4 border-[#d4c5f9] lg:col-span-2">
           <div className="flex items-center justify-between gap-3 mb-3">
             <h2 className="text-lg font-semibold">Liste</h2>
@@ -181,6 +245,7 @@ export function LieuxPage() {
                 <TableHead>ID</TableHead>
                 <TableHead>Valeur</TableHead>
                 <TableHead>Type</TableHead>
+                <TableHead>Image</TableHead>
                 <TableHead>Catégorie</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -188,7 +253,7 @@ export function LieuxPage() {
             <TableBody>
               {items.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5} className="opacity-70">
+                  <TableCell colSpan={6} className="opacity-70">
                     Aucun lieu.
                   </TableCell>
                 </TableRow>
@@ -203,6 +268,17 @@ export function LieuxPage() {
                     <TableCell>{l.id}</TableCell>
                     <TableCell className="font-medium">{l.value}</TableCell>
                     <TableCell>{l.type ?? "—"}</TableCell>
+                    <TableCell>
+                      {l.imageUrl ? (
+                        <img
+                          src={toAbsoluteImageUrl(l.imageUrl) ?? undefined}
+                          alt={`Illustration de ${l.value}`}
+                          className="w-12 h-12 rounded-md border border-[#d4c5f9] object-cover"
+                        />
+                      ) : (
+                        <span className="opacity-60">—</span>
+                      )}
+                    </TableCell>
                     <TableCell>{l.categorie?.name ?? l.categorieId ?? "—"}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
@@ -216,6 +292,17 @@ export function LieuxPage() {
                           disabled={isSubmitting}
                         >
                           Modifier
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            triggerImageUpload(l.id);
+                          }}
+                          disabled={isSubmitting || uploadingImage}
+                        >
+                          {uploadingImage && uploadTargetId === l.id ? "Upload…" : "Image"}
                         </Button>
                         <Button
                           size="sm"

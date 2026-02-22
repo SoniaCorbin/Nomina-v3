@@ -86,3 +86,32 @@ export const getCultures = async (_req: Request, res: Response) => {
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
+
+export const uploadCultureImage = async (req: Request, res: Response) => {
+  try {
+    const cultureId = Number(req.params.id);
+    if (!Number.isFinite(cultureId)) {
+      return res.status(400).json({ error: "Id de culture invalide" });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({ error: "Aucun fichier image reçu" });
+    }
+
+    const imageUrl = `/uploads/cultures/${req.file.filename}`;
+
+    const culture = await prisma.culture.update({
+      where: { id: cultureId },
+      data: { imageUrl },
+    });
+
+    return res.json({
+      message: "Image téléversée avec succès",
+      imageUrl,
+      culture,
+    });
+  } catch (error) {
+    console.error("Erreur uploadCultureImage:", error);
+    return res.status(500).json({ error: "Erreur serveur" });
+  }
+};
