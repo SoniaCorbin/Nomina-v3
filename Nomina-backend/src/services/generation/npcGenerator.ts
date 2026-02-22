@@ -42,6 +42,7 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
   const seed = options.seed ?? rng.seed;
 
   const genreIn = options.genre ? normalizeGenreValues(options.genre) : undefined;
+  const isCreatureGenreRequest = (genreIn ?? []).some(isCreatureGenreValue);
 
   const linkFiltersRequested =
     options.organizationId !== undefined ||
@@ -137,7 +138,7 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
     options.socialClassId !== undefined ||
     options.occupationId !== undefined;
 
-  const names = personnages.length > 0
+  let names = personnages.length > 0
     ? personnages
         .map((p) => ({
           id: p.id,
@@ -183,6 +184,38 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
         }))
       );
 
+  if (names.length === 0 && isCreatureGenreRequest && !enforcePersonnageFilters) {
+    const creatures = await prisma.creature.findMany({
+      where: {
+        valeur: { not: "" },
+        cultureId: options.cultureId,
+        categorieId: options.categorieId,
+        ...(options.universId !== undefined
+          ? {
+              categorie: {
+                universId: options.universId,
+              },
+            }
+          : {}),
+      },
+      select: {
+        id: true,
+        valeur: true,
+        cultureId: true,
+        categorieId: true,
+      },
+    });
+
+    names = creatures.map((c) => ({
+      id: c.id,
+      valeur: c.valeur,
+      genre: "créature",
+      cultureId: c.cultureId,
+      categorieId: c.categorieId,
+      familyName: null,
+    }));
+  }
+
   if (names.length === 0) {
     return {
       seed,
@@ -200,6 +233,8 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
       items: [],
       warning: enforcePersonnageFilters
         ? "Aucun Personnage ne match les filtres réalistes (classe sociale/métier)."
+        : isCreatureGenreRequest
+          ? "Aucune Créature ne match les filtres."
         : "Aucun Prénom ne match les filtres.",
     };
   }
@@ -391,6 +426,25 @@ function normalizeGenreValues(input: string): string[] {
       "Neutral",
       "neutral",
     ].forEach(add);
+  } else if (isCreatureGenreValue(lc)) {
+    [
+      "Creature",
+      "creature",
+      "Créature",
+      "créature",
+      "Creatures",
+      "creatures",
+      "Créatures",
+      "créatures",
+      "Monster",
+      "monster",
+      "Monstre",
+      "monstre",
+      "Monstres",
+      "monstres",
+      "Bestiaire",
+      "bestiaire",
+    ].forEach(add);
   } else {
     add(raw);
   }
@@ -437,4 +491,14 @@ function sampleWithoutReplacement<T>(arr: T[], k: number, rnd: () => number): T[
     copy.splice(idx, 1);
   }
   return out;
+}
+
+function isCreatureGenreValue(value: string) {
+  const normalized = value
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "");
+
+  return ["creature", "creatures", "monster", "monstre", "monstres", "bestiaire"].includes(normalized);
 }

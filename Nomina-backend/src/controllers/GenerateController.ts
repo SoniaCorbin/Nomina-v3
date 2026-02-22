@@ -159,12 +159,23 @@ export const generateNpcs = async (req: Request, res: Response) => {
     const baseItems = Array.isArray((result as any).items) ? (result as any).items : [];
     const uniqueBaseItems = uniqueByNormalizedText(baseItems, (it: any) => `${it?.fullName ?? it?.name ?? ""}`);
 
+    const normalizeNpcWarning = (warning: unknown, itemCount: number): string | undefined => {
+      if (itemCount === 0) return "Aucun Personnage ne match les filtres.";
+      if (typeof warning !== "string") return undefined;
+
+      return warning
+        .replace(/prénom/gi, "Personnage")
+        .replace(/prenom/gi, "Personnage")
+        .replace(/PNJ/gi, "Personnage");
+    };
+
     if (kws.length === 0) {
       const items = uniqueBaseItems.slice(0, count);
       return res.json({
         ...(result as any),
         count: items.length,
         items,
+        warning: normalizeNpcWarning((result as any).warning, items.length),
       });
     }
 
@@ -189,10 +200,12 @@ export const generateNpcs = async (req: Request, res: Response) => {
       },
       items,
       info: matched.length > 0 ? `Résultats classés par pertinence pour: ${kws.join(", ")}` : undefined,
-      warning:
+      warning: normalizeNpcWarning(
         matched.length === 0
           ? `Aucun PNJ ne matche directement: ${kws.join(", ")}. Suggestions affichées.`
           : (result as any).warning,
+        items.length
+      ),
     });
   } catch (error) {
     console.error("Erreur generateNpcs:", error);
