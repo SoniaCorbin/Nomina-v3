@@ -908,23 +908,66 @@ export const generateFragmentsHistoire = async (req: Request, res: Response) => 
 
     const appliesToValues = normalizeAppliesToValues(appliesTo);
 
-    const rows = await prisma.fragmentsHistoire.findMany({
-      where: {
-        cultureId,
-        categorieId,
-        ...(universId !== undefined
-          ? {
-              categorie: {
-                universId,
-              },
-            }
-          : {}),
-        genre: buildGenreWhere(genre),
-        appliesTo: appliesToValues ? { in: appliesToValues } : undefined,
-      },
-      select: { id: true, texte: true, appliesTo: true, genre: true, cultureId: true, categorieId: true },
-      orderBy: { id: "asc" },
-    });
+    const strictWhere = {
+      cultureId,
+      categorieId,
+      ...(universId !== undefined
+        ? {
+            categorie: {
+              universId,
+            },
+          }
+        : {}),
+      genre: buildGenreWhere(genre),
+      appliesTo: appliesToValues ? { in: appliesToValues } : undefined,
+    };
+
+    const fallbackWhereWithoutAppliesTo = {
+      ...strictWhere,
+      appliesTo: undefined,
+    };
+
+    const fallbackWhereWithoutGenreAndAppliesTo = {
+      ...strictWhere,
+      genre: undefined,
+      appliesTo: undefined,
+    };
+
+    const fallbackWhereBroad = {
+      ...(universId !== undefined
+        ? {
+            categorie: {
+              universId,
+            },
+          }
+        : {}),
+      appliesTo: appliesToValues ? { in: appliesToValues } : undefined,
+    };
+
+    const fallbackWhereGlobal = {};
+
+    const queries: Array<{ label: string; where: any }> = [
+      { label: "strict", where: strictWhere },
+      { label: "no-appliesTo", where: fallbackWhereWithoutAppliesTo },
+      { label: "no-genre-no-appliesTo", where: fallbackWhereWithoutGenreAndAppliesTo },
+      { label: "broad", where: fallbackWhereBroad },
+      { label: "global", where: fallbackWhereGlobal },
+    ];
+
+    let rows: Array<{ id: number; texte: string; appliesTo: string | null; genre: string | null; cultureId: number | null; categorieId: number | null }> = [];
+    let selectedQueryLabel = "strict";
+
+    for (const q of queries) {
+      rows = await prisma.fragmentsHistoire.findMany({
+        where: q.where,
+        select: { id: true, texte: true, appliesTo: true, genre: true, cultureId: true, categorieId: true },
+        orderBy: { id: "asc" },
+      });
+      if (rows.length > 0) {
+        selectedQueryLabel = q.label;
+        break;
+      }
+    }
 
     const uniqueRows = uniqueByNormalizedText(rows, (f) => f.texte);
     const ranked = uniqueRows
@@ -965,8 +1008,14 @@ export const generateFragmentsHistoire = async (req: Request, res: Response) => 
         ? "Aucun Fragment d'histoire ne match les filtres."
         : kws.length > 0 && matched.length === 0
           ? `Aucun match exact pour "${kws.join(", ")}". Suggestions affichées.`
+          : selectedQueryLabel !== "strict"
+            ? "Filtres élargis automatiquement pour trouver des fragments pertinents."
+          : undefined,
+      info: kws.length > 0 && matched.length > 0
+        ? `Résultats classés par pertinence pour: ${kws.join(", ")}`
+        : selectedQueryLabel !== "strict"
+          ? "Résultats obtenus avec élargissement progressif des filtres."
         : undefined,
-      info: kws.length > 0 && matched.length > 0 ? `Résultats classés par pertinence pour: ${kws.join(", ")}` : undefined,
     });
   } catch (error) {
     console.error("Erreur generateFragmentsHistoire:", error);

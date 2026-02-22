@@ -228,45 +228,45 @@ export function GeneratePage() {
 
   const filteredSocialClasses = useMemo(() => {
     return socialClasses.filter((s) => {
-      if (universId !== "" && s.universId !== universId) return false;
-      if (categorieId !== "" && s.categorieId !== categorieId) return false;
-      if (cultureId !== "" && s.cultureId !== cultureId) return false;
+      if (universId !== "" && s.universId !== null && s.universId !== universId) return false;
+      if (categorieId !== "" && s.categorieId !== null && s.categorieId !== categorieId) return false;
+      if (cultureId !== "" && s.cultureId !== null && s.cultureId !== cultureId) return false;
       return true;
     });
   }, [socialClasses, universId, categorieId, cultureId]);
 
   const filteredOccupations = useMemo(() => {
     return occupations.filter((o) => {
-      if (universId !== "" && o.universId !== universId) return false;
-      if (categorieId !== "" && o.categorieId !== categorieId) return false;
-      if (cultureId !== "" && o.cultureId !== cultureId) return false;
+      if (universId !== "" && o.universId !== null && o.universId !== universId) return false;
+      if (categorieId !== "" && o.categorieId !== null && o.categorieId !== categorieId) return false;
+      if (cultureId !== "" && o.cultureId !== null && o.cultureId !== cultureId) return false;
       return true;
     });
   }, [occupations, universId, categorieId, cultureId]);
 
   const filteredOrganizations = useMemo(() => {
     return organizations.filter((o) => {
-      if (universId !== "" && o.universId !== universId) return false;
-      if (categorieId !== "" && o.categorieId !== categorieId) return false;
-      if (cultureId !== "" && o.cultureId !== cultureId) return false;
+      if (universId !== "" && o.universId !== null && o.universId !== universId) return false;
+      if (categorieId !== "" && o.categorieId !== null && o.categorieId !== categorieId) return false;
+      if (cultureId !== "" && o.cultureId !== null && o.cultureId !== cultureId) return false;
       return true;
     });
   }, [organizations, universId, categorieId, cultureId]);
 
   const filteredRelationTypes = useMemo(() => {
     return relationTypes.filter((r) => {
-      if (universId !== "" && r.universId !== universId) return false;
-      if (categorieId !== "" && r.categorieId !== categorieId) return false;
-      if (cultureId !== "" && r.cultureId !== cultureId) return false;
+      if (universId !== "" && r.universId !== null && r.universId !== universId) return false;
+      if (categorieId !== "" && r.categorieId !== null && r.categorieId !== categorieId) return false;
+      if (cultureId !== "" && r.cultureId !== null && r.cultureId !== cultureId) return false;
       return true;
     });
   }, [relationTypes, universId, categorieId, cultureId]);
 
   const filteredEvents = useMemo(() => {
     return events.filter((e) => {
-      if (universId !== "" && e.universId !== universId) return false;
-      if (categorieId !== "" && e.categorieId !== categorieId) return false;
-      if (cultureId !== "" && e.cultureId !== cultureId) return false;
+      if (universId !== "" && e.universId !== null && e.universId !== universId) return false;
+      if (categorieId !== "" && e.categorieId !== null && e.categorieId !== categorieId) return false;
+      if (cultureId !== "" && e.cultureId !== null && e.cultureId !== cultureId) return false;
       return true;
     });
   }, [events, universId, categorieId, cultureId]);
