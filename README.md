@@ -7,6 +7,10 @@ Application **full‑stack** :
 - **Frontend** : React (Vite)
 - **Auth** : Clerk (inscription / connexion / déconnexion)
 
+## Résultat attendu du laboratoire
+
+À la fin de ce laboratoire, vous aurez une application full-stack fonctionnelle prête à être présentée lors de l'examen final. Cette application démontrera votre maîtrise des concepts de services web modernes, de l'architecture client-serveur, et des bonnes pratiques de sécurité.
+
 ## Fonctionnalités (Lab 3)
 
 - Auth complète : inscription, connexion, déconnexion, session persistante, routes protégées
@@ -95,3 +99,13 @@ Ajoute au moins **3 captures** montrant :
 - Nouveaux endpoints backend: `/socialClasses`, `/occupations`, `/organizations`, `/relationTypes`, `/events`
 - Nouvelle commande backend: `npm run seed:realism`
 - Page Génération mise à jour: filtres réalisme (`socialClassId`, `occupationId`) et meilleure gestion des résultats par mots-clés
+
+## Journal de version (solo)
+
+### v3 — 22 février 2026
+
+- Sécurité/auth: correction du flux de rôles pour éviter qu’un compte client obtienne un contexte admin.
+- Génération: fallback de suggestions quand les mots-clés ne donnent aucun match exact.
+- Fragments d’histoire: correction de l’application des filtres (incluant le filtre univers).
+- Réalisme: ajout des ressources `SocialClass`, `Occupation`, `Organization`, `RelationType`, `Event` + routes CRUD.
+- Données: ajout du seed dédié `npm run seed:realism` pour peupler les données de réalisme.
