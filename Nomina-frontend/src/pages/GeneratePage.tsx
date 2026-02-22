@@ -466,6 +466,10 @@ export function GeneratePage() {
     setError(null);
     setResult(null);
 
+    const safeCount = Number.isFinite(count)
+      ? Math.max(1, Math.min(200, Math.trunc(count)))
+      : 10;
+
     try {
       const endpointByWhat: Record<GenerateWhat, string> = {
         npcs: "/generate/npcs",
@@ -484,7 +488,7 @@ export function GeneratePage() {
       const endpoint = endpointByWhat[generateWhat];
 
       const qs = new URLSearchParams();
-      qs.set("count", String(count));
+      qs.set("count", String(safeCount));
       if (prefixe.trim()) qs.set("seed", prefixe.trim());
 
       // NOUVEAU: Envoi des mots-clés au backend
@@ -533,9 +537,9 @@ export function GeneratePage() {
         // Formater comme un résultat de génération
         const formattedResult = {
           seed: "direct",
-          count: Math.min(sourceData.length, count),
+          count: Math.min(sourceData.length, safeCount),
           filters: { keywords: trimmedKeywords || null },
-          items: sourceData.slice(0, count),
+          items: sourceData.slice(0, safeCount),
           info:
             keywordList.length > 0
               ? filteredData.length > 0
@@ -671,7 +675,14 @@ export function GeneratePage() {
                 min={1}
                 max={200}
                 value={count}
-                onChange={(e) => setCount(Number(e.target.value))}
+                onChange={(e) => {
+                  const next = Number(e.target.value);
+                  if (!Number.isFinite(next)) {
+                    setCount(1);
+                    return;
+                  }
+                  setCount(Math.max(1, Math.min(200, Math.trunc(next))));
+                }}
                 className="mt-2"
               />
             </div>
