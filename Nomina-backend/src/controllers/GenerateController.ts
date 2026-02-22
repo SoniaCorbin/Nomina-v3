@@ -117,6 +117,7 @@ export const generateNpcs = async (req: Request, res: Response) => {
     const parsed = z
       .object({
         count: countQuerySchema,
+        universId: optionalIdQuerySchema,
         cultureId: optionalIdQuerySchema,
         categorieId: optionalIdQuerySchema,
         socialClassId: optionalIdQuerySchema,
@@ -137,13 +138,14 @@ export const generateNpcs = async (req: Request, res: Response) => {
       });
     }
 
-    const { count, cultureId, categorieId, socialClassId, occupationId, organizationId, relationTypeId, eventId, genre, seed, keywords } = parsed.data;
+    const { count, universId, cultureId, categorieId, socialClassId, occupationId, organizationId, relationTypeId, eventId, genre, seed, keywords } = parsed.data;
 
     const kws = splitKeywords(keywords);
     const requestedCount = Math.min(count * 4, 120);
 
     const result = await generateNpcIdeas({
       count: requestedCount,
+      universId,
       cultureId,
       categorieId,
       socialClassId,
@@ -182,6 +184,7 @@ export const generateNpcs = async (req: Request, res: Response) => {
       count: items.length,
       filters: {
         ...((result as any).filters ?? {}),
+        universId: universId ?? null,
         keywords: kws.join(", "),
       },
       items,

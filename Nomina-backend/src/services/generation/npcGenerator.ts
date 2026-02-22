@@ -43,59 +43,70 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
 
   const genreIn = options.genre ? normalizeGenreValues(options.genre) : undefined;
 
-  const personnages = await prisma.personnage.findMany({
-    where: {
-      cultureId: options.cultureId,
-      categorieId: options.categorieId,
-      socialClassId: options.socialClassId,
-      occupationId: options.occupationId,
-      ...(options.organizationId !== undefined
-        ? {
-            memberships: {
-              some: {
-                organizationId: options.organizationId,
-              },
+  const linkFiltersRequested =
+    options.organizationId !== undefined ||
+    options.relationTypeId !== undefined ||
+    options.eventId !== undefined;
+
+  const baseWhere: any = {
+    cultureId: options.cultureId,
+    categorieId: options.categorieId,
+    socialClassId: options.socialClassId,
+    occupationId: options.occupationId,
+    ...(options.universId !== undefined
+      ? {
+          categorie: {
+            universId: options.universId,
+          },
+        }
+      : {}),
+    genre: genreIn && genreIn.length > 0 ? { in: genreIn } : options.genre,
+  };
+
+  const strictWhere: any = {
+    ...baseWhere,
+    ...(options.organizationId !== undefined
+      ? {
+          memberships: {
+            some: {
+              organizationId: options.organizationId,
             },
-          }
-        : {}),
-      ...(options.relationTypeId !== undefined
-        ? {
-            OR: [
-              {
-                fromRelations: {
-                  some: {
-                    relationTypeId: options.relationTypeId,
-                  },
+          },
+        }
+      : {}),
+    ...(options.relationTypeId !== undefined
+      ? {
+          OR: [
+            {
+              fromRelations: {
+                some: {
+                  relationTypeId: options.relationTypeId,
                 },
               },
-              {
-                toRelations: {
-                  some: {
-                    relationTypeId: options.relationTypeId,
-                  },
+            },
+            {
+              toRelations: {
+                some: {
+                  relationTypeId: options.relationTypeId,
                 },
               },
-            ],
-          }
-        : {}),
-      ...(options.eventId !== undefined
-        ? {
-            events: {
-              some: {
-                eventId: options.eventId,
-              },
             },
-          }
-        : {}),
-      ...(options.universId !== undefined
-        ? {
-            categorie: {
-              universId: options.universId,
+          ],
+        }
+      : {}),
+    ...(options.eventId !== undefined
+      ? {
+          events: {
+            some: {
+              eventId: options.eventId,
             },
-          }
-        : {}),
-      genre: genreIn && genreIn.length > 0 ? { in: genreIn } : options.genre,
-    },
+          },
+        }
+      : {}),
+  };
+
+  let personnages = await prisma.personnage.findMany({
+    where: strictWhere,
     select: {
       id: true,
       genre: true,
@@ -106,12 +117,25 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
     },
   });
 
+  let relaxedLinkFilters = false;
+  if (personnages.length === 0 && linkFiltersRequested) {
+    personnages = await prisma.personnage.findMany({
+      where: baseWhere,
+      select: {
+        id: true,
+        genre: true,
+        cultureId: true,
+        categorieId: true,
+        prenom: { select: { valeur: true, genre: true, cultureId: true, categorieId: true } },
+        nomFamille: { select: { valeur: true } },
+      },
+    });
+    relaxedLinkFilters = personnages.length > 0;
+  }
+
   const enforcePersonnageFilters =
     options.socialClassId !== undefined ||
-    options.occupationId !== undefined ||
-    options.organizationId !== undefined ||
-    options.relationTypeId !== undefined ||
-    options.eventId !== undefined;
+    options.occupationId !== undefined;
 
   const names = personnages.length > 0
     ? personnages
@@ -321,11 +345,20 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
     seed,
     count: items.length,
     filters: {
+      universId: options.universId ?? null,
       cultureId: options.cultureId ?? null,
       categorieId: options.categorieId ?? null,
+      socialClassId: options.socialClassId ?? null,
+      occupationId: options.occupationId ?? null,
+      organizationId: options.organizationId ?? null,
+      relationTypeId: options.relationTypeId ?? null,
+      eventId: options.eventId ?? null,
       genre: options.genre ?? null,
     },
     items,
+    warning: relaxedLinkFilters
+      ? "Aucun Personnage ne match les filtres Organisation/Relation/Événement. Résultats élargis avec les autres filtres."
+      : undefined,
   };
 }
 

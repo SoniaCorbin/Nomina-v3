@@ -543,9 +543,11 @@ export function GeneratePage() {
                 : `Aucun match direct pour "${trimmedKeywords}", suggestions affichées`
               : `${data.length} éléments disponibles`,
           warning:
-            keywordList.length > 0 && filteredData.length === 0
-              ? `Aucun résultat exact pour "${trimmedKeywords}".`
-              : undefined,
+            sourceData.length === 0
+              ? "Aucun résultat disponible pour ce type de contenu."
+              : keywordList.length > 0 && filteredData.length === 0
+                ? `Aucun résultat exact pour "${trimmedKeywords}".`
+                : undefined,
         };
         
         setResult(formattedResult);
@@ -1181,7 +1183,11 @@ export function GeneratePage() {
                               </Badge>
                               {item.genre ? (
                                 <Badge className="bg-purple-100 text-purple-700 hover:bg-purple-200">Genre: {item.genre}</Badge>
-                              ) : null}
+                              ) : (
+                                <p className="text-sm text-[#6b5aa3] italic px-1 py-2">
+                                  Aucun résultat pour les filtres actuels.
+                                </p>
+                              )}
                               {item.type ? (
                                 <Badge className="bg-blue-100 text-blue-700 hover:bg-blue-200">Type: {item.type}</Badge>
                               ) : null}
