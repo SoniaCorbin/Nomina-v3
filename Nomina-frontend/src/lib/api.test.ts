@@ -51,6 +51,31 @@ describe('api helpers', () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it('does not cache authenticated GET responses', async () => {
+    setApiTokenProvider(async () => 'token-1');
+
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: true,
+        headers: { get: () => 'application/json' },
+        json: async () => ({ userId: 'u1', isAdmin: true }),
+      })
+      .mockRejectedValueOnce(new Error('network down'));
+
+    vi.stubGlobal('fetch', fetchMock);
+
+    const first = await apiFetch<{ userId: string; isAdmin: boolean }>('/auth/me');
+    expect(first.isAdmin).toBe(true);
+
+    await expect(apiFetch<{ userId: string; isAdmin: boolean }>('/auth/me')).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 0,
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
   it('queues mutation requests while offline', async () => {
     Object.defineProperty(window.navigator, 'onLine', {
       configurable: true,

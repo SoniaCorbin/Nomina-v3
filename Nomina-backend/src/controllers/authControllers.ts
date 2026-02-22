@@ -8,8 +8,8 @@ export const meController = async (req: Request, res: Response) => {
     if (!userId) return res.status(401).json({ error: 'Non authentifié' });
 
     const devBypass = process.env.ALLOW_DEV_ADMIN_BYPASS === 'true';
-    const devAdminUserId = (process.env.DEV_ADMIN_USER_ID || 'local-admin').trim();
-    const isDevBypassAdmin = devBypass && userId === devAdminUserId;
+    const devAdminUserId = (process.env.DEV_ADMIN_USER_ID || '').trim();
+    const isDevBypassAdmin = devBypass && devAdminUserId.length > 0 && userId === devAdminUserId;
     const isAdmin = isDevBypassAdmin ? true : await isUserAdmin(userId);
     return res.json({ userId, isAdmin });
 };

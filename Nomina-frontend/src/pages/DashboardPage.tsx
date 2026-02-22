@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, useAuth, useClerk } from "@clerk/clerk-react";
 import { apiFetch, ApiError } from "../lib/api";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -71,6 +71,7 @@ export function DashboardPage() {
 
 function DashboardInner() {
   const { getToken } = useAuth();
+  const { openUserProfile } = useClerk();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [me, setMe] = useState<Me | null>(null);
@@ -451,6 +452,16 @@ function DashboardInner() {
                       </>
                     )}
                   </div>
+                </div>
+                <div>
+                  <Button
+                    variant="outline"
+                    className="border-[#d4c5f9] bg-[#7b3ff2]/10 hover:bg-[#7b3ff2]/20 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#7b3ff2]/20 dark:hover:bg-[#7b3ff2]/30 dark:text-[#efe7ff]"
+                    onClick={() => openUserProfile()}
+                  >
+                    Modifier mon profil
+                  </Button>
+                  <p className="text-xs opacity-70 mt-1">Tu peux y modifier ton username à tout moment.</p>
                 </div>
               </div>
             ) : (

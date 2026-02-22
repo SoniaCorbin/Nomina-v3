@@ -2,8 +2,9 @@ import type { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '@clerk/backend';
 import { isUserAdmin } from '../services/auth/adminAccess';
 
-const devAdminBypassEnabled = () => process.env.ALLOW_DEV_ADMIN_BYPASS === 'true';
-const devAdminUserId = () => (process.env.DEV_ADMIN_USER_ID || 'local-admin').trim();
+const devAdminUserId = () => (process.env.DEV_ADMIN_USER_ID || '').trim();
+const devAdminBypassEnabled = () =>
+  process.env.ALLOW_DEV_ADMIN_BYPASS === 'true' && devAdminUserId().length > 0;
 
 const extractBearerToken = (req: Request): string | null => {
   const authHeader = req.headers.authorization;
@@ -51,10 +52,6 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     };
     next();
   } catch (err) {
-    if (devAdminBypassEnabled()) {
-      req.auth = { userId: devAdminUserId(), sessionId: 'dev-bypass' };
-      return next();
-    }
     console.error('Clerk token verification failed:', err);
     return res.status(401).json({ error: 'Token invalide ou expiré' });
   }

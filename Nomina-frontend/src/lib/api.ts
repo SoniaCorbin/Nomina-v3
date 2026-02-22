@@ -218,6 +218,8 @@ export async function apiFetch<T>(
   }
 
   const hasAuth = Boolean(effectiveToken);
+  const cacheTtlMs = opts.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
+  const canUseCache = !hasAuth && cacheTtlMs > 0;
 
   const headers: Record<string, string> = {
     ...(opts.headers ?? {}),
@@ -236,7 +238,7 @@ export async function apiFetch<T>(
   // OFFLINE: cache des GET / outbox pour mutations
   if (method === 'GET') {
     if (isOffline()) {
-      const cached = readCache(url, hasAuth);
+      const cached = canUseCache ? readCache(url, hasAuth) : undefined;
       if (cached !== undefined) return cached as T;
       throw new ApiError('Réseau indisponible (offline) et aucun cache disponible', 0);
     }
@@ -269,7 +271,7 @@ export async function apiFetch<T>(
   } catch {
     // network error: si GET, fallback cache
     if (method === 'GET') {
-      const cached = readCache(url, hasAuth);
+      const cached = canUseCache ? readCache(url, hasAuth) : undefined;
       if (cached !== undefined) return cached as T;
     }
     throw new ApiError('Erreur réseau (impossible de joindre l’API)', 0);
@@ -285,8 +287,8 @@ export async function apiFetch<T>(
   }
 
   // Cache GET (network-first)
-  if (method === 'GET') {
-    writeCache(url, hasAuth, payload, opts.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS);
+  if (method === 'GET' && canUseCache) {
+    writeCache(url, hasAuth, payload, cacheTtlMs);
   }
 
   return (payload as T) ?? (undefined as T);

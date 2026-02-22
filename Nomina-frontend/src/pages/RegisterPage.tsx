@@ -21,6 +21,7 @@ export function RegisterPage() {
 
 	const [firstName, setFirstName] = useState("");
 	const [lastName, setLastName] = useState("");
+	const [username, setUsername] = useState("");
 	const [email, setEmail] = useState("");
 	const [phone, setPhone] = useState("");
 	const [password, setPassword] = useState("");
@@ -32,6 +33,18 @@ export function RegisterPage() {
 	}
 
 	function buildUsername(): string {
+		const normalizedPreferred = username
+			.trim()
+			.normalize("NFD")
+			.replace(/[\u0300-\u036f]/g, "")
+			.toLowerCase()
+			.replace(/[^a-z0-9_-]+/g, "")
+			.slice(0, 24);
+
+		if (normalizedPreferred.length >= 3) {
+			return normalizedPreferred;
+		}
+
 		const rawBase = `${firstName}-${lastName}`.trim() || email.trim().split("@")[0] || "nomina-user";
 		const slug = rawBase
 			.normalize("NFD")
@@ -313,7 +326,11 @@ export function RegisterPage() {
 					<Button
 						type="button"
 						variant={accountType === "client" ? "default" : "outline"}
-						className="h-auto py-3 px-3 justify-start text-left whitespace-normal"
+						className={`h-auto py-3 px-3 justify-start text-left whitespace-normal transition-all duration-200 cursor-pointer ${
+							accountType === "client"
+								? "ring-2 ring-[#7b3ff2] shadow-[0_10px_24px_rgba(123,63,242,0.28)]"
+								: "hover:-translate-y-0.5 hover:border-[#7b3ff2] hover:bg-[#f3eaff] hover:shadow-[0_10px_24px_rgba(123,63,242,0.16)] dark:hover:bg-[#2a1b47]"
+						}`}
 						disabled={pending || step === "verify-email"}
 						onClick={() => setAccountType("client")}
 					>
@@ -325,7 +342,11 @@ export function RegisterPage() {
 					<Button
 						type="button"
 						variant={accountType === "admin" ? "default" : "outline"}
-						className="h-auto py-3 px-3 justify-start text-left whitespace-normal"
+						className={`h-auto py-3 px-3 justify-start text-left whitespace-normal transition-all duration-200 cursor-pointer ${
+							accountType === "admin"
+								? "ring-2 ring-[#7b3ff2] shadow-[0_10px_24px_rgba(123,63,242,0.28)]"
+								: "hover:-translate-y-0.5 hover:border-[#7b3ff2] hover:bg-[#f3eaff] hover:shadow-[0_10px_24px_rgba(123,63,242,0.16)] dark:hover:bg-[#2a1b47]"
+						}`}
 						disabled={pending || step === "verify-email"}
 						onClick={() => setAccountType("admin")}
 					>
@@ -363,6 +384,16 @@ export function RegisterPage() {
 
 							{step === "form" ? (
 								<>
+									<div>
+										<label className="text-sm text-[#3b275f] dark:text-[#b9a3e3]">Nom d’utilisateur (username)</label>
+										<Input
+											className="bg-white text-[#2d1b4e] border-[#bfa1ea] placeholder:text-[#7b6a9f] dark:bg-[#f4efff] dark:text-[#2b1748] dark:placeholder:text-[#6f4da5] dark:border-[#bda3ec]"
+											value={username}
+											onChange={(e) => setUsername(e.target.value)}
+											placeholder="Ex: luna.noctis"
+										/>
+										<p className="text-xs text-[#5b4a7f] dark:text-[#b9a3e3] mt-1">Optionnel: laisse vide pour génération automatique. Tu pourras aussi le modifier plus tard dans ton profil.</p>
+									</div>
 									<div>
 										<label className="text-sm text-[#3b275f] dark:text-[#b9a3e3]">Prénom</label>
 										<Input className="bg-white text-[#2d1b4e] border-[#bfa1ea] dark:bg-[#f4efff] dark:text-[#2b1748] dark:placeholder:text-[#6f4da5] dark:border-[#bda3ec]" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
