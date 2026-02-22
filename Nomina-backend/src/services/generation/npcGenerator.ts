@@ -30,6 +30,9 @@ type GenerateNpcOptions = {
   universId?: number;
   socialClassId?: number;
   occupationId?: number;
+  organizationId?: number;
+  relationTypeId?: number;
+  eventId?: number;
   genre?: string;
   seed?: string;
 };
@@ -46,6 +49,44 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
       categorieId: options.categorieId,
       socialClassId: options.socialClassId,
       occupationId: options.occupationId,
+      ...(options.organizationId !== undefined
+        ? {
+            memberships: {
+              some: {
+                organizationId: options.organizationId,
+              },
+            },
+          }
+        : {}),
+      ...(options.relationTypeId !== undefined
+        ? {
+            OR: [
+              {
+                fromRelations: {
+                  some: {
+                    relationTypeId: options.relationTypeId,
+                  },
+                },
+              },
+              {
+                toRelations: {
+                  some: {
+                    relationTypeId: options.relationTypeId,
+                  },
+                },
+              },
+            ],
+          }
+        : {}),
+      ...(options.eventId !== undefined
+        ? {
+            events: {
+              some: {
+                eventId: options.eventId,
+              },
+            },
+          }
+        : {}),
       ...(options.universId !== undefined
         ? {
             categorie: {
@@ -65,7 +106,12 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
     },
   });
 
-  const enforcePersonnageFilters = options.socialClassId !== undefined || options.occupationId !== undefined;
+  const enforcePersonnageFilters =
+    options.socialClassId !== undefined ||
+    options.occupationId !== undefined ||
+    options.organizationId !== undefined ||
+    options.relationTypeId !== undefined ||
+    options.eventId !== undefined;
 
   const names = personnages.length > 0
     ? personnages
@@ -122,6 +168,9 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
         categorieId: options.categorieId ?? null,
         socialClassId: options.socialClassId ?? null,
         occupationId: options.occupationId ?? null,
+        organizationId: options.organizationId ?? null,
+        relationTypeId: options.relationTypeId ?? null,
+        eventId: options.eventId ?? null,
         genre: options.genre ?? null,
       },
       items: [],

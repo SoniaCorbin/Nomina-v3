@@ -89,6 +89,9 @@ type Culture = { id: number; name: string };
 type Concept = { id: number; valeur: string; categorieId: number | null };
 type SocialClass = { id: number; name: string; universId: number | null; categorieId: number | null; cultureId: number | null };
 type Occupation = { id: number; name: string; universId: number | null; categorieId: number | null; cultureId: number | null };
+type Organization = { id: number; name: string; universId: number | null; categorieId: number | null; cultureId: number | null };
+type RelationType = { id: number; label: string; universId: number | null; categorieId: number | null; cultureId: number | null };
+type StoryEvent = { id: number; title: string; universId: number | null; categorieId: number | null; cultureId: number | null };
 type Titre = {
   id: number;
   valeur: string;
@@ -123,6 +126,9 @@ export function GeneratePage() {
   const [concepts, setConcepts] = useState<Concept[]>([]);
   const [socialClasses, setSocialClasses] = useState<SocialClass[]>([]);
   const [occupations, setOccupations] = useState<Occupation[]>([]);
+  const [organizations, setOrganizations] = useState<Organization[]>([]);
+  const [relationTypes, setRelationTypes] = useState<RelationType[]>([]);
+  const [events, setEvents] = useState<StoryEvent[]>([]);
   const [titres, setTitres] = useState<Titre[]>([]);
 
   // NOUVEAU: Mots-clés principal
@@ -134,6 +140,9 @@ export function GeneratePage() {
   const [cultureId, setCultureId] = useState<number | "">("");
   const [socialClassId, setSocialClassId] = useState<number | "">("");
   const [occupationId, setOccupationId] = useState<number | "">("");
+  const [organizationId, setOrganizationId] = useState<number | "">("");
+  const [relationTypeId, setRelationTypeId] = useState<number | "">("");
+  const [eventId, setEventId] = useState<number | "">("");
   const [conceptId, setConceptId] = useState<number | "">("");
   const [conceptTopic, setConceptTopic] = useState<string>("");
   const [titreId, setTitreId] = useState<number | "">("");
@@ -234,6 +243,33 @@ export function GeneratePage() {
       return true;
     });
   }, [occupations, universId, categorieId, cultureId]);
+
+  const filteredOrganizations = useMemo(() => {
+    return organizations.filter((o) => {
+      if (universId !== "" && o.universId !== universId) return false;
+      if (categorieId !== "" && o.categorieId !== categorieId) return false;
+      if (cultureId !== "" && o.cultureId !== cultureId) return false;
+      return true;
+    });
+  }, [organizations, universId, categorieId, cultureId]);
+
+  const filteredRelationTypes = useMemo(() => {
+    return relationTypes.filter((r) => {
+      if (universId !== "" && r.universId !== universId) return false;
+      if (categorieId !== "" && r.categorieId !== categorieId) return false;
+      if (cultureId !== "" && r.cultureId !== cultureId) return false;
+      return true;
+    });
+  }, [relationTypes, universId, categorieId, cultureId]);
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((e) => {
+      if (universId !== "" && e.universId !== universId) return false;
+      if (categorieId !== "" && e.categorieId !== categorieId) return false;
+      if (cultureId !== "" && e.cultureId !== cultureId) return false;
+      return true;
+    });
+  }, [events, universId, categorieId, cultureId]);
 
   const filteredTitres = useMemo(() => {
     if (!supportsTitreChoice) return [];
@@ -365,11 +401,14 @@ export function GeneratePage() {
           apiFetch<Titre[]>("/titres"),
           apiFetch<SocialClass[]>("/socialClasses"),
           apiFetch<Occupation[]>("/occupations"),
+          apiFetch<Organization[]>("/organizations"),
+          apiFetch<RelationType[]>("/relationTypes"),
+          apiFetch<StoryEvent[]>("/events"),
         ]);
 
         if (cancelled) return;
 
-        const [uRes, cRes, cuRes, coRes, tRes, scRes, ocRes] = settled;
+        const [uRes, cRes, cuRes, coRes, tRes, scRes, ocRes, orgRes, rtRes, evRes] = settled;
 
         if (uRes.status === "fulfilled") setUnivers(uRes.value);
         if (cRes.status === "fulfilled") setCategories(cRes.value);
@@ -378,6 +417,9 @@ export function GeneratePage() {
         if (tRes.status === "fulfilled") setTitres(tRes.value);
         if (scRes.status === "fulfilled") setSocialClasses(scRes.value);
         if (ocRes.status === "fulfilled") setOccupations(ocRes.value);
+        if (orgRes.status === "fulfilled") setOrganizations(orgRes.value);
+        if (rtRes.status === "fulfilled") setRelationTypes(rtRes.value);
+        if (evRes.status === "fulfilled") setEvents(evRes.value);
 
         const failedCount = settled.filter((x) => x.status === "rejected").length;
         if (failedCount === settled.length) {
@@ -524,6 +566,15 @@ export function GeneratePage() {
       }
       if ((generateWhat === "npcs" || generateWhat === "nomPersonnages") && occupationId !== "") {
         qs.set("occupationId", String(occupationId));
+      }
+      if ((generateWhat === "npcs" || generateWhat === "nomPersonnages") && organizationId !== "") {
+        qs.set("organizationId", String(organizationId));
+      }
+      if ((generateWhat === "npcs" || generateWhat === "nomPersonnages") && relationTypeId !== "") {
+        qs.set("relationTypeId", String(relationTypeId));
+      }
+      if ((generateWhat === "npcs" || generateWhat === "nomPersonnages") && eventId !== "") {
+        qs.set("eventId", String(eventId));
       }
 
       // Concepts: permet de sélectionner un concept précis.
@@ -704,6 +755,54 @@ export function GeneratePage() {
                         <option value="">— Tous —</option>
                         {filteredOccupations.map((o) => (
                           <option key={o.id} value={o.id}>{o.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
+
+                  {(generateWhat === "npcs" || generateWhat === "nomPersonnages") ? (
+                    <div>
+                      <label className="text-sm text-[#2d1b4e]">Organisation</label>
+                      <select
+                        value={organizationId}
+                        onChange={(e) => setOrganizationId(e.target.value ? Number(e.target.value) : "")}
+                        className="mt-2 w-full h-9 rounded-md border border-[#d4c5f9] bg-white px-3 text-sm"
+                      >
+                        <option value="">— Toutes —</option>
+                        {filteredOrganizations.map((o) => (
+                          <option key={o.id} value={o.id}>{o.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
+
+                  {(generateWhat === "npcs" || generateWhat === "nomPersonnages") ? (
+                    <div>
+                      <label className="text-sm text-[#2d1b4e]">Type de relation</label>
+                      <select
+                        value={relationTypeId}
+                        onChange={(e) => setRelationTypeId(e.target.value ? Number(e.target.value) : "")}
+                        className="mt-2 w-full h-9 rounded-md border border-[#d4c5f9] bg-white px-3 text-sm"
+                      >
+                        <option value="">— Tous —</option>
+                        {filteredRelationTypes.map((r) => (
+                          <option key={r.id} value={r.id}>{r.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
+
+                  {(generateWhat === "npcs" || generateWhat === "nomPersonnages") ? (
+                    <div>
+                      <label className="text-sm text-[#2d1b4e]">Événement</label>
+                      <select
+                        value={eventId}
+                        onChange={(e) => setEventId(e.target.value ? Number(e.target.value) : "")}
+                        className="mt-2 w-full h-9 rounded-md border border-[#d4c5f9] bg-white px-3 text-sm"
+                      >
+                        <option value="">— Tous —</option>
+                        {filteredEvents.map((e) => (
+                          <option key={e.id} value={e.id}>{e.title}</option>
                         ))}
                       </select>
                     </div>
