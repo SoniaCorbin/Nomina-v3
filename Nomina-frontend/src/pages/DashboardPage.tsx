@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { SignedIn, SignedOut, useClerk } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, useAuth, useClerk } from "@clerk/clerk-react";
 import { apiFetch, ApiError } from "../lib/api";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
@@ -70,6 +70,7 @@ export function DashboardPage() {
 }
 
 function DashboardInner() {
+  const { getToken } = useAuth();
   const { openUserProfile } = useClerk();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -83,7 +84,10 @@ function DashboardInner() {
       setLoading(true);
       setError(null);
       try {
-        const data = await apiFetch<Me>("/auth/me", { cacheTtlMs: 0 });
+        const token = await getToken({ skipCache: true }).catch(() => null);
+        if (!token) throw new Error("Session non prête, réessaie dans 1 seconde.");
+
+        const data = await apiFetch<Me>("/auth/me", { token, cacheTtlMs: 0 });
         if (!cancelled) setMe(data);
       } catch (e) {
         if (cancelled) return;
@@ -97,24 +101,27 @@ function DashboardInner() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [getToken]);
 
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setStatsLoading(true);
       try {
+        const token = await getToken({ skipCache: true }).catch(() => null);
+        if (!token) throw new Error("Session non prête, statistiques indisponibles.");
+
         const [cultures, categories, concepts, titres, fragments, nomPersonnages, lieux, creatures, users] = await Promise.all([
-          apiFetch<{ total: number }>("/cultures/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/categories/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/concepts/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/titres/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/fragmentsHistoire/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/nomPersonnages/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/lieux/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/creatures/total").catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/cultures/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/categories/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/concepts/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/titres/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/fragmentsHistoire/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/nomPersonnages/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/lieux/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/creatures/total", { token }).catch(() => ({ total: 0 })),
           me?.isAdmin 
-            ? apiFetch<{ total: number }>("/users/total").catch(() => ({ total: 0 }))
+            ? apiFetch<{ total: number }>("/users/total", { token }).catch(() => ({ total: 0 }))
             : Promise.resolve({ total: 0 }),
         ]);
 
@@ -141,7 +148,7 @@ function DashboardInner() {
     return () => {
       cancelled = true;
     };
-  }, [me?.isAdmin]);
+  }, [getToken, me?.isAdmin]);
 
   return (
     <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50 dark:from-[#120b22] dark:via-[#0f0a1b] dark:to-[#140b24]">

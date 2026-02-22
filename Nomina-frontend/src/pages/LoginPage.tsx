@@ -1,4 +1,4 @@
-import { useClerk, useSignIn, useUser } from "@clerk/clerk-react";
+import { useAuth, useClerk, useSignIn, useUser } from "@clerk/clerk-react";
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
@@ -10,6 +10,7 @@ export function LoginPage() {
 	const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 	const navigate = useNavigate();
 	const { isSignedIn } = useUser();
+	const { getToken } = useAuth();
 	const clerk = useClerk();
 	const { isLoaded, signIn, setActive } = useSignIn();
 	const [accountType, setAccountType] = useState<"client" | "admin">("client");
@@ -46,8 +47,17 @@ export function LoginPage() {
 		try {
 			const ensureAdminAccess = async () => {
 				for (let i = 0; i < 15; i++) {
+					const token = await getToken({ skipCache: true }).catch(() => null);
+					if (!token) {
+						await new Promise((r) => setTimeout(r, 300));
+						continue;
+					}
+
 					try {
-						const me = await apiFetch<{ userId: string; isAdmin: boolean }>("/auth/me", { cacheTtlMs: 0 });
+						const me = await apiFetch<{ userId: string; isAdmin: boolean }>("/auth/me", {
+							token,
+							cacheTtlMs: 0,
+						});
 						return me.isAdmin;
 					} catch {
 						await new Promise((r) => setTimeout(r, 300));

@@ -12,7 +12,7 @@ const THEME_KEY = "nomina-theme";
 
 export function Header() {
   const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const { signOut } = useClerk();
   const { user } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -46,7 +46,13 @@ export function Header() {
 
     (async () => {
       try {
-        const data = await apiFetch<{ isAdmin: boolean }>("/auth/me", { cacheTtlMs: 0 });
+        const token = await getToken({ skipCache: true }).catch(() => null);
+        if (!token) {
+          if (!cancelled) setIsAdmin(false);
+          return;
+        }
+
+        const data = await apiFetch<{ isAdmin: boolean }>("/auth/me", { token, cacheTtlMs: 0 });
         if (!cancelled) setIsAdmin(Boolean(data.isAdmin));
       } catch {
         if (!cancelled) setIsAdmin(false);
@@ -56,7 +62,7 @@ export function Header() {
     return () => {
       cancelled = true;
     };
-  }, [clerkEnabled, isSignedIn]);
+  }, [clerkEnabled, getToken, isSignedIn]);
 
   return (
     <header className="sticky top-0 z-50 bg-[#2d1b4e] border-b border-[#7b3ff2]/20">

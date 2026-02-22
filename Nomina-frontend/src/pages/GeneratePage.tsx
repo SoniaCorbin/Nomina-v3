@@ -1033,7 +1033,11 @@ export function GeneratePage() {
                 <div className="max-h-[calc(100vh-350px)] overflow-y-auto pr-2">
                   <div
                     className={`grid gap-6 ${
-                      generateWhat === "fragmentsHistoire" ? "sm:grid-cols-1 xl:grid-cols-2" : "sm:grid-cols-2 xl:grid-cols-3"
+                      generateWhat === "fragmentsHistoire"
+                        ? "sm:grid-cols-1 xl:grid-cols-2"
+                        : generateWhat === "titres"
+                          ? "sm:grid-cols-1 lg:grid-cols-2"
+                          : "sm:grid-cols-2 xl:grid-cols-3"
                     }`}
                   >
                     {(result as any).items.map((item: any, idx: number) => {

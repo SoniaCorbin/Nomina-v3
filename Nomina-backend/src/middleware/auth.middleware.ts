@@ -5,6 +5,10 @@ import { isUserAdmin } from '../services/auth/adminAccess';
 const devAdminUserId = () => (process.env.DEV_ADMIN_USER_ID || '').trim();
 const devAdminBypassEnabled = () =>
   process.env.ALLOW_DEV_ADMIN_BYPASS === 'true' && devAdminUserId().length > 0;
+const tokenClockSkewInMs = () => {
+  const raw = Number(process.env.CLERK_CLOCK_SKEW_MS ?? 300_000);
+  return Number.isFinite(raw) && raw >= 0 ? raw : 300_000;
+};
 
 const extractBearerToken = (req: Request): string | null => {
   const authHeader = req.headers.authorization;
@@ -43,7 +47,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
   try {
     const { payload } = await verifyToken(token, {
       secretKey,
-      clockSkewInMs: 60_000,
+      clockSkewInMs: tokenClockSkewInMs(),
     });
     const p = payload as {
       sub?: unknown;

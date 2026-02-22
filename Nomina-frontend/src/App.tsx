@@ -95,7 +95,7 @@ function RequireAdmin(props: { children: JSX.Element }) {
 }
 
 function RequireAdminInner(props: { children: JSX.Element }) {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const [state, setState] = useState<
     { status: "loading" } | { status: "ok" } | { status: "forbidden" } | { status: "error"; message: string }
   >({ status: "loading" });
@@ -104,9 +104,51 @@ function RequireAdminInner(props: { children: JSX.Element }) {
     if (!isSignedIn) return;
 
     let cancelled = false;
+    const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      try {
+        return await Promise.race<T>([
+          promise,
+          new Promise<T>((_, reject) => {
+            timer = setTimeout(() => reject(new Error("Délai dépassé pendant la vérification admin")), timeoutMs);
+          }),
+        ]);
+      } finally {
+        if (timer) clearTimeout(timer);
+      }
+    };
+
     (async () => {
       try {
-        const data = await apiFetch<{ userId: string; isAdmin: boolean }>("/auth/me", { cacheTtlMs: 0 });
+        let data: { userId: string; isAdmin: boolean } | null = null;
+        let lastError: unknown = null;
+
+        for (let i = 0; i < 12; i++) {
+          try {
+            const token = await getToken({ skipCache: true }).catch(() => null);
+            if (!token) {
+              await new Promise((r) => setTimeout(r, 250));
+              continue;
+            }
+
+            data = await withTimeout(
+              apiFetch<{ userId: string; isAdmin: boolean }>("/auth/me", {
+                token,
+                cacheTtlMs: 0,
+              }),
+              6000
+            );
+            break;
+          } catch (e) {
+            lastError = e;
+            await new Promise((r) => setTimeout(r, 250));
+          }
+        }
+
+        if (!data) {
+          throw lastError ?? new Error("Impossible de vérifier les droits admin");
+        }
+
         if (cancelled) return;
         setState(data.isAdmin ? { status: "ok" } : { status: "forbidden" });
       } catch (e) {
@@ -118,7 +160,7 @@ function RequireAdminInner(props: { children: JSX.Element }) {
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn]);
+  }, [getToken, isSignedIn]);
 
   return (
     <>
