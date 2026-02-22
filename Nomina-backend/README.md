@@ -97,6 +97,55 @@ Exemple:
 
 ---
 
+## Évolution réalisme (3 blocs)
+
+Compatible avec le schéma actuel.
+
+### Bloc 1 — Lieux réalistes reliés aux personnages
+
+Objectif: représenter une géographie hiérarchique et situer les personnages dans le monde.
+
+- Hiérarchie géographique via `Lieux.parentId`, `Lieux.parent`, `Lieux.children`
+- Lien personnage-lieu de naissance via `Personnage.birthPlaceId`
+- Lien personnage-lieu de résidence via `Personnage.residencePlaceId`
+
+Exemples d’usage: pays → région → ville → quartier, puis “né à X, vit à Y”.
+
+### Bloc 2 — Vie réelle: métier, organisation, statut social
+
+Objectif: enrichir les personnages au-delà de “titre + bio”.
+
+- `Occupation` (métier)
+- `Organization` (guilde, compagnie, école, ordre, armée, etc.)
+- `SocialClass` (classes paramétrables)
+- FKs sur `Personnage`: `occupationId`, `socialClassId`
+- Appartenance org via `PersonnageOrganization`
+
+### Bloc 3 — Relations + événements
+
+Objectif: générer des bios crédibles fondées sur des faits et des liens.
+
+- Types de relation paramétrables via `RelationType`
+- Relations entre personnages via `PersonnageRelation`
+- Événements marquants via `Event`
+- Participation d’un personnage à un événement via `PersonnageEvent`
+
+### Pourquoi ce design est neutre et adaptable
+
+- Types basés sur `String`/tables (pas d’enums figés “médiévaux”).
+- Réutilisable en fantasy, contemporain, sci-fi, branding.
+- Les packs de contenu (relations, classes, métiers) peuvent être spécialisés par catégorie/univers plus tard.
+
+### Mini-plan d’utilisation pour des bios réalistes
+
+1. Choisir `Occupation` + `SocialClass`.
+2. Assigner `birthPlace` + `residencePlace`.
+3. Créer 1–2 `PersonnageRelation` (mentor/rival/famille/associé).
+4. Associer 1 `Event` marquant.
+5. Injecter ensuite les `FragmentsHistoire` pour le style narratif.
+
+---
+
 ## Exemples d’appel
 
 ### curl

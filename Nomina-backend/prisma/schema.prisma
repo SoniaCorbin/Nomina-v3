@@ -32,6 +32,11 @@ model UniversThematique {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   categories  Categorie[]
+  socialClasses SocialClass[]
+  occupations  Occupation[]
+  organizations Organization[]
+  relationTypes RelationType[]
+  events       Event[]
 }
 
 model Categorie {
@@ -52,6 +57,11 @@ model Categorie {
   nomFamilles       NomFamille[] // opposite relation field
   personnages       Personnage[]
   creatures         Creature[]
+  events            Event[]
+  socialClasses     SocialClass[]
+  occupations       Occupation[]
+  organizations     Organization[]
+  relationTypes     RelationType[]
 }
 
 model Culture {
@@ -68,6 +78,11 @@ model Culture {
   nomFamilles       NomFamille[] // opposite relation field
   personnages       Personnage[]
   creatures         Creature[]
+  events            Event[]
+  socialClasses     SocialClass[]
+  occupations       Occupation[]
+  organizations     Organization[]
+  relationTypes     RelationType[]
 }
 
 model NomFamille {
@@ -106,10 +121,23 @@ model Lieux {
   value       String
   type        String?
   imageUrl    String?
+
+  parentId    Int?
+  parent      Lieux?     @relation("LieuxHierarchy", fields: [parentId], references: [id])
+  children    Lieux[]    @relation("LieuxHierarchy")
+
   categorieId Int?
   categorie   Categorie? @relation(fields: [categorieId], references: [id])
+
+  bornHere    Personnage[] @relation("BirthPlace")
+  livingHere  Personnage[] @relation("ResidencePlace")
+  eventsHere  Event[]      @relation("EventPlace")
+
   createdAt   DateTime   @default(now())
   updatedAt   DateTime?  @updatedAt
+
+  @@index([parentId])
+  @@index([categorieId])
 }
 
 model FragmentsHistoire {
@@ -151,13 +179,41 @@ model Personnage {
   titre        Titre?     @relation(fields: [titreId], references: [id])
   genre        String?
   biographie   String?
+
+  birthYear    Int?
+
+  socialClassId Int?
+  socialClass   SocialClass? @relation(fields: [socialClassId], references: [id])
+
+  occupationId Int?
+  occupation   Occupation? @relation(fields: [occupationId], references: [id])
+
+  birthPlaceId Int?
+  birthPlace   Lieux?     @relation("BirthPlace", fields: [birthPlaceId], references: [id])
+  residencePlaceId Int?
+  residencePlace   Lieux? @relation("ResidencePlace", fields: [residencePlaceId], references: [id])
+
   cultureId    Int?
   culture      Culture?   @relation(fields: [cultureId], references: [id])
   categorieId  Int?
   categorie    Categorie? @relation(fields: [categorieId], references: [id])
+
+  memberships   PersonnageOrganization[]
+  fromRelations PersonnageRelation[] @relation("FromRelations")
+  toRelations   PersonnageRelation[] @relation("ToRelations")
+  events        PersonnageEvent[]
+
   creatures    Creature[]
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
+
+  @@index([birthYear])
+  @@index([socialClassId])
+  @@index([occupationId])
+  @@index([birthPlaceId])
+  @@index([residencePlaceId])
+  @@index([cultureId])
+  @@index([categorieId])
 }
 
 model Concept {
@@ -186,4 +242,189 @@ model Creature {
   categorie   Categorie? @relation(fields: [categorieId], references: [id])
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+}
+
+model SocialClass {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  rank        Int?
+
+  universId   Int?
+  univers     UniversThematique? @relation(fields: [universId], references: [id])
+  categorieId Int?
+  categorie   Categorie?         @relation(fields: [categorieId], references: [id])
+  cultureId   Int?
+  culture     Culture?           @relation(fields: [cultureId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  personnages Personnage[]
+
+  @@unique([name, universId, categorieId, cultureId])
+  @@index([universId])
+  @@index([categorieId])
+  @@index([cultureId])
+}
+
+model Occupation {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+
+  universId   Int?
+  univers     UniversThematique? @relation(fields: [universId], references: [id])
+  categorieId Int?
+  categorie   Categorie?         @relation(fields: [categorieId], references: [id])
+  cultureId   Int?
+  culture     Culture?           @relation(fields: [cultureId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  personnages Personnage[]
+
+  @@unique([name, universId, categorieId, cultureId])
+  @@index([universId])
+  @@index([categorieId])
+  @@index([cultureId])
+}
+
+model Organization {
+  id          Int      @id @default(autoincrement())
+  name        String
+  type        String?
+  description String?
+  imageUrl    String?
+
+  universId   Int?
+  univers     UniversThematique? @relation(fields: [universId], references: [id])
+  categorieId Int?
+  categorie   Categorie?         @relation(fields: [categorieId], references: [id])
+  cultureId   Int?
+  culture     Culture?           @relation(fields: [cultureId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  memberships PersonnageOrganization[]
+
+  @@unique([name, universId, categorieId, cultureId])
+  @@index([universId])
+  @@index([categorieId])
+  @@index([cultureId])
+}
+
+model PersonnageOrganization {
+  id             Int          @id @default(autoincrement())
+  personnageId   Int
+  personnage     Personnage   @relation(fields: [personnageId], references: [id])
+  organizationId Int
+  organization   Organization @relation(fields: [organizationId], references: [id])
+
+  role           String?
+  startYear      Int?
+  endYear        Int?
+
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@unique([personnageId, organizationId])
+  @@index([organizationId])
+}
+
+model RelationType {
+  id          Int      @id @default(autoincrement())
+  code        String
+  label       String
+  description String?
+
+  universId   Int?
+  univers     UniversThematique? @relation(fields: [universId], references: [id])
+  categorieId Int?
+  categorie   Categorie?         @relation(fields: [categorieId], references: [id])
+  cultureId   Int?
+  culture     Culture?           @relation(fields: [cultureId], references: [id])
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  relations   PersonnageRelation[]
+
+  @@unique([code, universId, categorieId, cultureId])
+  @@index([universId])
+  @@index([categorieId])
+  @@index([cultureId])
+}
+
+model PersonnageRelation {
+  id               Int          @id @default(autoincrement())
+  fromPersonnageId Int
+  fromPersonnage   Personnage   @relation("FromRelations", fields: [fromPersonnageId], references: [id])
+  toPersonnageId   Int
+  toPersonnage     Personnage   @relation("ToRelations", fields: [toPersonnageId], references: [id])
+
+  relationTypeId   Int
+  relationType     RelationType @relation(fields: [relationTypeId], references: [id])
+
+  strength         Int?
+  note             String?
+
+  startYear        Int?
+  endYear          Int?
+
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
+
+  @@index([fromPersonnageId])
+  @@index([toPersonnageId])
+  @@index([relationTypeId])
+}
+
+model Event {
+  id           Int        @id @default(autoincrement())
+  title        String
+  summary      String?
+  startYear    Int?
+  endYear      Int?
+
+  placeId      Int?
+  place        Lieux?     @relation("EventPlace", fields: [placeId], references: [id])
+
+  universId    Int?
+  univers      UniversThematique? @relation(fields: [universId], references: [id])
+
+  cultureId    Int?
+  culture      Culture?   @relation(fields: [cultureId], references: [id])
+
+  categorieId  Int?
+  categorie    Categorie? @relation(fields: [categorieId], references: [id])
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  participants PersonnageEvent[]
+
+  @@index([placeId])
+  @@index([universId])
+  @@index([categorieId])
+  @@index([cultureId])
+}
+
+model PersonnageEvent {
+  id           Int        @id @default(autoincrement())
+  personnageId Int
+  personnage   Personnage @relation(fields: [personnageId], references: [id])
+  eventId      Int
+  event        Event      @relation(fields: [eventId], references: [id])
+
+  role         String?
+  note         String?
+
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  @@unique([personnageId, eventId])
+  @@index([eventId])
 }
