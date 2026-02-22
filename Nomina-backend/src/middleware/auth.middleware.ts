@@ -22,10 +22,11 @@ const extractBearerToken = (req: Request): string | null => {
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   const token = extractBearerToken(req);
   const forcedDevAdminUserId = devAdminUserId();
+  const devFallbackUserId = forcedDevAdminUserId.length > 0 ? forcedDevAdminUserId : 'dev-admin';
 
   if (!token) {
-    if (devAdminBypassEnabled() && forcedDevAdminUserId.length > 0) {
-      req.auth = { userId: forcedDevAdminUserId, sessionId: 'dev-bypass' };
+    if (devAdminBypassEnabled()) {
+      req.auth = { userId: devFallbackUserId, sessionId: 'dev-bypass' };
       return next();
     }
     return res.status(401).json({ error: 'Authorization manquante' });
@@ -33,8 +34,8 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
   const secretKey = process.env.CLERK_SECRET_KEY;
   if (!secretKey) {
-    if (devAdminBypassEnabled() && forcedDevAdminUserId.length > 0) {
-      req.auth = { userId: forcedDevAdminUserId, sessionId: 'dev-bypass' };
+    if (devAdminBypassEnabled()) {
+      req.auth = { userId: devFallbackUserId, sessionId: 'dev-bypass' };
       return next();
     }
 
@@ -77,6 +78,10 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     next();
   } catch (err) {
     console.error('Clerk token verification failed:', err);
+    if (devAdminBypassEnabled()) {
+      req.auth = { userId: devFallbackUserId, sessionId: 'dev-bypass' };
+      return next();
+    }
     return res.status(401).json({ error: 'Token invalide ou expiré. Reconnecte-toi puis réessaie.' });
   }
 };
