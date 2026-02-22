@@ -41,19 +41,38 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
   }
 
   try {
-    const { payload } = await verifyToken(token, { secretKey });
-    const p = payload as { sub?: unknown; sid?: unknown };
+    const { payload } = await verifyToken(token, {
+      secretKey,
+      clockSkewInMs: 60_000,
+    });
+    const p = payload as {
+      sub?: unknown;
+      sid?: unknown;
+      email?: unknown;
+      email_address?: unknown;
+      primary_email_address?: unknown;
+    };
     const userId = typeof p.sub === 'string' ? p.sub : null;
     if (!userId) return res.status(401).json({ error: 'Token invalide' });
+    const rawEmail =
+      typeof p.email === 'string'
+        ? p.email
+        : typeof p.email_address === 'string'
+          ? p.email_address
+          : typeof p.primary_email_address === 'string'
+            ? p.primary_email_address
+            : null;
+    const email = rawEmail?.trim().toLowerCase();
 
     req.auth = {
       userId,
       sessionId: typeof p.sid === 'string' ? p.sid : undefined,
+      email: email && email.length > 0 ? email : undefined,
     };
     next();
   } catch (err) {
     console.error('Clerk token verification failed:', err);
-    return res.status(401).json({ error: 'Token invalide ou expiré' });
+    return res.status(401).json({ error: 'Token invalide ou expiré. Reconnecte-toi puis réessaie.' });
   }
 };
 
@@ -66,7 +85,7 @@ export const requireAdmin = async (req: Request, res: Response, next: NextFuncti
   if (!userId) return res.status(401).json({ error: 'Non authentifié' });
 
   try {
-    const ok = await isUserAdmin(userId);
+    const ok = await isUserAdmin(userId, req.auth?.email);
     if (!ok) return res.status(403).json({ error: 'Accès refusé' });
   } catch {
     return res.status(500).json({ error: 'Erreur de vérification des droits admin' });

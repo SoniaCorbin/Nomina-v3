@@ -1,6 +1,12 @@
 import { createClerkClient } from '@clerk/backend';
 import prisma from '../../utils/prisma';
 
+const normalizeEmail = (value: string | null | undefined): string | null => {
+  if (!value) return null;
+  const v = value.trim().toLowerCase();
+  return v.length > 0 ? v : null;
+};
+
 const getConfiguredAdminUserIds = (): string[] => {
   const csv = process.env.ADMIN_CLERK_USER_IDS;
   if (csv && csv.trim().length > 0) {
@@ -12,6 +18,19 @@ const getConfiguredAdminUserIds = (): string[] => {
 
   const single = process.env.ADMIN_CLERK_USER_ID;
   return single && single.trim().length > 0 ? [single.trim()] : [];
+};
+
+const getConfiguredAdminEmails = (): string[] => {
+  const csv = process.env.ADMIN_EMAILS;
+  if (csv && csv.trim().length > 0) {
+    return csv
+      .split(',')
+      .map((s) => normalizeEmail(s))
+      .filter((s): s is string => Boolean(s));
+  }
+
+  const single = normalizeEmail(process.env.ADMIN_EMAIL);
+  return single ? [single] : [];
 };
 
 const getClerkClient = () => {
@@ -53,11 +72,17 @@ export const getClerkUserEmail = async (userId: string): Promise<string | null> 
   }
 };
 
-export const isUserAdmin = async (userId: string): Promise<boolean> => {
+export const isUserAdmin = async (userId: string, emailHint?: string | null): Promise<boolean> => {
   const configured = getConfiguredAdminUserIds();
   if (configured.includes(userId)) return true;
 
-  const email = await getClerkUserEmail(userId);
+  const email = normalizeEmail(emailHint) ?? (await getClerkUserEmail(userId));
+
+  if (email) {
+    const configuredAdminEmails = getConfiguredAdminEmails();
+    if (configuredAdminEmails.includes(email)) return true;
+  }
+
   if (!email) return false;
 
   const row = await prisma.user.findUnique({ where: { email } });

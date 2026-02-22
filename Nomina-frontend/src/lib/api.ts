@@ -4,9 +4,33 @@ export type ApiErrorPayload = {
   queued?: boolean;
 };
 
+function isLocalHostLike(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  return h === 'localhost' || h === '127.0.0.1' || h === '::1';
+}
+
 export const getApiBaseUrl = (): string => {
-  const raw = import.meta.env.VITE_API_URL as string | undefined;
-  return (raw && raw.trim().length > 0 ? raw.trim() : 'http://localhost:3000').replace(/\/$/, '');
+  const primary = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+  const secondary = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+  const configured = primary && primary.length > 0 ? primary : secondary && secondary.length > 0 ? secondary : null;
+
+  const browserOrigin = typeof window !== 'undefined' ? window.location.origin : null;
+  const browserHost = typeof window !== 'undefined' ? window.location.hostname : null;
+
+  if (!configured) {
+    return (browserOrigin || 'http://localhost:3000').replace(/\/$/, '');
+  }
+
+  try {
+    const parsed = new URL(configured);
+    if (browserHost && !isLocalHostLike(browserHost) && isLocalHostLike(parsed.hostname)) {
+      return (browserOrigin || configured).replace(/\/$/, '');
+    }
+  } catch {
+    // ignore malformed URL and keep configured value
+  }
+
+  return configured.replace(/\/$/, '');
 };
 
 export class ApiError extends Error {
@@ -261,13 +285,17 @@ export async function apiFetch<T>(
     }
   }
 
-  let res: Response;
-  try {
-    res = await fetch(url, {
+  const doRequest = async (requestHeaders: Record<string, string>) => {
+    return fetch(url, {
       method,
-      headers,
+      headers: requestHeaders,
       body: opts.body === undefined ? undefined : isFormDataBody ? (opts.body as FormData) : JSON.stringify(opts.body),
     });
+  };
+
+  let res: Response;
+  try {
+    res = await doRequest(headers);
   } catch {
     // network error: si GET, fallback cache
     if (method === 'GET') {
@@ -275,6 +303,23 @@ export async function apiFetch<T>(
       if (cached !== undefined) return cached as T;
     }
     throw new ApiError('Erreur réseau (impossible de joindre l’API)', 0);
+  }
+
+  if (
+    res.status === 401 &&
+    !opts.token &&
+    tokenProvider &&
+    !isOffline()
+  ) {
+    const refreshedToken = await tokenProvider().catch(() => null);
+    if (refreshedToken && refreshedToken !== effectiveToken) {
+      const retryHeaders = { ...headers, Authorization: `Bearer ${refreshedToken}` };
+      try {
+        res = await doRequest(retryHeaders);
+      } catch {
+        // On laisse ensuite la gestion d'erreur standard.
+      }
+    }
   }
 
   const contentType = res.headers.get('content-type') || '';

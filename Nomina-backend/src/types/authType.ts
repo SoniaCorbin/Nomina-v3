@@ -2,6 +2,7 @@
 export interface ClerkAuthPayload {
   userId: string;
   sessionId?: string;
+  email?: string;
 }
 
 export interface MeResponse {

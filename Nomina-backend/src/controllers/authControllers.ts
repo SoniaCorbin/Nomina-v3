@@ -10,7 +10,7 @@ export const meController = async (req: Request, res: Response) => {
     const devBypass = process.env.ALLOW_DEV_ADMIN_BYPASS === 'true';
     const devAdminUserId = (process.env.DEV_ADMIN_USER_ID || '').trim();
     const isDevBypassAdmin = devBypass && devAdminUserId.length > 0 && userId === devAdminUserId;
-    const isAdmin = isDevBypassAdmin ? true : await isUserAdmin(userId);
+    const isAdmin = isDevBypassAdmin ? true : await isUserAdmin(userId, req.auth?.email);
     return res.json({ userId, isAdmin });
 };
 

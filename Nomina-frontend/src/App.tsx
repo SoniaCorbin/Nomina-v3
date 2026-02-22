@@ -46,7 +46,7 @@ function ClerkTokenBridgeInner() {
   const { getToken } = useAuth();
 
   useEffect(() => {
-    setApiTokenProvider(() => getToken());
+    setApiTokenProvider(() => getToken({ skipCache: true }));
     return () => setApiTokenProvider(null);
   }, [getToken]);
 
@@ -95,7 +95,7 @@ function RequireAdmin(props: { children: JSX.Element }) {
 }
 
 function RequireAdminInner(props: { children: JSX.Element }) {
-  const { getToken, isSignedIn } = useAuth();
+  const { isSignedIn } = useAuth();
   const [state, setState] = useState<
     { status: "loading" } | { status: "ok" } | { status: "forbidden" } | { status: "error"; message: string }
   >({ status: "loading" });
@@ -106,8 +106,7 @@ function RequireAdminInner(props: { children: JSX.Element }) {
     let cancelled = false;
     (async () => {
       try {
-        const token = await getToken();
-        const data = await apiFetch<{ userId: string; isAdmin: boolean }>("/auth/me", { token });
+        const data = await apiFetch<{ userId: string; isAdmin: boolean }>("/auth/me", { cacheTtlMs: 0 });
         if (cancelled) return;
         setState(data.isAdmin ? { status: "ok" } : { status: "forbidden" });
       } catch (e) {
@@ -119,7 +118,7 @@ function RequireAdminInner(props: { children: JSX.Element }) {
     return () => {
       cancelled = true;
     };
-  }, [getToken, isSignedIn]);
+  }, [isSignedIn]);
 
   return (
     <>
