@@ -20,6 +20,11 @@ import UniversThematiqueRoutes from "./routes/UniversThematiqueRoutes";
 import LieuxRoutes from "./routes/LieuxRoutes";
 import NomFamilleRoutes from "./routes/NomFamilleRoutes";
 import PersonnageRoutes from "./routes/PersonnageRoutes";
+import SocialClassRoutes from "./routes/SocialClassRoutes";
+import OccupationRoutes from "./routes/OccupationRoutes";
+import OrganizationRoutes from "./routes/OrganizationRoutes";
+import RelationTypeRoutes from "./routes/RelationTypeRoutes";
+import EventRoutes from "./routes/EventRoutes";
 
 dotenv.config();
 
@@ -80,5 +85,10 @@ app.use("/concepts", ConceptRoutes);
 app.use("/creatures", CreatureRoutes);
 app.use("/lieux", LieuxRoutes);
 app.use("/univers", UniversThematiqueRoutes);
+app.use("/socialClasses", SocialClassRoutes);
+app.use("/occupations", OccupationRoutes);
+app.use("/organizations", OrganizationRoutes);
+app.use("/relationTypes", RelationTypeRoutes);
+app.use("/events", EventRoutes);
 
 export default app;

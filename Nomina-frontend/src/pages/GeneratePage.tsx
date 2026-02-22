@@ -87,6 +87,8 @@ type Univers = { id: number; name: string };
 type Categorie = { id: number; name: string; universId: number };
 type Culture = { id: number; name: string };
 type Concept = { id: number; valeur: string; categorieId: number | null };
+type SocialClass = { id: number; name: string; universId: number | null; categorieId: number | null; cultureId: number | null };
+type Occupation = { id: number; name: string; universId: number | null; categorieId: number | null; cultureId: number | null };
 type Titre = {
   id: number;
   valeur: string;
@@ -119,6 +121,8 @@ export function GeneratePage() {
   const [categories, setCategories] = useState<Categorie[]>([]);
   const [cultures, setCultures] = useState<Culture[]>([]);
   const [concepts, setConcepts] = useState<Concept[]>([]);
+  const [socialClasses, setSocialClasses] = useState<SocialClass[]>([]);
+  const [occupations, setOccupations] = useState<Occupation[]>([]);
   const [titres, setTitres] = useState<Titre[]>([]);
 
   // NOUVEAU: Mots-clés principal
@@ -128,6 +132,8 @@ export function GeneratePage() {
   const [universId, setUniversId] = useState<number | "">("");
   const [categorieId, setCategorieId] = useState<number | "">("");
   const [cultureId, setCultureId] = useState<number | "">("");
+  const [socialClassId, setSocialClassId] = useState<number | "">("");
+  const [occupationId, setOccupationId] = useState<number | "">("");
   const [conceptId, setConceptId] = useState<number | "">("");
   const [conceptTopic, setConceptTopic] = useState<string>("");
   const [titreId, setTitreId] = useState<number | "">("");
@@ -210,6 +216,24 @@ export function GeneratePage() {
     if (categorieId === "") return concepts;
     return concepts.filter((c) => c.categorieId === categorieId);
   }, [concepts, categorieId]);
+
+  const filteredSocialClasses = useMemo(() => {
+    return socialClasses.filter((s) => {
+      if (universId !== "" && s.universId !== universId) return false;
+      if (categorieId !== "" && s.categorieId !== categorieId) return false;
+      if (cultureId !== "" && s.cultureId !== cultureId) return false;
+      return true;
+    });
+  }, [socialClasses, universId, categorieId, cultureId]);
+
+  const filteredOccupations = useMemo(() => {
+    return occupations.filter((o) => {
+      if (universId !== "" && o.universId !== universId) return false;
+      if (categorieId !== "" && o.categorieId !== categorieId) return false;
+      if (cultureId !== "" && o.cultureId !== cultureId) return false;
+      return true;
+    });
+  }, [occupations, universId, categorieId, cultureId]);
 
   const filteredTitres = useMemo(() => {
     if (!supportsTitreChoice) return [];
@@ -339,17 +363,21 @@ export function GeneratePage() {
           apiFetch<Culture[]>("/cultures"),
           apiFetch<Concept[]>("/concepts"),
           apiFetch<Titre[]>("/titres"),
+          apiFetch<SocialClass[]>("/socialClasses"),
+          apiFetch<Occupation[]>("/occupations"),
         ]);
 
         if (cancelled) return;
 
-        const [uRes, cRes, cuRes, coRes, tRes] = settled;
+        const [uRes, cRes, cuRes, coRes, tRes, scRes, ocRes] = settled;
 
         if (uRes.status === "fulfilled") setUnivers(uRes.value);
         if (cRes.status === "fulfilled") setCategories(cRes.value);
         if (cuRes.status === "fulfilled") setCultures(cuRes.value);
         if (coRes.status === "fulfilled") setConcepts(coRes.value);
         if (tRes.status === "fulfilled") setTitres(tRes.value);
+        if (scRes.status === "fulfilled") setSocialClasses(scRes.value);
+        if (ocRes.status === "fulfilled") setOccupations(ocRes.value);
 
         const failedCount = settled.filter((x) => x.status === "rejected").length;
         if (failedCount === settled.length) {
@@ -491,6 +519,12 @@ export function GeneratePage() {
 
       if (cultureId !== "" && supportsCulture) qs.set("cultureId", String(cultureId));
       if (categorieId !== "") qs.set("categorieId", String(categorieId));
+      if ((generateWhat === "npcs" || generateWhat === "nomPersonnages") && socialClassId !== "") {
+        qs.set("socialClassId", String(socialClassId));
+      }
+      if ((generateWhat === "npcs" || generateWhat === "nomPersonnages") && occupationId !== "") {
+        qs.set("occupationId", String(occupationId));
+      }
 
       // Concepts: permet de sélectionner un concept précis.
       if (generateWhat === "concepts") {
@@ -642,6 +676,38 @@ export function GeneratePage() {
                       ))}
                     </select>
                   </div>
+
+                  {(generateWhat === "npcs" || generateWhat === "nomPersonnages") ? (
+                    <div>
+                      <label className="text-sm text-[#2d1b4e]">Classe sociale</label>
+                      <select
+                        value={socialClassId}
+                        onChange={(e) => setSocialClassId(e.target.value ? Number(e.target.value) : "")}
+                        className="mt-2 w-full h-9 rounded-md border border-[#d4c5f9] bg-white px-3 text-sm"
+                      >
+                        <option value="">— Toutes —</option>
+                        {filteredSocialClasses.map((s) => (
+                          <option key={s.id} value={s.id}>{s.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
+
+                  {(generateWhat === "npcs" || generateWhat === "nomPersonnages") ? (
+                    <div>
+                      <label className="text-sm text-[#2d1b4e]">Métier</label>
+                      <select
+                        value={occupationId}
+                        onChange={(e) => setOccupationId(e.target.value ? Number(e.target.value) : "")}
+                        className="mt-2 w-full h-9 rounded-md border border-[#d4c5f9] bg-white px-3 text-sm"
+                      >
+                        <option value="">— Tous —</option>
+                        {filteredOccupations.map((o) => (
+                          <option key={o.id} value={o.id}>{o.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  ) : null}
 
                   {supportsGenre ? (
                     <div>

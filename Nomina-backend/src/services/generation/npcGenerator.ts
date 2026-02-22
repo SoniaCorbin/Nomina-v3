@@ -28,6 +28,8 @@ type GenerateNpcOptions = {
   cultureId?: number;
   categorieId?: number;
   universId?: number;
+  socialClassId?: number;
+  occupationId?: number;
   genre?: string;
   seed?: string;
 };
@@ -42,6 +44,8 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
     where: {
       cultureId: options.cultureId,
       categorieId: options.categorieId,
+      socialClassId: options.socialClassId,
+      occupationId: options.occupationId,
       ...(options.universId !== undefined
         ? {
             categorie: {
@@ -61,6 +65,8 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
     },
   });
 
+  const enforcePersonnageFilters = options.socialClassId !== undefined || options.occupationId !== undefined;
+
   const names = personnages.length > 0
     ? personnages
         .map((p) => ({
@@ -72,7 +78,9 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
           familyName: p.nomFamille?.valeur ?? null,
         }))
         .filter((p) => !!p.valeur)
-    : await prisma.prenom.findMany({
+    : enforcePersonnageFilters
+      ? []
+      : await prisma.prenom.findMany({
         where: {
           valeur: { not: null },
           cultureId: options.cultureId,
@@ -109,9 +117,17 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
     return {
       seed,
       count: 0,
-      filters: { cultureId: options.cultureId ?? null, categorieId: options.categorieId ?? null, genre: options.genre ?? null },
+      filters: {
+        cultureId: options.cultureId ?? null,
+        categorieId: options.categorieId ?? null,
+        socialClassId: options.socialClassId ?? null,
+        occupationId: options.occupationId ?? null,
+        genre: options.genre ?? null,
+      },
       items: [],
-      warning: "Aucun Prénom ne match les filtres.",
+      warning: enforcePersonnageFilters
+        ? "Aucun Personnage ne match les filtres réalistes (classe sociale/métier)."
+        : "Aucun Prénom ne match les filtres.",
     };
   }
   const uniqueNames = dedupeBy(names, (n) => normalizeName(composeFullName(n.valeur ?? "", n.familyName)));

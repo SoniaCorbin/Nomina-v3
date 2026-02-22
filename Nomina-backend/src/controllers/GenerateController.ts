@@ -119,6 +119,8 @@ export const generateNpcs = async (req: Request, res: Response) => {
         count: countQuerySchema,
         cultureId: optionalIdQuerySchema,
         categorieId: optionalIdQuerySchema,
+        socialClassId: optionalIdQuerySchema,
+        occupationId: optionalIdQuerySchema,
         genre: optionalStringQuerySchema,
         seed: optionalStringQuerySchema,
         keywords: optionalStringQuerySchema,
@@ -132,12 +134,12 @@ export const generateNpcs = async (req: Request, res: Response) => {
       });
     }
 
-    const { count, cultureId, categorieId, genre, seed, keywords } = parsed.data;
+    const { count, cultureId, categorieId, socialClassId, occupationId, genre, seed, keywords } = parsed.data;
 
     const kws = splitKeywords(keywords);
     const requestedCount = Math.min(count * 4, 120);
 
-    const result = await generateNpcIdeas({ count: requestedCount, cultureId, categorieId, genre, seed });
+    const result = await generateNpcIdeas({ count: requestedCount, cultureId, categorieId, socialClassId, occupationId, genre, seed });
     const baseItems = Array.isArray((result as any).items) ? (result as any).items : [];
     const uniqueBaseItems = uniqueByNormalizedText(baseItems, (it: any) => `${it?.fullName ?? it?.name ?? ""}`);
 
@@ -395,6 +397,8 @@ export const generateNomPersonnages = async (req: Request, res: Response) => {
         cultureId: optionalIdQuerySchema,
         universId: optionalIdQuerySchema,
         categorieId: optionalIdQuerySchema,
+        socialClassId: optionalIdQuerySchema,
+        occupationId: optionalIdQuerySchema,
         titreId: optionalIdQuerySchema,
         genre: optionalStringQuerySchema,
         seed: optionalStringQuerySchema,
@@ -409,7 +413,7 @@ export const generateNomPersonnages = async (req: Request, res: Response) => {
       });
     }
 
-    const { count, cultureId, universId, categorieId, titreId, genre, seed, keywords } = parsed.data;
+    const { count, cultureId, universId, categorieId, socialClassId, occupationId, titreId, genre, seed, keywords } = parsed.data;
 
     const kws = splitKeywords(keywords);
     const requestedCount = kws.length > 0 ? Math.min(count * 3, 60) : count;
@@ -482,6 +486,8 @@ export const generateNomPersonnages = async (req: Request, res: Response) => {
       cultureId: effectiveCultureId,
       categorieId: effectiveCategorieId,
       universId,
+      socialClassId,
+      occupationId,
       genre: effectiveGenre,
       seed,
     });
@@ -548,6 +554,8 @@ export const generateNomPersonnages = async (req: Request, res: Response) => {
         ...((generated as any).filters ?? {
           cultureId: effectiveCultureId ?? null,
           categorieId: effectiveCategorieId ?? null,
+          socialClassId: socialClassId ?? null,
+          occupationId: occupationId ?? null,
           genre: effectiveGenre ?? null,
         }),
         universId: universId ?? null,
