@@ -389,6 +389,18 @@ export function GeneratePage() {
   useEffect(() => {
     let cancelled = false;
 
+    async function fetchWithFallback<T>(paths: string[], defaultValue: T): Promise<T> {
+      for (const path of paths) {
+        try {
+          return await apiFetch<T>(path);
+        } catch (error) {
+          if (error instanceof ApiError && error.status === 404) continue;
+          throw error;
+        }
+      }
+      return defaultValue;
+    }
+
     async function load() {
       setLoadingInit(true);
       setError(null);
@@ -399,11 +411,26 @@ export function GeneratePage() {
           apiFetch<Culture[]>("/cultures"),
           apiFetch<Concept[]>("/concepts"),
           apiFetch<Titre[]>("/titres"),
-          apiFetch<SocialClass[]>("/socialClasses"),
-          apiFetch<Occupation[]>("/occupations"),
-          apiFetch<Organization[]>("/organizations"),
-          apiFetch<RelationType[]>("/relationTypes"),
-          apiFetch<StoryEvent[]>("/events"),
+          fetchWithFallback<SocialClass[]>(
+            ["/socialClasses", "/socialclasses", "/social-classes", "/socialClass"],
+            []
+          ),
+          fetchWithFallback<Occupation[]>(
+            ["/occupations", "/occupation"],
+            []
+          ),
+          fetchWithFallback<Organization[]>(
+            ["/organizations", "/organization"],
+            []
+          ),
+          fetchWithFallback<RelationType[]>(
+            ["/relationTypes", "/relationtypes", "/relation-types", "/relationType"],
+            []
+          ),
+          fetchWithFallback<StoryEvent[]>(
+            ["/events", "/event"],
+            []
+          ),
         ]);
 
         if (cancelled) return;

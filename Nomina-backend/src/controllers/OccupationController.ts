@@ -1,12 +1,13 @@
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { FALLBACK_OCCUPATIONS } from '../data/lookups';
 
 export const getOccupations = async (_req: Request, res: Response) => {
   try {
     const items = await prisma.occupation.findMany({ orderBy: { id: 'asc' } });
     res.json(items);
   } catch {
-    res.status(500).json({ error: 'Erreur serveur' });
+    res.json(FALLBACK_OCCUPATIONS);
   }
 };
 
