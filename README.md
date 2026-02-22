@@ -60,6 +60,15 @@ Frontend : `http://localhost:5173`
 - `VITE_CLERK_PUBLISHABLE_KEY` : clé publique Clerk
 - `VITE_API_URL` : URL du backend (ex. `http://localhost:3000`)
 
+## Checklist de validation (inscription + rôles)
+
+- [ ] **Inscription Client** : créer un compte via “Inscription Client”, valider le courriel, puis vérifier que le dashboard affiche **Utilisateur** (pas **Administrateur**).
+- [ ] **Vérification API** : sur la session client, appeler `GET /auth/me` et confirmer `isAdmin: false`.
+- [ ] **Routes protégées** : avec un compte client, tenter `/admin` et `/users` → accès refusé/redirection attendue.
+- [ ] **Inscription Administrateur** : créer un compte via “Inscription Administrateur”, valider le courriel, puis confirmer qu’il reste en attente d’approbation (pas d’accès admin immédiat).
+- [ ] **Username à l’inscription** : tester une inscription avec username saisi, puis une inscription avec username vide (génération auto).
+- [ ] **Username modifiable plus tard** : depuis le dashboard, utiliser “Modifier mon profil” et confirmer que le username peut être changé.
+
 ## Captures d’écran (à inclure pour la remise)
 
 Ajoute au moins **3 captures** montrant :

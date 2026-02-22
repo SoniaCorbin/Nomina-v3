@@ -633,16 +633,36 @@ export const generateNomFamille = async (req: Request, res: Response) => {
             info: `Résultats trouvés pour: ${kws.join(", ")}`,
           });
         } else {
+          const fallbackRows = await prisma.nomFamille.findMany({
+            where: {
+              ...(cultureId ? { cultureId } : {}),
+              ...(categorieId ? { categorieId } : {}),
+            },
+            select: { id: true, valeur: true, cultureId: true, categorieId: true },
+            orderBy: { id: "asc" },
+          });
+
+          const uniqueFallbackRows = uniqueByNormalizedText(fallbackRows, (nf) => nf.valeur);
+          const items = sampleWithoutReplacement(uniqueFallbackRows, Math.min(count, uniqueFallbackRows.length), rng.next).map((nf) => ({
+            id: nf.id,
+            valeur: nf.valeur,
+            cultureId: nf.cultureId ?? null,
+            categorieId: nf.categorieId ?? null,
+          }));
+
           return res.json({
             seed: effectiveSeed,
-            count: 0,
+            count: items.length,
             filters: {
               cultureId: cultureId ?? null,
               categorieId: categorieId ?? null,
               keywords: kws.join(", "),
             },
-            items: [],
-            warning: `Aucun résultat dans la base pour: ${kws.join(", ")}. Génération créative à venir.`,
+            items,
+            warning:
+              items.length === 0
+                ? `Aucun nom de famille disponible avec les filtres demandés.`
+                : `Aucun match exact pour "${kws.join(", ")}". Suggestions affichées.`,
           });
         }
       }
@@ -815,6 +835,7 @@ export const generateFragmentsHistoire = async (req: Request, res: Response) => 
     const parsed = z
       .object({
         count: countQuerySchema,
+        universId: optionalIdQuerySchema,
         cultureId: optionalIdQuerySchema,
         categorieId: optionalIdQuerySchema,
         genre: optionalStringQuerySchema,
@@ -831,7 +852,7 @@ export const generateFragmentsHistoire = async (req: Request, res: Response) => 
       });
     }
 
-    const { count, cultureId, categorieId, genre, appliesTo, seed, keywords } = parsed.data;
+    const { count, universId, cultureId, categorieId, genre, appliesTo, seed, keywords } = parsed.data;
 
     const rng = createRng(seed);
     const effectiveSeed = seed ?? rng.seed;
@@ -844,26 +865,35 @@ export const generateFragmentsHistoire = async (req: Request, res: Response) => 
       where: {
         cultureId,
         categorieId,
-        genre: buildGenreWhere(genre),
-        appliesTo: appliesToValues ? { in: appliesToValues } : undefined,
-        ...(kws.length > 0
+        ...(universId !== undefined
           ? {
-              OR: kws.map((kw) => ({
-                OR: [
-                  { texte: { contains: kw, mode: "insensitive" } },
-                  { appliesTo: { contains: kw, mode: "insensitive" } },
-                  { genre: { contains: kw, mode: "insensitive" } },
-                ],
-              })),
+              categorie: {
+                universId,
+              },
             }
           : {}),
+        genre: buildGenreWhere(genre),
+        appliesTo: appliesToValues ? { in: appliesToValues } : undefined,
       },
       select: { id: true, texte: true, appliesTo: true, genre: true, cultureId: true, categorieId: true },
       orderBy: { id: "asc" },
     });
 
     const uniqueRows = uniqueByNormalizedText(rows, (f) => f.texte);
-    const items = sampleWithoutReplacement(uniqueRows, Math.min(count, uniqueRows.length), rng.next).map((f) => ({
+    const ranked = uniqueRows
+      .map((f) => ({
+        item: f,
+        score:
+          kws.length > 0
+            ? scoreKeywordMatch(`${f.texte ?? ""} ${f.appliesTo ?? ""} ${f.genre ?? ""}`, kws)
+            : 0,
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    const matched = kws.length > 0 ? ranked.filter((x) => x.score > 0).map((x) => x.item) : [];
+    const sourceRows = kws.length > 0 ? (matched.length > 0 ? matched : ranked.map((x) => x.item)) : uniqueRows;
+
+    const items = sampleWithoutReplacement(sourceRows, Math.min(count, sourceRows.length), rng.next).map((f) => ({
       id: f.id,
       texte: f.texte,
       appliesTo: f.appliesTo ?? null,
@@ -876,6 +906,7 @@ export const generateFragmentsHistoire = async (req: Request, res: Response) => 
       seed: effectiveSeed,
       count: items.length,
       filters: {
+        universId: universId ?? null,
         cultureId: cultureId ?? null,
         categorieId: categorieId ?? null,
         genre: genre ?? null,
@@ -884,10 +915,11 @@ export const generateFragmentsHistoire = async (req: Request, res: Response) => 
       },
       items,
       warning: uniqueRows.length === 0
-        ? kws.length > 0
-          ? `Aucun Fragment d'histoire trouvé pour: ${kws.join(", ")}.`
-          : "Aucun Fragment d'histoire ne match les filtres."
+        ? "Aucun Fragment d'histoire ne match les filtres."
+        : kws.length > 0 && matched.length === 0
+          ? `Aucun match exact pour "${kws.join(", ")}". Suggestions affichées.`
         : undefined,
+      info: kws.length > 0 && matched.length > 0 ? `Résultats classés par pertinence pour: ${kws.join(", ")}` : undefined,
     });
   } catch (error) {
     console.error("Erreur generateFragmentsHistoire:", error);
@@ -988,7 +1020,25 @@ export const generateTitres = async (req: Request, res: Response) => {
           })
           .map((x) => x.t);
 
-        const items = ranked.slice(0, count).map((t) => ({
+        let sourceRows = ranked;
+        let usedFallbackSuggestions = false;
+
+        if (sourceRows.length === 0) {
+          const fallbackRows = await prisma.titre.findMany({
+            where: {
+              cultureId,
+              categorieId,
+              genre: buildGenreWhere(genre),
+            },
+            select: { id: true, valeur: true, type: true, genre: true, cultureId: true, categorieId: true },
+            orderBy: { id: "asc" },
+          });
+
+          sourceRows = uniqueByNormalizedText(fallbackRows, (t) => `${t.valeur ?? ""} ${t.type ?? ""}`);
+          usedFallbackSuggestions = sourceRows.length > 0;
+        }
+
+        const items = sourceRows.slice(0, count).map((t) => ({
           id: t.id,
           valeur: t.valeur,
           type: t.type ?? null,
@@ -1002,7 +1052,12 @@ export const generateTitres = async (req: Request, res: Response) => {
           count: items.length,
           filters: { cultureId: cultureId ?? null, categorieId: categorieId ?? null, genre: genre ?? null, keywords: kws.join(", ") },
           items,
-          warning: uniqueRows.length === 0 ? `Aucun titre trouvé pour: ${kws.join(", ")}` : undefined,
+          warning:
+            items.length === 0
+              ? `Aucun titre trouvé pour: ${kws.join(", ")}`
+              : usedFallbackSuggestions
+                ? `Aucun match exact pour "${kws.join(", ")}". Suggestions affichées.`
+                : undefined,
           info: uniqueRows.length > 0 ? `Titres classés par pertinence pour: ${kws.join(", ")}` : undefined,
         });
       }
@@ -1131,17 +1186,67 @@ export const generateConcepts = async (req: Request, res: Response) => {
             info: `Résultats trouvés pour: ${kws.join(", ")}`,
           });
         } else {
-          // Aucun résultat dans la DB pour ces keywords
-          // TODO: Appeler LLM pour génération créative
+          let fallbackRows = await prisma.concept.findMany({
+            where: {
+              ...(requestedCategorieId ? { categorieId: requestedCategorieId } : {}),
+            },
+            select: {
+              id: true,
+              valeur: true,
+              type: true,
+              mood: true,
+              keywords: true,
+              categorieId: true,
+            },
+            orderBy: { id: "asc" },
+          });
+
+          if (requestedCategorieId && fallbackRows.length === 0) {
+            fallbackRows = await prisma.concept.findMany({
+              select: {
+                id: true,
+                valeur: true,
+                type: true,
+                mood: true,
+                keywords: true,
+                categorieId: true,
+              },
+              orderBy: { id: "asc" },
+            });
+          }
+
+          const uniqueFallbackRows = uniqueByNormalizedText(fallbackRows, (c) => `${c.valeur ?? ""} ${c.type ?? ""}`);
+          const items = sampleWithoutReplacement(uniqueFallbackRows, Math.min(count, uniqueFallbackRows.length), rng.next).map((c) => {
+            const mood = c.mood ?? pick(["mystérieux", "épique", "sombre", "onirique", "tendu", "lumineux"], rng.next);
+            const ckws = splitKeywords(c.keywords);
+            const k1 = ckws[0] ?? pick(["secret", "quête", "rituel", "héritage", "frontière", "anomalie"], rng.next);
+            const k2 = ckws[1] ?? pick(["alliance", "trahison", "mémoire", "artefact", "serment", "mensonge"], rng.next);
+            const k3 = ckws[2] ?? pick(["prix", "conséquence", "danger", "révélation", "dilemme", "menace"], rng.next);
+
+            return {
+              id: c.id,
+              valeur: c.valeur,
+              type: c.type ?? null,
+              mood,
+              keyword1: k1,
+              keyword2: k2,
+              keyword3: k3,
+              categorieId: c.categorieId ?? null,
+            };
+          });
+
           return res.json({
             seed: effectiveSeed,
-            count: 0,
+            count: items.length,
             filters: {
               categorieId: requestedCategorieId,
               keywords: kws.join(", "),
             },
-            items: [],
-            warning: `Aucun résultat dans la base pour: ${kws.join(", ")}. Génération créative à venir.`,
+            items,
+            warning:
+              items.length === 0
+                ? `Aucun concept disponible avec les filtres demandés.`
+                : `Aucun match exact pour "${kws.join(", ")}". Suggestions affichées.`,
           });
         }
       }

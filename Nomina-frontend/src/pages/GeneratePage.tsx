@@ -333,21 +333,30 @@ export function GeneratePage() {
       setLoadingInit(true);
       setError(null);
       try {
-        const [u, cats, cults, conc] = await Promise.all([
+        const settled = await Promise.allSettled([
           apiFetch<Univers[]>("/univers"),
           apiFetch<Categorie[]>("/categories"),
           apiFetch<Culture[]>("/cultures"),
           apiFetch<Concept[]>("/concepts"),
+          apiFetch<Titre[]>("/titres"),
         ]);
 
-        const t = await apiFetch<Titre[]>("/titres");
-
         if (cancelled) return;
-        setUnivers(u);
-        setCategories(cats);
-        setCultures(cults);
-        setConcepts(conc);
-        setTitres(t);
+
+        const [uRes, cRes, cuRes, coRes, tRes] = settled;
+
+        if (uRes.status === "fulfilled") setUnivers(uRes.value);
+        if (cRes.status === "fulfilled") setCategories(cRes.value);
+        if (cuRes.status === "fulfilled") setCultures(cuRes.value);
+        if (coRes.status === "fulfilled") setConcepts(coRes.value);
+        if (tRes.status === "fulfilled") setTitres(tRes.value);
+
+        const failedCount = settled.filter((x) => x.status === "rejected").length;
+        if (failedCount === settled.length) {
+          setError("Impossible de joindre l’API pour charger les listes initiales. Vérifie que le backend tourne et que VITE_API_URL est correct.");
+        } else if (failedCount > 0) {
+          setError("Certaines listes n’ont pas pu être chargées (réseau/API). La génération reste disponible.");
+        }
       } catch (e) {
         if (cancelled) return;
         setError(e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e));
@@ -494,7 +503,10 @@ export function GeneratePage() {
       }
 
       // Utile quand l'utilisateur choisit un univers mais pas une catégorie.
-      if ((generateWhat === "npcs" || generateWhat === "nomPersonnages") && universId !== "") {
+      if (
+        (generateWhat === "npcs" || generateWhat === "nomPersonnages" || generateWhat === "fragmentsHistoire") &&
+        universId !== ""
+      ) {
         qs.set("universId", String(universId));
       }
 
@@ -852,7 +864,11 @@ export function GeneratePage() {
 
               {(result as any).items && Array.isArray((result as any).items) && (result as any).items.length > 0 ? (
                 <div className="max-h-[calc(100vh-350px)] overflow-y-auto pr-2">
-                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                  <div
+                    className={`grid gap-6 ${
+                      generateWhat === "fragmentsHistoire" ? "sm:grid-cols-1 xl:grid-cols-2" : "sm:grid-cols-2 xl:grid-cols-3"
+                    }`}
+                  >
                     {(result as any).items.map((item: any, idx: number) => {
                       const title = (() => {
                         switch (generateWhat) {
@@ -934,7 +950,7 @@ export function GeneratePage() {
                           key={idx}
                           className={`bg-white border-[#d4c5f9] overflow-hidden hover:shadow-xl hover:shadow-[#7b3ff2]/10 transition-all duration-300 group ${
                             itemImageUrl ? "cursor-pointer" : ""
-                          }`}
+                          } ${generateWhat === "fragmentsHistoire" ? "min-h-[300px]" : ""}`}
                           onClick={() => {
                             if (!itemImageUrl) return;
                             openImagePreview(itemImageUrl, title);
@@ -963,8 +979,12 @@ export function GeneratePage() {
                             </div>
 
                             <p
-                              className={`text-sm text-[#c5bfd9] leading-relaxed min-h-[3.5rem] ${
-                                generateWhat === "npcs" ? "max-h-44 overflow-y-auto pr-1" : ""
+                              className={`text-sm text-[#5b4a7f] leading-relaxed min-h-[3.5rem] ${
+                                generateWhat === "npcs"
+                                  ? "max-h-44 overflow-y-auto pr-1"
+                                  : generateWhat === "fragmentsHistoire"
+                                    ? "text-base min-h-[6.5rem]"
+                                    : ""
                               }`}
                             >
                               {description}
