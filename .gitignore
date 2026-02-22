@@ -3,6 +3,7 @@
 
 # Build outputs
 Nomina-backend/dist/
+Nomina-backend/uploads/
 Nomina-frontend/dist/
 Nomina-frontend/out/
 Nomina-frontend/release/
