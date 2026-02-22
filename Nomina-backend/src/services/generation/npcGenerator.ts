@@ -119,6 +119,7 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
   });
 
   let relaxedLinkFilters = false;
+  let relaxedRealisticFilters = false;
   if (personnages.length === 0 && linkFiltersRequested) {
     personnages = await prisma.personnage.findMany({
       where: baseWhere,
@@ -138,6 +139,28 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
     options.socialClassId !== undefined ||
     options.occupationId !== undefined;
 
+  if (personnages.length === 0 && enforcePersonnageFilters) {
+    const strictWhereWithoutRealistic: any = {
+      ...strictWhere,
+      socialClassId: undefined,
+      occupationId: undefined,
+    };
+
+    personnages = await prisma.personnage.findMany({
+      where: strictWhereWithoutRealistic,
+      select: {
+        id: true,
+        genre: true,
+        cultureId: true,
+        categorieId: true,
+        prenom: { select: { valeur: true, genre: true, cultureId: true, categorieId: true } },
+        nomFamille: { select: { valeur: true } },
+      },
+    });
+
+    relaxedRealisticFilters = personnages.length > 0;
+  }
+
   let names = personnages.length > 0
     ? personnages
         .map((p) => ({
@@ -149,9 +172,7 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
           familyName: p.nomFamille?.valeur ?? null,
         }))
         .filter((p) => !!p.valeur)
-    : enforcePersonnageFilters
-      ? []
-      : await prisma.prenom.findMany({
+    : await prisma.prenom.findMany({
         where: {
           valeur: { not: null },
           cultureId: options.cultureId,
@@ -183,6 +204,10 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
           familyName: r.nomFamille?.valeur ?? null,
         }))
       );
+
+  if (personnages.length === 0 && enforcePersonnageFilters && names.length > 0) {
+    relaxedRealisticFilters = true;
+  }
 
   if (names.length === 0 && isCreatureGenreRequest && !enforcePersonnageFilters) {
     const creatures = await prisma.creature.findMany({
@@ -391,9 +416,14 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
       genre: options.genre ?? null,
     },
     items,
-    warning: relaxedLinkFilters
-      ? "Aucun Personnage ne match les filtres Organisation/Relation/Événement. Résultats élargis avec les autres filtres."
-      : undefined,
+    warning:
+      relaxedLinkFilters && relaxedRealisticFilters
+        ? "Aucun Personnage ne match les filtres réalistes (classe sociale/métier) ni Organisation/Relation/Événement. Résultats élargis automatiquement."
+        : relaxedLinkFilters
+          ? "Aucun Personnage ne match les filtres Organisation/Relation/Événement. Résultats élargis avec les autres filtres."
+          : relaxedRealisticFilters
+            ? "Aucun Personnage ne match les filtres réalistes (classe sociale/métier). Résultats élargis automatiquement."
+            : undefined,
   };
 }
 
