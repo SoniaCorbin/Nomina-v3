@@ -70,25 +70,32 @@ app.use(cors(corsOptions));
 app.get("/", (_req, res) => res.send("Nomina-backend running"));
 app.get("/healthz", (_req, res) => res.json({ ok: true }));
 
-app.use("/generate", GenerateRoutes);
-app.use("/users", userRoutes);
-app.use("/auth", authRoutes);
-app.use("/categories", CategorieRoutes);
-app.use("/cultures", CultureRoutes);
-app.use("/nomPersonnages", NomPersonnageRoutes);
-app.use("/prenoms", NomPersonnageRoutes);
-app.use("/nomFamilles", NomFamilleRoutes);
-app.use("/personnages", PersonnageRoutes);
-app.use("/fragmentsHistoire", FragmentsHistoireRoutes);
-app.use("/titres", TitreRoutes);
-app.use("/concepts", ConceptRoutes);
-app.use("/creatures", CreatureRoutes);
-app.use("/lieux", LieuxRoutes);
-app.use("/univers", UniversThematiqueRoutes);
-app.use("/socialClasses", SocialClassRoutes);
-app.use("/occupations", OccupationRoutes);
-app.use("/organizations", OrganizationRoutes);
-app.use("/relationTypes", RelationTypeRoutes);
-app.use("/events", EventRoutes);
+function mountRoutes(prefix = "") {
+  const withPrefix = (route: string) => (prefix ? `${prefix}${route}` : route);
+
+  app.use(withPrefix("/generate"), GenerateRoutes);
+  app.use(withPrefix("/users"), userRoutes);
+  app.use(withPrefix("/auth"), authRoutes);
+  app.use(withPrefix("/categories"), CategorieRoutes);
+  app.use(withPrefix("/cultures"), CultureRoutes);
+  app.use(withPrefix("/nomPersonnages"), NomPersonnageRoutes);
+  app.use(withPrefix("/prenoms"), NomPersonnageRoutes);
+  app.use(withPrefix("/nomFamilles"), NomFamilleRoutes);
+  app.use(withPrefix("/personnages"), PersonnageRoutes);
+  app.use(withPrefix("/fragmentsHistoire"), FragmentsHistoireRoutes);
+  app.use(withPrefix("/titres"), TitreRoutes);
+  app.use(withPrefix("/concepts"), ConceptRoutes);
+  app.use(withPrefix("/creatures"), CreatureRoutes);
+  app.use(withPrefix("/lieux"), LieuxRoutes);
+  app.use(withPrefix("/univers"), UniversThematiqueRoutes);
+  app.use(withPrefix("/socialClasses"), SocialClassRoutes);
+  app.use(withPrefix("/occupations"), OccupationRoutes);
+  app.use(withPrefix("/organizations"), OrganizationRoutes);
+  app.use(withPrefix("/relationTypes"), RelationTypeRoutes);
+  app.use(withPrefix("/events"), EventRoutes);
+}
+
+mountRoutes();
+mountRoutes("/api");
 
 export default app;
