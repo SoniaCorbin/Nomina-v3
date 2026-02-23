@@ -1,8 +1,8 @@
 import { Router } from "express";
-import fs from "fs";
 import path from "path";
 import multer from "multer";
 import { requireAdmin, requireAuth } from "../middleware/auth.middleware";
+import { ensureUploadsSubdir } from "../utils/uploads";
 import {
   getCultures,
   getCultureById,
@@ -15,8 +15,7 @@ import {
 
 const router = Router();
 
-const uploadDir = path.join(process.cwd(), "uploads", "cultures");
-fs.mkdirSync(uploadDir, { recursive: true });
+const uploadDir = ensureUploadsSubdir("cultures");
 
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),

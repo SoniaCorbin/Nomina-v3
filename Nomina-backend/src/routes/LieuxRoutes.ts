@@ -1,15 +1,14 @@
 import { Router } from 'express';
-import fs from 'fs';
 import path from 'path';
 import multer from 'multer';
 import {getLieux, getLieuById, createLieu, updateLieu, deleteLieu, totalLieux} from '../controllers/LieuxController';
 import { requireAdmin, requireAuth } from "../middleware/auth.middleware";
 import { uploadLieuImage } from '../controllers/LieuxController';
+import { ensureUploadsSubdir } from '../utils/uploads';
 
 const router = Router();
 
-const uploadDir = path.join(process.cwd(), 'uploads', 'lieux');
-fs.mkdirSync(uploadDir, { recursive: true });
+const uploadDir = ensureUploadsSubdir('lieux');
 
 const storage = multer.diskStorage({
 	destination: (_req, _file, cb) => cb(null, uploadDir),

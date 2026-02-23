@@ -25,13 +25,14 @@ import OccupationRoutes from "./routes/OccupationRoutes";
 import OrganizationRoutes from "./routes/OrganizationRoutes";
 import RelationTypeRoutes from "./routes/RelationTypeRoutes";
 import EventRoutes from "./routes/EventRoutes";
+import { getUploadsRootDir } from "./utils/uploads";
 
 dotenv.config();
 
 const app = express();
 
 app.use(express.json());
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
+app.use("/uploads", express.static(getUploadsRootDir()));
 
 const envCorsOrigins = (process.env.CORS_ORIGINS ?? "")
   .split(",")
