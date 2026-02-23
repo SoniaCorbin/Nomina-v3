@@ -87,6 +87,11 @@ function DashboardInner() {
         if (!cancelled) setMe(data);
       } catch (e) {
         if (cancelled) return;
+        if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
+          setMe({ userId: "session-unavailable", isAdmin: false });
+          setError(null);
+          return;
+        }
         const msg = e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e);
         setError(msg);
       } finally {
