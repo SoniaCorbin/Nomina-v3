@@ -10,6 +10,22 @@ const tokenClockSkewInMs = () => {
   return Number.isFinite(raw) && raw >= 0 ? raw : 300_000;
 };
 
+const tokenAuthorizedParties = () => {
+  const envList = (process.env.CLERK_AUTHORIZED_PARTIES ?? '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  const fallback = [
+    process.env.FRONTEND_URL?.trim(),
+    'https://nomina-v3.vercel.app',
+    'http://localhost:5173',
+  ].filter((value): value is string => Boolean(value));
+
+  const merged = [...envList, ...fallback];
+  return Array.from(new Set(merged));
+};
+
 const extractBearerToken = (req: Request): string | null => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return null;
@@ -50,6 +66,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     const { payload } = await verifyToken(token, {
       secretKey,
       clockSkewInMs: tokenClockSkewInMs(),
+      authorizedParties: tokenAuthorizedParties(),
     });
     const p = payload as {
       sub?: unknown;

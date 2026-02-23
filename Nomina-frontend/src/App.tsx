@@ -46,7 +46,7 @@ function ClerkTokenBridgeInner() {
   const { getToken } = useAuth();
 
   useEffect(() => {
-    setApiTokenProvider(() => getToken({ skipCache: true }));
+    setApiTokenProvider(() => getToken());
     return () => setApiTokenProvider(null);
   }, [getToken]);
 
