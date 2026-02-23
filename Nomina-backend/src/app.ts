@@ -91,10 +91,19 @@ function mountRoutes(prefix = "") {
   app.use(withPrefix("/lieux"), LieuxRoutes);
   app.use(withPrefix("/univers"), UniversThematiqueRoutes);
   app.use(withPrefix("/socialClasses"), SocialClassRoutes);
+  app.use(withPrefix("/socialclasses"), SocialClassRoutes);
+  app.use(withPrefix("/social-classes"), SocialClassRoutes);
+  app.use(withPrefix("/socialClass"), SocialClassRoutes);
   app.use(withPrefix("/occupations"), OccupationRoutes);
+  app.use(withPrefix("/occupation"), OccupationRoutes);
   app.use(withPrefix("/organizations"), OrganizationRoutes);
+  app.use(withPrefix("/organization"), OrganizationRoutes);
   app.use(withPrefix("/relationTypes"), RelationTypeRoutes);
+  app.use(withPrefix("/relationtypes"), RelationTypeRoutes);
+  app.use(withPrefix("/relation-types"), RelationTypeRoutes);
+  app.use(withPrefix("/relationType"), RelationTypeRoutes);
   app.use(withPrefix("/events"), EventRoutes);
+  app.use(withPrefix("/event"), EventRoutes);
 }
 
 mountRoutes();

@@ -1,4 +1,4 @@
-﻿# NOMINA Frontend
+# NOMINA Frontend
 
 Interface web React/TypeScript de Nomina. Elle consomme l’API backend pour générer et administrer des contenus narratifs (personnages, lieux, concepts, titres, cultures, catégories, univers, créatures).
 
@@ -42,6 +42,8 @@ VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 Notes:
 - `VITE_API_URL` pointe vers le backend.
 - `VITE_CLERK_PUBLISHABLE_KEY` est requis pour les pages/auth flows Clerk.
+
+**Clerk redirect URLs** : pour que la connexion et le SSO fonctionnent en prod et en local, ajoute les URLs listées dans [CLERK_REDIRECT_URLS.md](./CLERK_REDIRECT_URLS.md) dans le Clerk Dashboard (Configure → Paths / Allowed redirect URLs).
 
 ---
 

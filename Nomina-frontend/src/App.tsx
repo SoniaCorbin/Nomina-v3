@@ -5,7 +5,7 @@ import { flushOutbox } from "./lib/api";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { FluidBackground } from "./components/FluidBackground";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
-import { setApiTokenProvider, apiFetch } from "./lib/api";
+import { setApiTokenProvider, apiFetch, ApiError } from "./lib/api";
 
 const Features = lazy(() => import("./components/Features").then((m) => ({ default: m.Features })));
 const UseCases = lazy(() => import("./components/UseCases").then((m) => ({ default: m.UseCases })));
@@ -123,7 +123,7 @@ function RequireAdminInner(props: { children: JSX.Element }) {
         let data: { userId: string; isAdmin: boolean } | null = null;
         let lastError: unknown = null;
 
-        for (let i = 0; i < 12; i++) {
+        for (let i = 0; i < 4; i++) {
           try {
             const token = await getToken({ skipCache: true }).catch(() => null);
             if (!token) {
@@ -141,6 +141,11 @@ function RequireAdminInner(props: { children: JSX.Element }) {
             break;
           } catch (e) {
             lastError = e;
+
+            if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
+              break;
+            }
+
             await new Promise((r) => setTimeout(r, 250));
           }
         }
@@ -153,6 +158,11 @@ function RequireAdminInner(props: { children: JSX.Element }) {
         setState(data.isAdmin ? { status: "ok" } : { status: "forbidden" });
       } catch (e) {
         if (cancelled) return;
+        if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
+          setState({ status: "error", message: "Session expirée ou invalide. Reconnecte-toi." });
+          return;
+        }
+
         setState({ status: "error", message: String((e as any)?.message ?? e) });
       }
     })();
