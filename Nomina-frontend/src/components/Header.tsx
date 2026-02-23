@@ -12,7 +12,7 @@ const THEME_KEY = "nomina-theme";
 
 export function Header() {
   const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const { signOut } = useClerk();
   const { user } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -39,7 +39,7 @@ export function Header() {
 
   useEffect(() => {
     let cancelled = false;
-    if (!clerkEnabled || !isSignedIn) {
+    if (!clerkEnabled || !isLoaded || !isSignedIn) {
       setIsAdmin(false);
       return;
     }
@@ -71,7 +71,7 @@ export function Header() {
     return () => {
       cancelled = true;
     };
-  }, [clerkEnabled, isSignedIn]);
+  }, [clerkEnabled, isLoaded, isSignedIn]);
 
   return (
     <header className="sticky top-0 z-50 bg-[#2d1b4e] border-b border-[#7b3ff2]/20">

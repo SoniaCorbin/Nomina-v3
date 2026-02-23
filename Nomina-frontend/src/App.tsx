@@ -95,13 +95,13 @@ function RequireAdmin(props: { children: JSX.Element }) {
 }
 
 function RequireAdminInner(props: { children: JSX.Element }) {
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, isLoaded } = useAuth();
   const [state, setState] = useState<
     { status: "loading" } | { status: "ok" } | { status: "forbidden" } | { status: "error"; message: string }
   >({ status: "loading" });
 
   useEffect(() => {
-    if (!isSignedIn) return;
+    if (!isLoaded || !isSignedIn) return;
 
     let cancelled = false;
     const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
@@ -165,7 +165,7 @@ function RequireAdminInner(props: { children: JSX.Element }) {
     return () => {
       cancelled = true;
     };
-  }, [isSignedIn]);
+  }, [isLoaded, isSignedIn]);
 
   return (
     <>
@@ -209,8 +209,8 @@ export default function App() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       <FluidBackground />
-      <Header />
       <ClerkTokenBridge />
+      <Header />
       {!isHome ? (
         <div className="pointer-events-none fixed top-20 inset-x-0 z-40 h-7 bg-gradient-to-b from-[#2d1b4e]/70 via-[#2d1b4e]/20 to-transparent" />
       ) : null}

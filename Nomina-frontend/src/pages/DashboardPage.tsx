@@ -70,7 +70,7 @@ export function DashboardPage() {
 }
 
 function DashboardInner() {
-  const { getToken } = useAuth();
+  const { getToken, isLoaded } = useAuth();
   const { openUserProfile } = useClerk();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -80,6 +80,12 @@ function DashboardInner() {
 
   useEffect(() => {
     let cancelled = false;
+    if (!isLoaded) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
     (async () => {
       setLoading(true);
       setError(null);
@@ -119,10 +125,16 @@ function DashboardInner() {
     return () => {
       cancelled = true;
     };
-  }, [getToken]);
+  }, [getToken, isLoaded]);
 
   useEffect(() => {
     let cancelled = false;
+    if (!isLoaded) {
+      return () => {
+        cancelled = true;
+      };
+    }
+
     (async () => {
       setStatsLoading(true);
       try {
@@ -163,7 +175,7 @@ function DashboardInner() {
     return () => {
       cancelled = true;
     };
-  }, [getToken, me?.isAdmin]);
+  }, [getToken, isLoaded, me?.isAdmin]);
 
   return (
     <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50 dark:from-[#120b22] dark:via-[#0f0a1b] dark:to-[#140b24]">
