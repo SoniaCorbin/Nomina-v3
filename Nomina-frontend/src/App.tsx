@@ -124,13 +124,13 @@ function RequireAdminInner(props: { children: JSX.Element }) {
         let lastError: unknown = null;
         let unauthorizedCount = 0;
 
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 3; i++) {
           try {
             data = await withTimeout(
               apiFetch<{ userId: string; isAdmin: boolean }>("/auth/me", {
                 cacheTtlMs: 0,
               }),
-              6000
+              3500
             );
             break;
           } catch (e) {
@@ -141,7 +141,7 @@ function RequireAdminInner(props: { children: JSX.Element }) {
               if (unauthorizedCount >= 3) break;
             }
 
-            await new Promise((r) => setTimeout(r, 350));
+            await new Promise((r) => setTimeout(r, 250));
           }
         }
 

@@ -78,6 +78,20 @@ function DashboardInner() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
+  const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    try {
+      return await Promise.race<T>([
+        promise,
+        new Promise<T>((_, reject) => {
+          timer = setTimeout(() => reject(new Error("Délai dépassé")), timeoutMs);
+        }),
+      ]);
+    } finally {
+      if (timer) clearTimeout(timer);
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
     if (!isLoaded) {
@@ -96,7 +110,7 @@ function DashboardInner() {
 
         for (let i = 0; i < 6; i++) {
           try {
-            data = await apiFetch<Me>("/auth/me", { cacheTtlMs: 0 });
+            data = await withTimeout(apiFetch<Me>("/auth/me", { cacheTtlMs: 0 }), 3500);
             break;
           } catch (e) {
             lastError = e;
@@ -104,7 +118,7 @@ function DashboardInner() {
               unauthorizedCount += 1;
               if (unauthorizedCount >= 3) break;
             }
-            await new Promise((r) => setTimeout(r, 350));
+            await new Promise((r) => setTimeout(r, 250));
           }
         }
 
@@ -138,7 +152,7 @@ function DashboardInner() {
     (async () => {
       setStatsLoading(true);
       try {
-        const [cultures, categories, concepts, titres, fragments, nomPersonnages, lieux, creatures, users] = await Promise.all([
+        const [cultures, categories, concepts, titres, fragments, nomPersonnages, lieux, creatures, users] = await withTimeout(Promise.all([
           apiFetch<{ total: number }>("/cultures/total").catch(() => ({ total: 0 })),
           apiFetch<{ total: number }>("/categories/total").catch(() => ({ total: 0 })),
           apiFetch<{ total: number }>("/concepts/total").catch(() => ({ total: 0 })),
@@ -150,7 +164,7 @@ function DashboardInner() {
           me?.isAdmin 
             ? apiFetch<{ total: number }>("/users/total").catch(() => ({ total: 0 }))
             : Promise.resolve({ total: 0 }),
-        ]);
+        ]), 8000);
 
         if (!cancelled) {
           setStats({
