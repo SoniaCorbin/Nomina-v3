@@ -95,7 +95,7 @@ function RequireAdmin(props: { children: JSX.Element }) {
 }
 
 function RequireAdminInner(props: { children: JSX.Element }) {
-  const { isSignedIn, getToken } = useAuth();
+  const { isSignedIn } = useAuth();
   const [state, setState] = useState<
     { status: "loading" } | { status: "ok" } | { status: "forbidden" } | { status: "error"; message: string }
   >({ status: "loading" });
@@ -126,15 +126,8 @@ function RequireAdminInner(props: { children: JSX.Element }) {
 
         for (let i = 0; i < 6; i++) {
           try {
-            const token = await getToken({ skipCache: true }).catch(() => null);
-            if (!token) {
-              await new Promise((r) => setTimeout(r, 350));
-              continue;
-            }
-
             data = await withTimeout(
               apiFetch<{ userId: string; isAdmin: boolean }>("/auth/me", {
-                token,
                 cacheTtlMs: 0,
               }),
               6000
@@ -172,7 +165,7 @@ function RequireAdminInner(props: { children: JSX.Element }) {
     return () => {
       cancelled = true;
     };
-  }, [getToken, isSignedIn]);
+  }, [isSignedIn]);
 
   return (
     <>

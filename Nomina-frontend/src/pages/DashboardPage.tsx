@@ -90,13 +90,7 @@ function DashboardInner() {
 
         for (let i = 0; i < 6; i++) {
           try {
-            const token = await getToken({ skipCache: true }).catch(() => null);
-            if (!token) {
-              await new Promise((r) => setTimeout(r, 350));
-              continue;
-            }
-
-            data = await apiFetch<Me>("/auth/me", { token, cacheTtlMs: 0 });
+            data = await apiFetch<Me>("/auth/me", { cacheTtlMs: 0 });
             break;
           } catch (e) {
             lastError = e;
@@ -132,20 +126,17 @@ function DashboardInner() {
     (async () => {
       setStatsLoading(true);
       try {
-        const token = await getToken({ skipCache: true }).catch(() => null);
-        if (!token) throw new Error("Session non prête, statistiques indisponibles.");
-
         const [cultures, categories, concepts, titres, fragments, nomPersonnages, lieux, creatures, users] = await Promise.all([
-          apiFetch<{ total: number }>("/cultures/total", { token }).catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/categories/total", { token }).catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/concepts/total", { token }).catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/titres/total", { token }).catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/fragmentsHistoire/total", { token }).catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/nomPersonnages/total", { token }).catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/lieux/total", { token }).catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/creatures/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/cultures/total").catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/categories/total").catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/concepts/total").catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/titres/total").catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/fragmentsHistoire/total").catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/nomPersonnages/total").catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/lieux/total").catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/creatures/total").catch(() => ({ total: 0 })),
           me?.isAdmin 
-            ? apiFetch<{ total: number }>("/users/total", { token }).catch(() => ({ total: 0 }))
+            ? apiFetch<{ total: number }>("/users/total").catch(() => ({ total: 0 }))
             : Promise.resolve({ total: 0 }),
         ]);
 
