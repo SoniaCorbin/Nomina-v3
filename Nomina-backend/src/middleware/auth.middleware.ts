@@ -1,6 +1,18 @@
 import type { Request, Response, NextFunction } from 'express';
-import { verifyToken } from '@clerk/backend';
+import { createClerkClient, verifyToken } from '@clerk/backend';
 import { isUserAdmin } from '../services/auth/adminAccess';
+
+const normalizeSecretKey = (value: string | undefined): string => {
+  if (!value) return '';
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+};
 
 const tokenClockSkewInMs = () => {
   const raw = Number(process.env.CLERK_CLOCK_SKEW_MS ?? 300_000);
@@ -32,6 +44,54 @@ const extractBearerToken = (req: Request): string | null => {
   return parts[1];
 };
 
+const decodeJwtPayload = (token: string): Record<string, unknown> | null => {
+  const parts = token.split('.');
+  if (parts.length < 2) return null;
+
+  try {
+    const json = Buffer.from(parts[1], 'base64url').toString('utf8');
+    const parsed = JSON.parse(json);
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, unknown>) : null;
+  } catch {
+    return null;
+  }
+};
+
+const fallbackValidateSession = async (token: string, secretKey: string) => {
+  const payload = decodeJwtPayload(token);
+  if (!payload) return null;
+
+  const sid = typeof payload.sid === 'string' ? payload.sid : null;
+  const userId = typeof payload.sub === 'string' ? payload.sub : null;
+  if (!sid || !userId) return null;
+
+  const clerk = createClerkClient({ secretKey });
+
+  try {
+    const session = await clerk.sessions.getSession(sid);
+    if (!session) return null;
+    if (session.userId !== userId) return null;
+    if (session.status && session.status !== 'active') return null;
+
+    const rawEmail =
+      typeof payload.email === 'string'
+        ? payload.email
+        : typeof payload.email_address === 'string'
+          ? payload.email_address
+          : typeof payload.primary_email_address === 'string'
+            ? payload.primary_email_address
+            : null;
+
+    return {
+      userId,
+      sessionId: sid,
+      email: typeof rawEmail === 'string' && rawEmail.trim().length > 0 ? rawEmail.trim().toLowerCase() : undefined,
+    };
+  } catch {
+    return null;
+  }
+};
+
 export const requireAuth = async (req: Request, res: Response, next: NextFunction) => {
   const token = extractBearerToken(req);
 
@@ -39,7 +99,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     return res.status(401).json({ error: 'Authorization manquante' });
   }
 
-  const secretKey = process.env.CLERK_SECRET_KEY;
+  const secretKey = normalizeSecretKey(process.env.CLERK_SECRET_KEY);
   if (!secretKey) {
     console.error('CLERK_SECRET_KEY non défini');
     return res.status(500).json({
@@ -84,6 +144,13 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
       message,
       fallbackAuthorizedParties: tokenAuthorizedParties(),
     });
+
+    const fallbackAuth = await fallbackValidateSession(token, secretKey);
+    if (fallbackAuth) {
+      req.auth = fallbackAuth;
+      return next();
+    }
+
     return res.status(401).json({ error: 'Token invalide ou expiré. Reconnecte-toi puis réessaie.' });
   }
 };

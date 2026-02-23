@@ -1,6 +1,18 @@
 import { createClerkClient } from '@clerk/backend';
 import prisma from '../../utils/prisma';
 
+const normalizeSecretKey = (value: string | undefined): string => {
+  if (!value) return '';
+  const trimmed = value.trim();
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"')) ||
+    (trimmed.startsWith("'") && trimmed.endsWith("'"))
+  ) {
+    return trimmed.slice(1, -1).trim();
+  }
+  return trimmed;
+};
+
 const normalizeEmail = (value: string | null | undefined): string | null => {
   if (!value) return null;
   const v = value.trim().toLowerCase();
@@ -34,7 +46,7 @@ const getConfiguredAdminEmails = (): string[] => {
 };
 
 const getClerkClient = () => {
-  const secretKey = process.env.CLERK_SECRET_KEY;
+  const secretKey = normalizeSecretKey(process.env.CLERK_SECRET_KEY);
   if (!secretKey) return null;
   return createClerkClient({ secretKey });
 };
