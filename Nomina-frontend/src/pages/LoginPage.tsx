@@ -8,7 +8,6 @@ import { apiFetch } from "../lib/api";
 
 export function LoginPage() {
 	const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
-	const emergencyAdminBypass = import.meta.env.VITE_EMERGENCY_ADMIN_BYPASS === "true";
 	const navigate = useNavigate();
 	const { isSignedIn } = useUser();
 	const { getToken } = useAuth();
@@ -71,7 +70,7 @@ export function LoginPage() {
 			if (res.status === "complete") {
 				await setActive?.({ session: res.createdSessionId });
 
-				if (accountType === "admin" && !emergencyAdminBypass) {
+				if (accountType === "admin") {
 					const isAdmin = await ensureAdminAccess();
 					if (!isAdmin) {
 						await clerk.signOut().catch(() => undefined);

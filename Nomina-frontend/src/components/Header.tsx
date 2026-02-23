@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { SignedIn, SignedOut, UserButton, useAuth, useClerk, useUser } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 
-import { apiFetch, ApiError } from "../lib/api";
+import { apiFetch } from "../lib/api";
 
 import logoUrl from "../../assets/logo5.png";
 
@@ -12,8 +12,7 @@ const THEME_KEY = "nomina-theme";
 
 export function Header() {
   const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
-  const emergencyAdminBypass = import.meta.env.VITE_EMERGENCY_ADMIN_BYPASS === "true";
-  const { isSignedIn, isLoaded, getToken } = useAuth();
+  const { isSignedIn, getToken } = useAuth();
   const { signOut } = useClerk();
   const { user } = useUser();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -40,52 +39,30 @@ export function Header() {
 
   useEffect(() => {
     let cancelled = false;
-    if (emergencyAdminBypass) {
-      setIsAdmin(true);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    if (!clerkEnabled || !isLoaded || !isSignedIn) {
+    if (!clerkEnabled || !isSignedIn) {
       setIsAdmin(false);
       return;
     }
 
     (async () => {
-      let resolvedAdmin = false;
-      let unauthorizedCount = 0;
-
-      for (let i = 0; i < 6; i++) {
-        try {
-          const token = await getToken({ skipCache: true }).catch(() => null);
-          if (!token) {
-            await new Promise((r) => setTimeout(r, 250));
-            continue;
-          }
-
-          const data = await apiFetch<{ isAdmin: boolean }>("/auth/me", { token, cacheTtlMs: 0 });
-          if (!cancelled) setIsAdmin(Boolean(data.isAdmin));
-          resolvedAdmin = true;
-          break;
-        } catch (e) {
-          if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
-            unauthorizedCount += 1;
-            if (unauthorizedCount >= 3) break;
-          }
-          await new Promise((r) => setTimeout(r, 300));
+      try {
+        const token = await getToken({ skipCache: true }).catch(() => null);
+        if (!token) {
+          if (!cancelled) setIsAdmin(false);
+          return;
         }
-      }
 
-      if (!resolvedAdmin && !cancelled) {
-        setIsAdmin(false);
+        const data = await apiFetch<{ isAdmin: boolean }>("/auth/me", { token, cacheTtlMs: 0 });
+        if (!cancelled) setIsAdmin(Boolean(data.isAdmin));
+      } catch {
+        if (!cancelled) setIsAdmin(false);
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [clerkEnabled, emergencyAdminBypass, getToken, isLoaded, isSignedIn]);
+  }, [clerkEnabled, getToken, isSignedIn]);
 
   return (
     <header className="sticky top-0 z-50 bg-[#2d1b4e] border-b border-[#7b3ff2]/20">

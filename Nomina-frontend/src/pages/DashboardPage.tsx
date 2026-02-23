@@ -70,8 +70,7 @@ export function DashboardPage() {
 }
 
 function DashboardInner() {
-  const emergencyAdminBypass = import.meta.env.VITE_EMERGENCY_ADMIN_BYPASS === "true";
-  const { getToken, isLoaded } = useAuth();
+  const { getToken } = useAuth();
   const { openUserProfile } = useClerk();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -79,69 +78,16 @@ function DashboardInner() {
   const [stats, setStats] = useState<Stats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
-  const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    try {
-      return await Promise.race<T>([
-        promise,
-        new Promise<T>((_, reject) => {
-          timer = setTimeout(() => reject(new Error("Délai dépassé")), timeoutMs);
-        }),
-      ]);
-    } finally {
-      if (timer) clearTimeout(timer);
-    }
-  };
-
   useEffect(() => {
     let cancelled = false;
-    if (emergencyAdminBypass) {
-      setMe({ userId: 'demo-admin', isAdmin: true });
-      setError(null);
-      setLoading(false);
-      return () => {
-        cancelled = true;
-      };
-    }
-
-    if (!isLoaded) {
-      return () => {
-        cancelled = true;
-      };
-    }
-
     (async () => {
       setLoading(true);
       setError(null);
       try {
-        let data: Me | null = null;
-        let lastError: unknown = null;
-        let unauthorizedCount = 0;
+        const token = await getToken({ skipCache: true }).catch(() => null);
+        if (!token) throw new Error("Session non prête, réessaie dans 1 seconde.");
 
-        for (let i = 0; i < 6; i++) {
-          try {
-            const token = await getToken({ skipCache: true }).catch(() => null);
-            if (!token) {
-              await new Promise((r) => setTimeout(r, 250));
-              continue;
-            }
-
-            data = await withTimeout(apiFetch<Me>("/auth/me", { token, cacheTtlMs: 0 }), 3500);
-            break;
-          } catch (e) {
-            lastError = e;
-            if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
-              unauthorizedCount += 1;
-              if (unauthorizedCount >= 3) break;
-            }
-            await new Promise((r) => setTimeout(r, 250));
-          }
-        }
-
-        if (!data) {
-          throw lastError ?? new Error("Session non prête, réessaie dans 1 seconde.");
-        }
-
+        const data = await apiFetch<Me>("/auth/me", { token, cacheTtlMs: 0 });
         if (!cancelled) setMe(data);
       } catch (e) {
         if (cancelled) return;
@@ -155,32 +101,29 @@ function DashboardInner() {
     return () => {
       cancelled = true;
     };
-  }, [emergencyAdminBypass, getToken, isLoaded]);
+  }, [getToken]);
 
   useEffect(() => {
     let cancelled = false;
-    if (!isLoaded) {
-      return () => {
-        cancelled = true;
-      };
-    }
-
     (async () => {
       setStatsLoading(true);
       try {
-        const [cultures, categories, concepts, titres, fragments, nomPersonnages, lieux, creatures, users] = await withTimeout(Promise.all([
-          apiFetch<{ total: number }>("/cultures/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/categories/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/concepts/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/titres/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/fragmentsHistoire/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/nomPersonnages/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/lieux/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/creatures/total").catch(() => ({ total: 0 })),
+        const token = await getToken({ skipCache: true }).catch(() => null);
+        if (!token) throw new Error("Session non prête, statistiques indisponibles.");
+
+        const [cultures, categories, concepts, titres, fragments, nomPersonnages, lieux, creatures, users] = await Promise.all([
+          apiFetch<{ total: number }>("/cultures/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/categories/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/concepts/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/titres/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/fragmentsHistoire/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/nomPersonnages/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/lieux/total", { token }).catch(() => ({ total: 0 })),
+          apiFetch<{ total: number }>("/creatures/total", { token }).catch(() => ({ total: 0 })),
           me?.isAdmin 
-            ? apiFetch<{ total: number }>("/users/total").catch(() => ({ total: 0 }))
+            ? apiFetch<{ total: number }>("/users/total", { token }).catch(() => ({ total: 0 }))
             : Promise.resolve({ total: 0 }),
-        ]), 8000);
+        ]);
 
         if (!cancelled) {
           setStats({
@@ -205,7 +148,7 @@ function DashboardInner() {
     return () => {
       cancelled = true;
     };
-  }, [getToken, isLoaded, me?.isAdmin]);
+  }, [getToken, me?.isAdmin]);
 
   return (
     <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50 dark:from-[#120b22] dark:via-[#0f0a1b] dark:to-[#140b24]">

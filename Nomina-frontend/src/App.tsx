@@ -80,11 +80,6 @@ function RequireSignedIn(props: { children: JSX.Element }) {
 function RequireAdmin(props: { children: JSX.Element }) {
   const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
   const desktopAdminBypass = import.meta.env.VITE_DESKTOP_ADMIN_BYPASS === "true";
-  const emergencyAdminBypass = import.meta.env.VITE_EMERGENCY_ADMIN_BYPASS === "true";
-
-  if (emergencyAdminBypass) {
-    return props.children;
-  }
 
   if (!clerkEnabled) {
     if (desktopAdminBypass) return props.children;
@@ -100,14 +95,13 @@ function RequireAdmin(props: { children: JSX.Element }) {
 }
 
 function RequireAdminInner(props: { children: JSX.Element }) {
-  const { isSignedIn, isLoaded, getToken } = useAuth();
-  const emergencyAdminBypass = import.meta.env.VITE_EMERGENCY_ADMIN_BYPASS === "true";
+  const { isSignedIn, getToken } = useAuth();
   const [state, setState] = useState<
     { status: "loading" } | { status: "ok" } | { status: "forbidden" } | { status: "error"; message: string }
   >({ status: "loading" });
 
   useEffect(() => {
-    if (!isLoaded || !isSignedIn) return;
+    if (!isSignedIn) return;
 
     let cancelled = false;
     const withTimeout = async <T,>(promise: Promise<T>, timeoutMs: number): Promise<T> => {
@@ -126,18 +120,14 @@ function RequireAdminInner(props: { children: JSX.Element }) {
 
     (async () => {
       try {
-        const timeoutMsRaw = Number(import.meta.env.VITE_ADMIN_CHECK_TIMEOUT_MS ?? 12000);
-        const timeoutMs = Number.isFinite(timeoutMsRaw) && timeoutMsRaw >= 1000 ? timeoutMsRaw : 12000;
         let data: { userId: string; isAdmin: boolean } | null = null;
         let lastError: unknown = null;
-        let unauthorizedCount = 0;
 
         for (let i = 0; i < 4; i++) {
           try {
             const token = await getToken({ skipCache: true }).catch(() => null);
             if (!token) {
-              lastError = new Error("Token d'authentification indisponible");
-              await new Promise((r) => setTimeout(r, 350));
+              await new Promise((r) => setTimeout(r, 250));
               continue;
             }
 
@@ -146,18 +136,17 @@ function RequireAdminInner(props: { children: JSX.Element }) {
                 token,
                 cacheTtlMs: 0,
               }),
-              timeoutMs
+              6000
             );
             break;
           } catch (e) {
             lastError = e;
 
             if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
-              unauthorizedCount += 1;
-              if (unauthorizedCount >= 3) break;
+              break;
             }
 
-            await new Promise((r) => setTimeout(r, 350));
+            await new Promise((r) => setTimeout(r, 250));
           }
         }
 
@@ -169,27 +158,19 @@ function RequireAdminInner(props: { children: JSX.Element }) {
         setState(data.isAdmin ? { status: "ok" } : { status: "forbidden" });
       } catch (e) {
         if (cancelled) return;
-
-        const message = String((e as any)?.message ?? e);
-        const isTimeout = /délai dépassé|timeout/i.test(message);
-        if (emergencyAdminBypass && isTimeout) {
-          setState({ status: "ok" });
-          return;
-        }
-
         if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
           setState({ status: "error", message: "Session expirée ou invalide. Reconnecte-toi." });
           return;
         }
 
-        setState({ status: "error", message });
+        setState({ status: "error", message: String((e as any)?.message ?? e) });
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [emergencyAdminBypass, getToken, isLoaded, isSignedIn]);
+  }, [getToken, isSignedIn]);
 
   return (
     <>
@@ -233,8 +214,8 @@ export default function App() {
   return (
     <div className="min-h-screen relative overflow-hidden">
       <FluidBackground />
-      <ClerkTokenBridge />
       <Header />
+      <ClerkTokenBridge />
       {!isHome ? (
         <div className="pointer-events-none fixed top-20 inset-x-0 z-40 h-7 bg-gradient-to-b from-[#2d1b4e]/70 via-[#2d1b4e]/20 to-transparent" />
       ) : null}
