@@ -23,32 +23,6 @@ const tokenAuthorizedParties = () => {
   return Array.from(new Set(merged));
 };
 
-const originFromUrl = (value: string | undefined): string | null => {
-  if (!value) return null;
-  try {
-    return new URL(value).origin;
-  } catch {
-    return null;
-  }
-};
-
-const requestAuthorizedParties = (req: Request): string[] => {
-  const base = tokenAuthorizedParties();
-  const headerOrigin = typeof req.headers.origin === 'string' ? req.headers.origin.trim() : '';
-  const referer = typeof req.headers.referer === 'string' ? req.headers.referer.trim() : '';
-  const refererOrigin = originFromUrl(referer) ?? '';
-
-  const merged = [
-    ...base,
-    headerOrigin,
-    refererOrigin,
-  ]
-    .map((value) => value.trim())
-    .filter(Boolean);
-
-  return Array.from(new Set(merged));
-};
-
 const extractBearerToken = (req: Request): string | null => {
   const authHeader = req.headers.authorization;
   if (!authHeader) return null;
@@ -78,7 +52,6 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     const { payload } = await verifyToken(token, {
       secretKey,
       clockSkewInMs: tokenClockSkewInMs(),
-      authorizedParties: requestAuthorizedParties(req),
     });
     const p = payload as {
       sub?: unknown;
@@ -109,7 +82,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     const message = err instanceof Error ? err.message : String(err);
     console.error('Clerk token verification failed:', {
       message,
-      authorizedParties: requestAuthorizedParties(req),
+      fallbackAuthorizedParties: tokenAuthorizedParties(),
     });
     return res.status(401).json({ error: 'Token invalide ou expiré. Reconnecte-toi puis réessaie.' });
   }
