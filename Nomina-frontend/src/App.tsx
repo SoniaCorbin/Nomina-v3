@@ -55,10 +55,8 @@ function ClerkTokenBridgeInner() {
 
 function RequireSignedIn(props: { children: JSX.Element }) {
   const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
-  const desktopAdminBypass = import.meta.env.VITE_DESKTOP_ADMIN_BYPASS === "true";
 
   if (!clerkEnabled) {
-    if (desktopAdminBypass) return props.children;
     return (
       <main className="min-h-screen p-6">
         <h1 className="text-2xl font-semibold mb-2">Accès restreint</h1>
@@ -79,15 +77,8 @@ function RequireSignedIn(props: { children: JSX.Element }) {
 
 function RequireAdmin(props: { children: JSX.Element }) {
   const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
-  const desktopAdminBypass = import.meta.env.VITE_DESKTOP_ADMIN_BYPASS === "true";
-  const emergencyAdminBypass = import.meta.env.VITE_EMERGENCY_ADMIN_BYPASS === "true";
-
-  if (emergencyAdminBypass) {
-    return props.children;
-  }
 
   if (!clerkEnabled) {
-    if (desktopAdminBypass) return props.children;
     return (
       <main className="min-h-screen p-6">
         <h1 className="text-2xl font-semibold mb-2">Admin</h1>
@@ -169,7 +160,13 @@ function RequireAdminInner(props: { children: JSX.Element }) {
       } catch (e) {
         if (cancelled) return;
         if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
-          setState({ status: "error", message: "Session expirée ou invalide. Reconnecte-toi." });
+          const backendMessage = e.payload?.error?.trim();
+          setState({
+            status: "error",
+            message: backendMessage && backendMessage.length > 0
+              ? backendMessage
+              : "Session expirée ou invalide. Reconnecte-toi.",
+          });
           return;
         }
 
