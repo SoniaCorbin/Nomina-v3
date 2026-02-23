@@ -80,6 +80,11 @@ function RequireSignedIn(props: { children: JSX.Element }) {
 function RequireAdmin(props: { children: JSX.Element }) {
   const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
   const desktopAdminBypass = import.meta.env.VITE_DESKTOP_ADMIN_BYPASS === "true";
+  const emergencyAdminBypass = import.meta.env.VITE_EMERGENCY_ADMIN_BYPASS === "true";
+
+  if (emergencyAdminBypass) {
+    return props.children;
+  }
 
   if (!clerkEnabled) {
     if (desktopAdminBypass) return props.children;
@@ -95,7 +100,8 @@ function RequireAdmin(props: { children: JSX.Element }) {
 }
 
 function RequireAdminInner(props: { children: JSX.Element }) {
-  const { isSignedIn, isLoaded } = useAuth();
+  const { isSignedIn, isLoaded, getToken } = useAuth();
+  const emergencyAdminBypass = import.meta.env.VITE_EMERGENCY_ADMIN_BYPASS === "true";
   const [state, setState] = useState<
     { status: "loading" } | { status: "ok" } | { status: "forbidden" } | { status: "error"; message: string }
   >({ status: "loading" });
@@ -120,17 +126,27 @@ function RequireAdminInner(props: { children: JSX.Element }) {
 
     (async () => {
       try {
+        const timeoutMsRaw = Number(import.meta.env.VITE_ADMIN_CHECK_TIMEOUT_MS ?? 12000);
+        const timeoutMs = Number.isFinite(timeoutMsRaw) && timeoutMsRaw >= 1000 ? timeoutMsRaw : 12000;
         let data: { userId: string; isAdmin: boolean } | null = null;
         let lastError: unknown = null;
         let unauthorizedCount = 0;
 
-        for (let i = 0; i < 3; i++) {
+        for (let i = 0; i < 4; i++) {
           try {
+            const token = await getToken({ skipCache: true }).catch(() => null);
+            if (!token) {
+              lastError = new Error("Token d'authentification indisponible");
+              await new Promise((r) => setTimeout(r, 350));
+              continue;
+            }
+
             data = await withTimeout(
               apiFetch<{ userId: string; isAdmin: boolean }>("/auth/me", {
+                token,
                 cacheTtlMs: 0,
               }),
-              3500
+              timeoutMs
             );
             break;
           } catch (e) {
@@ -141,7 +157,7 @@ function RequireAdminInner(props: { children: JSX.Element }) {
               if (unauthorizedCount >= 3) break;
             }
 
-            await new Promise((r) => setTimeout(r, 250));
+            await new Promise((r) => setTimeout(r, 350));
           }
         }
 
@@ -153,19 +169,27 @@ function RequireAdminInner(props: { children: JSX.Element }) {
         setState(data.isAdmin ? { status: "ok" } : { status: "forbidden" });
       } catch (e) {
         if (cancelled) return;
+
+        const message = String((e as any)?.message ?? e);
+        const isTimeout = /délai dépassé|timeout/i.test(message);
+        if (emergencyAdminBypass && isTimeout) {
+          setState({ status: "ok" });
+          return;
+        }
+
         if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
           setState({ status: "error", message: "Session expirée ou invalide. Reconnecte-toi." });
           return;
         }
 
-        setState({ status: "error", message: String((e as any)?.message ?? e) });
+        setState({ status: "error", message });
       }
     })();
 
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn]);
+  }, [emergencyAdminBypass, getToken, isLoaded, isSignedIn]);
 
   return (
     <>

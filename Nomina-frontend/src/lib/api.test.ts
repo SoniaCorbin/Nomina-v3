@@ -137,6 +137,24 @@ describe('api helpers', () => {
     });
   });
 
+  it('throws explicit error when API returns HTML instead of JSON', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+        headers: { get: () => 'text/html; charset=utf-8' },
+        json: async () => undefined,
+      })
+    );
+
+    await expect(apiFetch('/auth/me')).rejects.toMatchObject({
+      name: 'ApiError',
+      status: 502,
+    });
+  });
+
   it('creates ApiError with payload and status', () => {
     const err = new ApiError('boom', 418, { error: 'teapot' });
     expect(err.message).toBe('boom');

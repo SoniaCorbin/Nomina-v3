@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Sparkles, Copy, Check } from "lucide-react";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
-import { apiFetch, ApiError, flushOutbox, getApiBaseUrl, getOutboxSize, setApiTokenProvider } from "../lib/api";
+import { apiFetch, ApiError, flushOutbox, getApiBaseUrl, getOutboxSize } from "../lib/api";
 
 const mockResponse = {
   character: {
@@ -34,7 +34,6 @@ export function ApiDemo() {
   const [meError, setMeError] = useState<string | null>(null);
 
   useEffect(() => {
-    setApiTokenProvider(() => getToken());
     const refresh = () => {
       setIsOnline(navigator.onLine);
       setOutboxSize(getOutboxSize());
@@ -45,9 +44,8 @@ export function ApiDemo() {
     return () => {
       window.removeEventListener('online', refresh);
       window.removeEventListener('offline', refresh);
-      setApiTokenProvider(null);
     };
-  }, [getToken]);
+  }, []);
 
   const handleGenerate = () => {
     setIsGenerating(true);

@@ -12,19 +12,21 @@ function isLocalHostLike(hostname: string): boolean {
 export const getApiBaseUrl = (): string => {
   const primary = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
   const secondary = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.trim();
+  const fallback = (import.meta.env.VITE_API_FALLBACK_URL as string | undefined)?.trim();
   const configured = primary && primary.length > 0 ? primary : secondary && secondary.length > 0 ? secondary : null;
 
   const browserOrigin = typeof window !== 'undefined' ? window.location.origin : null;
   const browserHost = typeof window !== 'undefined' ? window.location.hostname : null;
+  const emergencyFallback = fallback && fallback.length > 0 ? fallback : null;
 
   if (!configured) {
-    return (browserOrigin || 'http://localhost:3000').replace(/\/$/, '');
+    return (emergencyFallback || browserOrigin || 'http://localhost:3000').replace(/\/$/, '');
   }
 
   try {
     const parsed = new URL(configured);
     if (browserHost && !isLocalHostLike(browserHost) && isLocalHostLike(parsed.hostname)) {
-      return (browserOrigin || configured).replace(/\/$/, '');
+      return (emergencyFallback || configured).replace(/\/$/, '');
     }
   } catch {
     // ignore malformed URL and keep configured value
@@ -241,6 +243,12 @@ export async function apiFetch<T>(
     effectiveToken = await tokenProvider().catch(() => null);
   }
 
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const isAuthMeEndpoint = /^\/auth\/me(?:$|[/?#])/.test(normalizedPath);
+  if (isAuthMeEndpoint && tokenProvider && !effectiveToken) {
+    throw new ApiError('Session d’authentification en cours de préparation. Réessaie dans 1 seconde.', 0);
+  }
+
   const hasAuth = Boolean(effectiveToken);
   const cacheTtlMs = opts.cacheTtlMs ?? DEFAULT_CACHE_TTL_MS;
   const canUseCache = !hasAuth && cacheTtlMs > 0;
@@ -324,6 +332,17 @@ export async function apiFetch<T>(
 
   const contentType = res.headers.get('content-type') || '';
   const isJson = contentType.includes('application/json');
+
+  if (!isJson && res.ok) {
+    const isProbablyHtml = contentType.includes('text/html');
+    if (isProbablyHtml) {
+      throw new ApiError(
+        `Réponse HTML reçue au lieu de JSON depuis ${url}. Vérifie VITE_API_URL/VITE_API_BASE_URL (backend Vercel).`,
+        502
+      );
+    }
+  }
+
   const payload = isJson ? await res.json().catch(() => undefined) : undefined;
 
   if (!res.ok) {
