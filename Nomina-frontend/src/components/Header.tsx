@@ -46,6 +46,7 @@ export function Header() {
 
     (async () => {
       let resolvedAdmin = false;
+      let unauthorizedCount = 0;
 
       for (let i = 0; i < 6; i++) {
         try {
@@ -61,7 +62,8 @@ export function Header() {
           break;
         } catch (e) {
           if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
-            break;
+            unauthorizedCount += 1;
+            if (unauthorizedCount >= 3) break;
           }
           await new Promise((r) => setTimeout(r, 300));
         }

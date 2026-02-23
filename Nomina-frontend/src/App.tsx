@@ -122,12 +122,13 @@ function RequireAdminInner(props: { children: JSX.Element }) {
       try {
         let data: { userId: string; isAdmin: boolean } | null = null;
         let lastError: unknown = null;
+        let unauthorizedCount = 0;
 
-        for (let i = 0; i < 4; i++) {
+        for (let i = 0; i < 6; i++) {
           try {
             const token = await getToken({ skipCache: true }).catch(() => null);
             if (!token) {
-              await new Promise((r) => setTimeout(r, 250));
+              await new Promise((r) => setTimeout(r, 350));
               continue;
             }
 
@@ -143,10 +144,11 @@ function RequireAdminInner(props: { children: JSX.Element }) {
             lastError = e;
 
             if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
-              break;
+              unauthorizedCount += 1;
+              if (unauthorizedCount >= 3) break;
             }
 
-            await new Promise((r) => setTimeout(r, 250));
+            await new Promise((r) => setTimeout(r, 350));
           }
         }
 

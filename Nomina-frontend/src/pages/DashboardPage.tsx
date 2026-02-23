@@ -86,6 +86,7 @@ function DashboardInner() {
       try {
         let data: Me | null = null;
         let lastError: unknown = null;
+        let unauthorizedCount = 0;
 
         for (let i = 0; i < 6; i++) {
           try {
@@ -100,7 +101,8 @@ function DashboardInner() {
           } catch (e) {
             lastError = e;
             if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
-              break;
+              unauthorizedCount += 1;
+              if (unauthorizedCount >= 3) break;
             }
             await new Promise((r) => setTimeout(r, 350));
           }
