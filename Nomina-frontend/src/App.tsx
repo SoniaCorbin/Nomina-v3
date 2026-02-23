@@ -80,6 +80,11 @@ function RequireSignedIn(props: { children: JSX.Element }) {
 function RequireAdmin(props: { children: JSX.Element }) {
   const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
   const desktopAdminBypass = import.meta.env.VITE_DESKTOP_ADMIN_BYPASS === "true";
+  const emergencyAdminBypass = import.meta.env.VITE_EMERGENCY_ADMIN_BYPASS === "true";
+
+  if (emergencyAdminBypass) {
+    return props.children;
+  }
 
   if (!clerkEnabled) {
     if (desktopAdminBypass) return props.children;
