@@ -233,12 +233,22 @@ export async function apiFetch<T>(
   const url = `${getApiBaseUrl()}${path.startsWith('/') ? path : `/${path}`}`;
 
   const method = (opts.method ?? 'GET').toUpperCase();
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const needsAuthWarmup = normalizedPath === '/auth/me' || normalizedPath.startsWith('/auth/admin');
 
   // Si aucun token n'est fourni explicitement, on tente d'en récupérer un via Clerk.
   // Ça permet de garder l'appel simple: apiFetch('/users') sans répéter getToken() partout.
   let effectiveToken = opts.token ?? null;
   if (!effectiveToken && tokenProvider) {
     effectiveToken = await tokenProvider().catch(() => null);
+
+    if (!effectiveToken && needsAuthWarmup) {
+      for (let i = 0; i < 5; i++) {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+        effectiveToken = await tokenProvider().catch(() => null);
+        if (effectiveToken) break;
+      }
+    }
   }
 
   const hasAuth = Boolean(effectiveToken);
