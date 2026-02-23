@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { SignedIn, SignedOut, UserButton, useAuth, useClerk, useUser } from "@clerk/clerk-react";
 import { Link } from "react-router-dom";
 
-import { apiFetch } from "../lib/api";
+import { apiFetch, ApiError } from "../lib/api";
 
 import logoUrl from "../../assets/logo5.png";
 
@@ -45,17 +45,30 @@ export function Header() {
     }
 
     (async () => {
-      try {
-        const token = await getToken({ skipCache: true }).catch(() => null);
-        if (!token) {
-          if (!cancelled) setIsAdmin(false);
-          return;
-        }
+      let resolvedAdmin = false;
 
-        const data = await apiFetch<{ isAdmin: boolean }>("/auth/me", { token, cacheTtlMs: 0 });
-        if (!cancelled) setIsAdmin(Boolean(data.isAdmin));
-      } catch {
-        if (!cancelled) setIsAdmin(false);
+      for (let i = 0; i < 6; i++) {
+        try {
+          const token = await getToken({ skipCache: true }).catch(() => null);
+          if (!token) {
+            await new Promise((r) => setTimeout(r, 300));
+            continue;
+          }
+
+          const data = await apiFetch<{ isAdmin: boolean }>("/auth/me", { token, cacheTtlMs: 0 });
+          if (!cancelled) setIsAdmin(Boolean(data.isAdmin));
+          resolvedAdmin = true;
+          break;
+        } catch (e) {
+          if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
+            break;
+          }
+          await new Promise((r) => setTimeout(r, 300));
+        }
+      }
+
+      if (!resolvedAdmin && !cancelled) {
+        setIsAdmin(false);
       }
     })();
 

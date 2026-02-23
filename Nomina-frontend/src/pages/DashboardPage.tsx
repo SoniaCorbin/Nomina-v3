@@ -84,10 +84,32 @@ function DashboardInner() {
       setLoading(true);
       setError(null);
       try {
-        const token = await getToken({ skipCache: true }).catch(() => null);
-        if (!token) throw new Error("Session non prête, réessaie dans 1 seconde.");
+        let data: Me | null = null;
+        let lastError: unknown = null;
 
-        const data = await apiFetch<Me>("/auth/me", { token, cacheTtlMs: 0 });
+        for (let i = 0; i < 6; i++) {
+          try {
+            const token = await getToken({ skipCache: true }).catch(() => null);
+            if (!token) {
+              await new Promise((r) => setTimeout(r, 350));
+              continue;
+            }
+
+            data = await apiFetch<Me>("/auth/me", { token, cacheTtlMs: 0 });
+            break;
+          } catch (e) {
+            lastError = e;
+            if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
+              break;
+            }
+            await new Promise((r) => setTimeout(r, 350));
+          }
+        }
+
+        if (!data) {
+          throw lastError ?? new Error("Session non prête, réessaie dans 1 seconde.");
+        }
+
         if (!cancelled) setMe(data);
       } catch (e) {
         if (cancelled) return;
