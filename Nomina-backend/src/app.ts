@@ -69,6 +69,8 @@ app.use(cors(corsOptions));
 
 app.get("/", (_req, res) => res.send("Nomina-backend running"));
 app.get("/healthz", (_req, res) => res.json({ ok: true }));
+app.get("/api", (_req, res) => res.json({ ok: true, scope: "api" }));
+app.get("/api/index", (_req, res) => res.json({ ok: true, scope: "api-index" }));
 
 function mountRoutes(prefix = "") {
   const withPrefix = (route: string) => (prefix ? `${prefix}${route}` : route);
@@ -97,5 +99,6 @@ function mountRoutes(prefix = "") {
 
 mountRoutes();
 mountRoutes("/api");
+mountRoutes("/api/index");
 
 export default app;
