@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="12.0" styleClass="content" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="com.nomina.desktop.controller.CategoriesController">
+    <padding>
+        <Insets top="18" right="18" bottom="18" left="18"/>
+    </padding>
+
+    <children>
+        <HBox spacing="10.0">
+            <children>
+                <Label text="CRUD Categories" styleClass="section-title"/>
+                <Button text="Rafraîchir" onAction="#onRefresh"/>
+                <Button text="Nouveau" onAction="#onNew"/>
+                <ProgressIndicator fx:id="loadingIndicator" visible="false" managed="false" prefHeight="24" prefWidth="24"/>
+            </children>
+        </HBox>
+
+        <TableView fx:id="categoriesTable" prefHeight="360.0">
+            <columns>
+                <TableColumn fx:id="colId" text="ID" prefWidth="70"/>
+                <TableColumn fx:id="colName" text="Nom" prefWidth="240"/>
+                <TableColumn fx:id="colDescription" text="Description" prefWidth="300"/>
+                <TableColumn fx:id="colUniversId" text="UniversId" prefWidth="120"/>
+            </columns>
+            <VBox.vgrow>
+                <Priority fx:constant="ALWAYS"/>
+            </VBox.vgrow>
+        </TableView>
+
+        <GridPane hgap="10" vgap="8">
+            <children>
+                <Label text="Nom *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                <TextField fx:id="nameField" promptText="ex: Noblesse" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                <Label text="Description" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                <TextField fx:id="descriptionField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                <Label text="Univers ID" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                <TextField fx:id="universIdField" promptText="entier optionnel" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                <Label text="Univers Name" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                <TextField fx:id="universNameField" promptText="Tous (par défaut)" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+            </children>
+        </GridPane>
+
+        <HBox spacing="10.0">
+            <children>
+                <Button fx:id="saveButton" text="Enregistrer" onAction="#onSave"/>
+                <Button fx:id="deleteButton" text="Supprimer" onAction="#onDelete" disable="true" styleClass="danger"/>
+            </children>
+        </HBox>
+
+        <Label fx:id="feedbackLabel" text="Prêt." styleClass="muted"/>
+    </children>
+</VBox>

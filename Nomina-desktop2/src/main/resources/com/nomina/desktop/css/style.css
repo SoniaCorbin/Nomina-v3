@@ -1,0 +1,202 @@
+.app-root {
+    -violet-deep: #2d1b4e;
+    -violet-vibrant: #7b3ff2;
+    -violet-light: #a67be8;
+    -lavender: #d4c5f9;
+    -white-pure: #ffffff;
+    -white-off: #f8f6fc;
+    -rose-gold: #e8b4f0;
+    -silver: #c5bfd9;
+    -success: #a67be8;
+    -error: #f29999;
+    -attention: #f0b4e8;
+
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 100%, -white-off 0%, -lavender 100%);
+}
+
+.topbar {
+    -fx-background-color: -white-pure;
+    -fx-border-color: -lavender;
+    -fx-border-width: 0 0 1 0;
+    -fx-effect: dropshadow(gaussian, rgba(45,27,78,0.12), 8, 0, 0, 2);
+}
+
+.sidebar {
+    -fx-background-color: -white-pure;
+    -fx-border-color: -lavender;
+    -fx-border-width: 0 1 0 0;
+    -fx-effect: dropshadow(gaussian, rgba(45,27,78,0.08), 6, 0, 1, 0);
+}
+
+.content {
+    -fx-background-color: -white-pure;
+    -fx-border-color: -lavender;
+    -fx-border-radius: 16;
+    -fx-background-radius: 16;
+    -fx-effect: dropshadow(gaussian, rgba(45,27,78,0.08), 10, 0, 0, 2);
+}
+
+.label {
+    -fx-text-fill: -violet-deep;
+    -fx-font-family: "Poppins", "Segoe UI", sans-serif;
+    -fx-font-size: 13px;
+}
+
+.title {
+    -fx-font-size: 24px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -violet-deep;
+}
+
+.section-title {
+    -fx-font-size: 22px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -violet-deep;
+}
+
+.muted {
+    -fx-text-fill: -violet-light;
+    -fx-font-size: 12px;
+}
+
+.badge {
+    -fx-background-color: -rose-gold;
+    -fx-text-fill: -violet-deep;
+    -fx-font-weight: 700;
+    -fx-padding: 6 12;
+    -fx-background-radius: 14;
+    -fx-border-color: -lavender;
+    -fx-border-radius: 14;
+}
+
+.stat {
+    -fx-font-size: 18px;
+    -fx-font-weight: 700;
+    -fx-text-fill: -violet-vibrant;
+}
+
+.button {
+    -fx-background-color: -violet-vibrant;
+    -fx-text-fill: -white-pure;
+    -fx-background-radius: 8;
+    -fx-font-weight: 600;
+    -fx-padding: 8 14;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(45,27,78,0.12), 6, 0, 0, 1);
+}
+
+.button:hover {
+    -fx-background-color: -violet-light;
+}
+
+.button:pressed {
+    -fx-background-color: -violet-deep;
+}
+
+.button.danger {
+    -fx-background-color: -attention;
+    -fx-text-fill: -violet-deep;
+}
+
+.button.danger:hover {
+    -fx-background-color: -rose-gold;
+}
+
+.sidebar .button {
+    -fx-background-color: transparent;
+    -fx-text-fill: -violet-deep;
+    -fx-alignment: CENTER_LEFT;
+    -fx-padding: 10 12;
+    -fx-background-radius: 10;
+    -fx-effect: none;
+}
+
+.sidebar .button:hover {
+    -fx-background-color: -lavender;
+}
+
+.sidebar .button:pressed {
+    -fx-background-color: -violet-light;
+    -fx-text-fill: -white-pure;
+}
+
+.sidebar .button.danger {
+    -fx-text-fill: -violet-deep;
+    -fx-background-color: transparent;
+}
+
+.sidebar .button.danger:hover {
+    -fx-background-color: -attention;
+}
+
+.text-field,
+.table-view {
+    -fx-background-color: -white-pure;
+    -fx-text-fill: -violet-deep;
+    -fx-control-inner-background: -white-pure;
+    -fx-border-color: -lavender;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+}
+
+.text-field {
+    -fx-padding: 6 10;
+    -fx-highlight-fill: -lavender;
+    -fx-highlight-text-fill: -violet-deep;
+    -fx-focus-color: -violet-vibrant;
+    -fx-faint-focus-color: rgba(123,63,242,0.15);
+}
+
+.topbar .label {
+    -fx-font-size: 13px;
+}
+
+#apiUrlLabel {
+    -fx-background-color: -lavender;
+    -fx-padding: 4 10;
+    -fx-background-radius: 12;
+    -fx-text-fill: -violet-deep;
+    -fx-font-weight: 600;
+}
+
+.grid-pane .label {
+    -fx-font-size: 13px;
+    -fx-font-weight: 600;
+    -fx-text-fill: -violet-deep;
+}
+
+.content > .label {
+    -fx-font-size: 13px;
+}
+
+.table-view .column-header-background,
+.table-view .column-header {
+    -fx-background-color: -lavender;
+}
+
+.table-view .column-header .label {
+    -fx-text-fill: -violet-deep;
+    -fx-font-weight: 600;
+}
+
+.table-view {
+    -fx-border-color: -lavender;
+    -fx-border-radius: 10;
+    -fx-background-radius: 10;
+    -fx-selection-bar: -lavender;
+    -fx-selection-bar-non-focused: -white-off;
+    -fx-table-cell-border-color: transparent;
+}
+
+.table-view .table-row-cell:filled:odd {
+    -fx-background-color: -white-off;
+}
+
+.table-view .table-row-cell:selected {
+    -fx-background-color: -lavender;
+    -fx-text-fill: -violet-deep;
+}
+
+.progress-indicator {
+    -fx-accent: -violet-vibrant;
+}
