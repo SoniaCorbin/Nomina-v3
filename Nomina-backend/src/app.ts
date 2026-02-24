@@ -1,7 +1,6 @@
 import express from "express";
 import cors, { type CorsOptions } from "cors";
 import dotenv from "dotenv";
-import path from "path";
 
 // Important!! en dev (ts-node): assure que l'augmentation Express (req.auth) est chargée.
 import "./types/expressType";
@@ -71,7 +70,12 @@ app.use(cors(corsOptions));
 app.get("/", (_req, res) => res.send("Nomina-backend running"));
 app.get("/healthz", (_req, res) => res.json({ ok: true }));
 app.get("/api", (_req, res) => res.json({ ok: true, scope: "api" }));
-app.get("/api/index", (_req, res) => res.json({ ok: true, scope: "api-index" }));
+app.get("/api/index", (_req, res) => res.redirect(308, "/api"));
+app.use("/api/index", (req, res) => {
+  const legacySuffix = req.originalUrl.slice("/api/index".length);
+  const target = `/api${legacySuffix}` || "/api";
+  return res.redirect(308, target);
+});
 
 function mountRoutes(prefix = "") {
   const withPrefix = (route: string) => (prefix ? `${prefix}${route}` : route);
@@ -82,7 +86,6 @@ function mountRoutes(prefix = "") {
   app.use(withPrefix("/categories"), CategorieRoutes);
   app.use(withPrefix("/cultures"), CultureRoutes);
   app.use(withPrefix("/nomPersonnages"), NomPersonnageRoutes);
-  app.use(withPrefix("/prenoms"), NomPersonnageRoutes);
   app.use(withPrefix("/nomFamilles"), NomFamilleRoutes);
   app.use(withPrefix("/personnages"), PersonnageRoutes);
   app.use(withPrefix("/fragmentsHistoire"), FragmentsHistoireRoutes);
@@ -92,23 +95,35 @@ function mountRoutes(prefix = "") {
   app.use(withPrefix("/lieux"), LieuxRoutes);
   app.use(withPrefix("/univers"), UniversThematiqueRoutes);
   app.use(withPrefix("/socialClasses"), SocialClassRoutes);
-  app.use(withPrefix("/socialclasses"), SocialClassRoutes);
-  app.use(withPrefix("/social-classes"), SocialClassRoutes);
-  app.use(withPrefix("/socialClass"), SocialClassRoutes);
   app.use(withPrefix("/occupations"), OccupationRoutes);
-  app.use(withPrefix("/occupation"), OccupationRoutes);
   app.use(withPrefix("/organizations"), OrganizationRoutes);
-  app.use(withPrefix("/organization"), OrganizationRoutes);
   app.use(withPrefix("/relationTypes"), RelationTypeRoutes);
-  app.use(withPrefix("/relationtypes"), RelationTypeRoutes);
-  app.use(withPrefix("/relation-types"), RelationTypeRoutes);
-  app.use(withPrefix("/relationType"), RelationTypeRoutes);
   app.use(withPrefix("/events"), EventRoutes);
-  app.use(withPrefix("/event"), EventRoutes);
+
+  const legacyAliases: Array<[string, string]> = [
+    ["/prenoms", "/nomPersonnages"],
+    ["/socialclasses", "/socialClasses"],
+    ["/social-classes", "/socialClasses"],
+    ["/socialClass", "/socialClasses"],
+    ["/occupation", "/occupations"],
+    ["/organization", "/organizations"],
+    ["/relationtypes", "/relationTypes"],
+    ["/relation-types", "/relationTypes"],
+    ["/relationType", "/relationTypes"],
+    ["/event", "/events"],
+  ];
+
+  for (const [legacyRoute, canonicalRoute] of legacyAliases) {
+    app.use(withPrefix(legacyRoute), (req, res) => {
+      const legacyBase = withPrefix(legacyRoute);
+      const canonicalBase = withPrefix(canonicalRoute);
+      const suffix = req.originalUrl.slice(legacyBase.length);
+
+      return res.redirect(308, `${canonicalBase}${suffix}`);
+    });
+  }
 }
 
-mountRoutes();
 mountRoutes("/api");
-mountRoutes("/api/index");
 
 export default app;
