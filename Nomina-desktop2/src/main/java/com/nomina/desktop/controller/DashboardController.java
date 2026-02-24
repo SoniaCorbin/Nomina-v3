@@ -3,6 +3,7 @@ package com.nomina.desktop.controller;
 import com.nomina.desktop.AppState;
 import com.nomina.desktop.service.ApiService;
 import com.nomina.desktop.util.UiAlerts;
+
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -25,6 +26,9 @@ public class DashboardController {
     private Label categoriesTotalLabel;
 
     @FXML
+    private Label universTotalLabel;
+
+    @FXML
     private ProgressIndicator loadingIndicator;
 
     private final ApiService apiService = new ApiService();
@@ -43,23 +47,25 @@ public class DashboardController {
     }
 
     private void refreshTotals() {
-        Task<int[]> task = new Task<>() {
+        Task<TotalsResult> task = new Task<>() {
             @Override
-            protected int[] call() throws Exception {
-                int concepts = apiService.getConceptTotal();
-                int cultures = apiService.getCultureTotal();
-                int categories = apiService.getCategorieTotal();
-                return new int[]{concepts, cultures, categories};
+            protected TotalsResult call() {
+                Integer concepts = readTotal(() -> apiService.getConceptTotal());
+                Integer cultures = readTotal(() -> apiService.getCultureTotal());
+                Integer categories = readTotal(() -> apiService.getCategorieTotal());
+                Integer univers = readTotal(() -> apiService.getUniversTotal());
+                return new TotalsResult(concepts, cultures, categories, univers);
             }
         };
 
         task.setOnRunning(event -> setLoading(true));
         task.setOnSucceeded(event -> {
             setLoading(false);
-            int[] values = task.getValue();
-            conceptsTotalLabel.setText(String.valueOf(values[0]));
-            culturesTotalLabel.setText(String.valueOf(values[1]));
-            categoriesTotalLabel.setText(String.valueOf(values[2]));
+            TotalsResult values = task.getValue();
+            conceptsTotalLabel.setText(formatTotal(values.concepts()));
+            culturesTotalLabel.setText(formatTotal(values.cultures()));
+            categoriesTotalLabel.setText(formatTotal(values.categories()));
+            universTotalLabel.setText(formatTotal(values.univers()));
         });
 
         task.setOnFailed(event -> {
@@ -72,8 +78,28 @@ public class DashboardController {
         thread.start();
     }
 
+    private Integer readTotal(ThrowingSupplier<Integer> supplier) {
+        try {
+            return supplier.get();
+        } catch (Exception ignored) {
+            return null;
+        }
+    }
+
+    private String formatTotal(Integer total) {
+        return total == null ? "-" : String.valueOf(total);
+    }
+
     private void setLoading(boolean loading) {
         loadingIndicator.setVisible(loading);
         loadingIndicator.setManaged(loading);
+    }
+
+    @FunctionalInterface
+    private interface ThrowingSupplier<T> {
+        T get() throws Exception;
+    }
+
+    private record TotalsResult(Integer concepts, Integer cultures, Integer categories, Integer univers) {
     }
 }

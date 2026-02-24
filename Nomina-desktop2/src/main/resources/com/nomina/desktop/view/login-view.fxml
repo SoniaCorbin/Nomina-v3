@@ -5,6 +5,8 @@
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
@@ -15,23 +17,41 @@
     </padding>
 
     <children>
-        <Label text="Connexion API (Token)" styleClass="section-title"/>
-
-        <Label text="URL API"/>
-        <TextField fx:id="apiUrlField" promptText="http://localhost:3000/api"/>
-
-        <Label text="Token Bearer (Clerk)"/>
-        <TextField fx:id="tokenField" promptText="colle ton JWT ici"/>
-
         <HBox spacing="10.0">
             <children>
-                <Button fx:id="validateButton" text="Valider /auth/me" onAction="#onValidateToken"/>
-                <Button text="Ouvrir sign-in Clerk" onAction="#onOpenSignIn"/>
-                <Button text="Ouvrir sign-up Clerk" onAction="#onOpenSignUp"/>
+                <ImageView fitHeight="24.0" preserveRatio="true" styleClass="page-logo">
+                    <image>
+                        <Image url="@../images/logo5.png"/>
+                    </image>
+                </ImageView>
+                <Label text="Connexion API (Token)" styleClass="section-title"/>
             </children>
         </HBox>
 
-        <ProgressIndicator fx:id="loadingIndicator" visible="false" managed="false" prefHeight="28" prefWidth="28"/>
-        <Label fx:id="infoLabel" text="Entre ton URL API et ton token, puis valide." styleClass="muted" wrapText="true"/>
+        <VBox spacing="12.0" styleClass="card">
+            <padding>
+                <Insets top="12" right="12" bottom="12" left="12"/>
+            </padding>
+            <children>
+                <Label text="Accès sécurisé" styleClass="card-title"/>
+
+                <Label text="URL API"/>
+                <TextField fx:id="apiUrlField" promptText="http://localhost:3000/api"/>
+
+                <Label text="Token Bearer (Clerk)"/>
+                <TextField fx:id="tokenField" promptText="colle ton JWT ici"/>
+
+                <HBox spacing="10.0">
+                    <children>
+                        <Button fx:id="validateButton" text="Valider /auth/me" onAction="#onValidateToken"/>
+                        <Button text="Ouvrir sign-in Clerk" onAction="#onOpenSignIn"/>
+                        <Button text="Ouvrir sign-up Clerk" onAction="#onOpenSignUp"/>
+                    </children>
+                </HBox>
+
+                <ProgressIndicator fx:id="loadingIndicator" visible="false" managed="false" prefHeight="28" prefWidth="28"/>
+                <Label fx:id="infoLabel" text="Entre ton URL API et ton token, puis valide." styleClass="muted" wrapText="true"/>
+            </children>
+        </VBox>
     </children>
 </VBox>

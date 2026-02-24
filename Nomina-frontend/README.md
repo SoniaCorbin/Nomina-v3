@@ -35,12 +35,12 @@ npm install
 Créer un fichier `.env.local` à la racine de `Nomina-frontend`.
 
 ```env
-VITE_API_URL=http://localhost:3000
+VITE_API_URL=http://localhost:3000/api
 VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
 ```
 
 Notes:
-- `VITE_API_URL` pointe vers le backend.
+- `VITE_API_URL` pointe vers le préfixe API du backend (`/api`).
 - `VITE_CLERK_PUBLISHABLE_KEY` est requis pour les pages/auth flows Clerk.
 
 **Clerk redirect URLs** : pour que la connexion et le SSO fonctionnent en prod et en local, ajoute les URLs listées dans [CLERK_REDIRECT_URLS.md](./CLERK_REDIRECT_URLS.md) dans le Clerk Dashboard (Configure → Paths / Allowed redirect URLs).

@@ -18,14 +18,23 @@ export const getApiBaseUrl = (): string => {
   const browserHost = typeof window !== 'undefined' ? window.location.hostname : null;
 
   if (!configured) {
-    return (browserOrigin || 'http://localhost:3000').replace(/\/$/, '');
+    const base = (browserOrigin || 'http://localhost:3000').replace(/\/$/, '');
+    return `${base}/api`;
   }
 
   try {
     const parsed = new URL(configured);
     if (browserHost && !isLocalHostLike(browserHost) && isLocalHostLike(parsed.hostname)) {
-      return (browserOrigin || configured).replace(/\/$/, '');
+      const base = (browserOrigin || configured).replace(/\/$/, '');
+      return `${base}/api`;
     }
+
+    const normalizedPath = parsed.pathname.replace(/\/$/, '');
+    if (normalizedPath === '' || normalizedPath === '/') {
+      parsed.pathname = '/api';
+    }
+
+    return parsed.toString().replace(/\/$/, '');
   } catch {
     // ignore malformed URL and keep configured value
   }

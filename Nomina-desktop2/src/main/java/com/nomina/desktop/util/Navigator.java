@@ -37,6 +37,10 @@ public final class Navigator {
         loadCenter("/com/nomina/desktop/view/cultures-view.fxml");
     }
 
+    public static void showUnivers() {
+        loadCenter("/com/nomina/desktop/view/univers-view.fxml");
+    }
+
     private static void loadCenter(String viewPath) {
         if (mainController == null) {
             return;

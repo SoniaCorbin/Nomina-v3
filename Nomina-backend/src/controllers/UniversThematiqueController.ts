@@ -34,6 +34,17 @@ export const getUniversThematiquesAdmin = async (_req: Request, res: Response) =
   }
 };
 
+// GET - total des univers (dashboard)
+export const totalUniversThematiques = async (_req: Request, res: Response) => {
+  try {
+    const count = await prisma.universThematique.count();
+    res.json({ total: count });
+  } catch (error) {
+    console.error("Erreur totalUniversThematiques:", error);
+    res.status(500).json({ error: "Erreur serveur" });
+  }
+};
+
 // GET - récupérer un univers par id (admin)
 export const getUniversThematiqueById = async (req: Request, res: Response) => {
   try {

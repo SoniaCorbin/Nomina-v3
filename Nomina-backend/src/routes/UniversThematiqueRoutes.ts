@@ -4,6 +4,7 @@ import multer from "multer";
 import {
 	getUniversThematiques,
 	getUniversThematiquesAdmin,
+	totalUniversThematiques,
 	getUniversThematiqueById,
 	createUniversThematique,
 	updateUniversThematique,
@@ -39,6 +40,7 @@ const upload = multer({
 
 router.get("/", getUniversThematiques);
 router.get("/all", getUniversThematiquesAdmin);
+router.get("/total", totalUniversThematiques);
 router.get("/:id", getUniversThematiqueById);
 
 router.post("/", requireAuth, requireAdmin, createUniversThematique);

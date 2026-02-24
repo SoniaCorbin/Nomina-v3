@@ -1,14 +1,15 @@
 package com.nomina.desktop.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.nomina.desktop.AppState;
-
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.time.Duration;
+
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.nomina.desktop.AppState;
 
 public class ApiClient {
     private static final Duration TIMEOUT = Duration.ofSeconds(20);
@@ -19,6 +20,7 @@ public class ApiClient {
     public ApiClient() {
         this.httpClient = HttpClient.newBuilder().connectTimeout(TIMEOUT).build();
         this.objectMapper = new ObjectMapper();
+        this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.state = AppState.getInstance();
     }
 

@@ -124,6 +124,9 @@ function mountRoutes(prefix = "") {
   }
 }
 
+// Compatibilité: accepte les routes avec préfixe /api et sans préfixe
+// (certaines builds frontend historiques appellent /auth/* directement).
+mountRoutes("");
 mountRoutes("/api");
 
 export default app;

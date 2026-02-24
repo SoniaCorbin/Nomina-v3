@@ -55,6 +55,12 @@ public class MainController {
     }
 
     @FXML
+    private void onOpenUnivers() {
+        Navigator.showUnivers();
+        refreshHeaderStatus();
+    }
+
+    @FXML
     private void onLogout() {
         AppState.getInstance().clearAuth();
         refreshHeaderStatus();

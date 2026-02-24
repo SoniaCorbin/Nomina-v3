@@ -7,6 +7,8 @@
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Priority?>
@@ -21,6 +23,11 @@
     <children>
         <HBox spacing="10.0">
             <children>
+                <ImageView fitHeight="24.0" preserveRatio="true" styleClass="page-logo">
+                    <image>
+                        <Image url="@../images/logo5.png"/>
+                    </image>
+                </ImageView>
                 <Label text="CRUD Concepts" styleClass="section-title"/>
                 <Button text="Rafraîchir" onAction="#onRefresh"/>
                 <Button text="Nouveau" onAction="#onNew"/>
@@ -28,45 +35,61 @@
             </children>
         </HBox>
 
-        <TableView fx:id="conceptsTable" prefHeight="360.0">
-            <columns>
-                <TableColumn fx:id="colId" text="ID" prefWidth="70"/>
-                <TableColumn fx:id="colValeur" text="Valeur" prefWidth="220"/>
-                <TableColumn fx:id="colType" text="Type" prefWidth="130"/>
-                <TableColumn fx:id="colMood" text="Mood" prefWidth="130"/>
-                <TableColumn fx:id="colKeywords" text="Keywords" prefWidth="260"/>
-                <TableColumn fx:id="colCategorie" text="CategorieId" prefWidth="110"/>
-            </columns>
-            <VBox.vgrow>
-                <Priority fx:constant="ALWAYS"/>
-            </VBox.vgrow>
-        </TableView>
-
-        <GridPane hgap="10" vgap="8">
+        <VBox spacing="8.0" styleClass="card">
+            <padding>
+                <Insets top="12" right="12" bottom="12" left="12"/>
+            </padding>
             <children>
-                <Label text="Valeur *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
-                <TextField fx:id="valeurField" promptText="ex: Forêt Sombre" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
-
-                <Label text="Type" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
-                <TextField fx:id="typeField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
-
-                <Label text="Mood" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
-                <TextField fx:id="moodField" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
-
-                <Label text="Keywords" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
-                <TextField fx:id="keywordsField" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
-
-                <Label text="Categorie ID" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
-                <TextField fx:id="categorieIdField" promptText="entier optionnel" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                <Label text="Liste des concepts" styleClass="card-title"/>
+                <TableView fx:id="conceptsTable" prefHeight="360.0">
+                    <columns>
+                        <TableColumn fx:id="colId" text="ID" prefWidth="70"/>
+                        <TableColumn fx:id="colValeur" text="Valeur" prefWidth="220"/>
+                        <TableColumn fx:id="colType" text="Type" prefWidth="130"/>
+                        <TableColumn fx:id="colMood" text="Mood" prefWidth="130"/>
+                        <TableColumn fx:id="colKeywords" text="Keywords" prefWidth="260"/>
+                        <TableColumn fx:id="colCategorie" text="CategorieId" prefWidth="110"/>
+                    </columns>
+                    <VBox.vgrow>
+                        <Priority fx:constant="ALWAYS"/>
+                    </VBox.vgrow>
+                </TableView>
             </children>
-        </GridPane>
+        </VBox>
 
-        <HBox spacing="10.0">
+        <VBox spacing="10.0" styleClass="card">
+            <padding>
+                <Insets top="12" right="12" bottom="12" left="12"/>
+            </padding>
             <children>
-                <Button fx:id="saveButton" text="Enregistrer" onAction="#onSave"/>
-                <Button fx:id="deleteButton" text="Supprimer" onAction="#onDelete" disable="true" styleClass="danger"/>
+                <Label text="Formulaire" styleClass="card-title"/>
+                <GridPane hgap="10" vgap="8">
+                    <children>
+                        <Label text="Valeur *" GridPane.rowIndex="0" GridPane.columnIndex="0"/>
+                        <TextField fx:id="valeurField" promptText="ex: Forêt Sombre" GridPane.rowIndex="0" GridPane.columnIndex="1"/>
+
+                        <Label text="Type" GridPane.rowIndex="1" GridPane.columnIndex="0"/>
+                        <TextField fx:id="typeField" GridPane.rowIndex="1" GridPane.columnIndex="1"/>
+
+                        <Label text="Mood" GridPane.rowIndex="2" GridPane.columnIndex="0"/>
+                        <TextField fx:id="moodField" GridPane.rowIndex="2" GridPane.columnIndex="1"/>
+
+                        <Label text="Keywords" GridPane.rowIndex="3" GridPane.columnIndex="0"/>
+                        <TextField fx:id="keywordsField" GridPane.rowIndex="3" GridPane.columnIndex="1"/>
+
+                        <Label text="Categorie ID" GridPane.rowIndex="4" GridPane.columnIndex="0"/>
+                        <TextField fx:id="categorieIdField" promptText="entier optionnel" GridPane.rowIndex="4" GridPane.columnIndex="1"/>
+                    </children>
+                </GridPane>
+
+                <HBox spacing="10.0">
+                    <children>
+                        <Button fx:id="saveButton" text="Enregistrer" onAction="#onSave"/>
+                        <Button fx:id="deleteButton" text="Supprimer" onAction="#onDelete" disable="true" styleClass="danger"/>
+                    </children>
+                </HBox>
             </children>
-        </HBox>
+        </VBox>
 
         <Label fx:id="feedbackLabel" text="Prêt." styleClass="muted"/>
     </children>

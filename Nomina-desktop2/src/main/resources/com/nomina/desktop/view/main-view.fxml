@@ -22,6 +22,7 @@
                 <Button maxWidth="Infinity" onAction="#onOpenConcepts" text="CRUD Concepts" />
                <Button maxWidth="Infinity" onAction="#onOpenCategories" text="CRUD Categories" />
                <Button maxWidth="Infinity" onAction="#onOpenCultures" text="CRUD Cultures" />
+               <Button maxWidth="Infinity" onAction="#onOpenUnivers" text="CRUD Univers" />
                 <Button maxWidth="Infinity" onAction="#onLogout" styleClass="danger" text="Déconnexion" />
             </children>
         </VBox>
