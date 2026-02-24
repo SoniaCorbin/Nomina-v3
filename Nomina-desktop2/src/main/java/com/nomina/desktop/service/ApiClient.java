@@ -18,7 +18,10 @@ public class ApiClient {
     private final AppState state;
 
     public ApiClient() {
-        this.httpClient = HttpClient.newBuilder().connectTimeout(TIMEOUT).build();
+        this.httpClient = HttpClient.newBuilder()
+                .connectTimeout(TIMEOUT)
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .build();
         this.objectMapper = new ObjectMapper();
         this.objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
         this.state = AppState.getInstance();
@@ -53,13 +56,32 @@ public class ApiClient {
 
         HttpResponse<String> response = httpClient.send(builder.build(), HttpResponse.BodyHandlers.ofString());
         int status = response.statusCode();
+        String contentType = response.headers().firstValue("content-type").orElse("");
+        String responseBody = response.body();
 
         if (status >= 200 && status < 300) {
-            return response.body();
+            if (isHtmlResponse(contentType, responseBody)) {
+                throw new ApiException(status,
+                        "Réponse HTML reçue au lieu de JSON. L'URL API pointe probablement vers le frontend. " +
+                                "Utilise l'URL du backend (ex: http://localhost:3000/api)."
+                );
+            }
+            return responseBody;
         }
 
-        String message = extractMessage(response.body());
+        String message = extractMessage(responseBody);
         throw new ApiException(status, message);
+    }
+
+    private boolean isHtmlResponse(String contentType, String body) {
+        if (contentType != null && contentType.toLowerCase().contains("text/html")) {
+            return true;
+        }
+        if (body == null) {
+            return false;
+        }
+        String trimmed = body.trim();
+        return trimmed.startsWith("<!DOCTYPE html") || trimmed.startsWith("<html");
     }
 
     private String extractMessage(String body) {

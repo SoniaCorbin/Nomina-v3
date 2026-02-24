@@ -1,6 +1,7 @@
 package com.nomina.desktop;
 
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Properties;
 
 public final class AppState {
@@ -28,7 +29,7 @@ public final class AppState {
         if (baseUrl == null || baseUrl.isBlank()) {
             return;
         }
-        this.baseUrl = stripTrailingSlash(baseUrl.trim());
+        this.baseUrl = normalizeBaseUrl(baseUrl);
     }
 
     public String getToken() {
@@ -68,15 +69,65 @@ public final class AppState {
     private String resolveBaseUrl() {
         String envUrl = System.getenv("NOMINA_API_URL");
         if (envUrl != null && !envUrl.isBlank()) {
-            return stripTrailingSlash(envUrl.trim());
+            return normalizeBaseUrl(envUrl);
         }
 
         String fileUrl = readBaseUrlFromProperties();
         if (fileUrl != null && !fileUrl.isBlank()) {
-            return stripTrailingSlash(fileUrl.trim());
+            return normalizeBaseUrl(fileUrl);
         }
 
         return DEFAULT_BASE_URL;
+    }
+
+    private String normalizeBaseUrl(String url) {
+        String normalized = url.trim();
+
+        if (!normalized.startsWith("http://") && !normalized.startsWith("https://")) {
+            if (normalized.startsWith("localhost") || normalized.startsWith("127.0.0.1")) {
+                normalized = "http://" + normalized;
+            } else {
+                normalized = "https://" + normalized;
+            }
+        }
+
+        if (normalized.startsWith("http://") && normalized.contains(".vercel.app")) {
+            normalized = "https://" + normalized.substring("http://".length());
+        }
+
+        normalized = stripTrailingSlash(normalized);
+
+        try {
+            URI uri = URI.create(normalized);
+            String path = uri.getPath() == null ? "" : uri.getPath().trim();
+
+            if (path.endsWith("/auth/me")) {
+                path = path.substring(0, path.length() - "/auth/me".length());
+            }
+
+            int apiIndex = path.indexOf("/api");
+            if (apiIndex >= 0) {
+                path = path.substring(0, apiIndex) + "/api";
+            } else if (path.isBlank() || "/".equals(path)) {
+                path = "/api";
+            } else {
+                path = stripTrailingSlash(path) + "/api";
+            }
+
+            normalized = new URI(
+                    uri.getScheme(),
+                    uri.getAuthority(),
+                    path,
+                    null,
+                    null
+            ).toString();
+        } catch (Exception ignored) {
+            if (!normalized.endsWith("/api")) {
+                normalized = normalized + "/api";
+            }
+        }
+
+        return normalized;
     }
 
     private String readBaseUrlFromProperties() {
