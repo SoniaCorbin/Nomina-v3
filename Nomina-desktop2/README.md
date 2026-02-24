@@ -54,7 +54,7 @@ mvn clean javafx:run
 1. Ouvre `Connexion / Token`.
 2. L'URL API est prechargee depuis `app.properties` (ex: `http://localhost:3000/api`).
    - Override possible via la variable d'environnement `NOMINA_API_URL`.
-3. Colle un token Bearer valide (Clerk).
+3. Saisir un token Bearer valide (Clerk).
 4. Clique `Valider /auth/me`.
 5. Va dans `CRUD Concepts` pour créer/modifier/supprimer.
 

@@ -108,7 +108,7 @@ async function main() {
 
   if (dryRun) return;
 
-  // Apply updates in batches to avoid huge transactions.
+  // Appliquer les mises à jour par lots pour éviter des transactions trop volumineuses.
   const batchSize = 250;
   let updated = 0;
 

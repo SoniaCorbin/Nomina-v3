@@ -41,7 +41,7 @@ export function Documentation() {
   const [copiedKey, setCopiedKey] = useState<string | null>(null);
 
   const codeSnippets = useMemo(() => {
-    const js = `// Exemple (Web)\n// Astuce: configure VITE_API_URL si besoin (ex: http://localhost:3000).\n\nconst baseUrl = 'http://localhost:3000';\n\nasync function generateNomPersonnages() {\n  const res = await fetch(baseUrl + '/generate/nom-personnages?count=3');\n  if (!res.ok) throw new Error('HTTP ' + res.status);\n  const data = await res.json();\n\n  // data: Array<{ nom: string; miniBio: string }>\n  console.log(data);\n}\n\ngenerateNomPersonnages();\n`;
+    const js = `// Exemple (Web)\n// Astuce : configurer VITE_API_URL si nécessaire (ex : http://localhost:3000).\n\nconst baseUrl = 'http://localhost:3000';\n\nasync function generateNomPersonnages() {\n  const res = await fetch(baseUrl + '/generate/nom-personnages?count=3');\n  if (!res.ok) throw new Error('HTTP ' + res.status);\n  const data = await res.json();\n\n  // Données : Array<{ nom: string; miniBio: string }>\n  console.log(data);\n}\n\ngenerateNomPersonnages();\n`;
 
     const python = `# Exemple (Python)\nimport requests\n\nbase_url = 'http://localhost:3001'\n\nr = requests.get(f"{base_url}/generate/nom-personnages", params={"count": 3})\nr.raise_for_status()\n\nfor item in r.json():\n    print(item["nom"])\n    print(item["miniBio"])\n    print('---')\n`;
 

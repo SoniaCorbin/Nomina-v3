@@ -39,7 +39,7 @@
                 <TextField fx:id="apiUrlField" promptText="http://localhost:3000/api"/>
 
                 <Label text="Token Bearer (Clerk)"/>
-                <TextField fx:id="tokenField" promptText="Saisir le JWT ici"/>
+                <TextField fx:id="tokenField" promptText="colle ton JWT ici"/>
 
                 <HBox spacing="10.0">
                     <children>
@@ -50,7 +50,7 @@
                 </HBox>
 
                 <ProgressIndicator fx:id="loadingIndicator" visible="false" managed="false" prefHeight="28" prefWidth="28"/>
-                <Label fx:id="infoLabel" text="Saisir l'URL API et le token, puis valider." styleClass="muted" wrapText="true"/>
+                <Label fx:id="infoLabel" text="Entre ton URL API et ton token, puis valide." styleClass="muted" wrapText="true"/>
             </children>
         </VBox>
     </children>

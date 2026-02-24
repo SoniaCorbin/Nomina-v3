@@ -137,7 +137,7 @@ export function Hero() {
 
   return (
     <section className="relative overflow-hidden bg-gradient-to-b from-[#2d1b4e] via-[#1a0f33] to-[#2d1b4e] py-20 md:py-32">
-      {/* Decorative elements */}
+      {/* Éléments décoratifs */}
       <div className="absolute inset-0 opacity-20">
         <div className="absolute top-20 left-10 w-72 h-72 bg-[#7b3ff2] rounded-full blur-3xl"></div>
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#a67be8] rounded-full blur-3xl"></div>
@@ -151,7 +151,7 @@ export function Hero() {
             <span className="text-sm text-[#d4c5f9]">API de génération narrative</span>
           </div>
 
-          {/* Heading */}
+          {/* Titre principal */}
           <h1 className="text-4xl md:text-6xl lg:text-7xl text-white mb-6" style={{ fontFamily: 'Cinzel, serif' }}>
             Créez, Nommez, Racontez
           </h1>
@@ -162,7 +162,7 @@ export function Hero() {
             Créez des personnages, des lieux et des créatures avec des histoires captivantes.
           </p>
 
-          {/* CTA Buttons */}
+          {/* Boutons d'action */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-12">
             <Button asChild size="lg" className="bg-[#7b3ff2] hover:bg-[#a67be8] text-white px-8 gap-2">
               <Link to="/register">
@@ -182,7 +182,7 @@ export function Hero() {
             </Link>
           </p>
 
-          {/* Mini UI: Générateur */}
+          {/* Aperçu : générateur */}
           <Card className="bg-[#f8f6fc] border-[#d4c5f9] shadow-xl shadow-[#7b3ff2]/10 max-w-2xl mx-auto text-left">
             <CardHeader>
               <CardTitle className="text-[#2d1b4e]" style={{ fontFamily: "Cinzel, serif" }}>

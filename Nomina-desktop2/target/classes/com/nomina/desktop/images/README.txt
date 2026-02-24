@@ -1,4 +1,4 @@
-Placer le logo ici avec un des noms suivants :
+Place ton logo ici avec un de ces noms:
 - logo.png (recommandé)
 - logo.jpg
 - logo.jpeg

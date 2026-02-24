@@ -102,7 +102,7 @@ export function Header() {
             </Link>
           </nav>
 
-          {/* CTA Buttons */}
+          {/* Boutons d'action */}
           <div className="hidden md:flex items-center gap-4">
             <Button
               variant="ghost"
