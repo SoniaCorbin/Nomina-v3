@@ -28,4 +28,8 @@ public class AuthMe {
     public void setAdmin(boolean admin) {
         isAdmin = admin;
     }
+
+    public void setIsAdmin(boolean isAdmin) {
+        this.isAdmin = isAdmin;
+    }
 }

@@ -1,11 +1,15 @@
 package com.nomina.desktop.controller;
 
+import java.awt.Desktop;
+import java.net.URI;
+
 import com.nomina.desktop.AppState;
 import com.nomina.desktop.model.AuthMe;
 import com.nomina.desktop.service.ApiException;
 import com.nomina.desktop.service.ApiService;
 import com.nomina.desktop.util.Navigator;
 import com.nomina.desktop.util.UiAlerts;
+
 import javafx.application.Platform;
 import javafx.concurrent.Task;
 import javafx.fxml.FXML;
@@ -13,9 +17,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
-
-import java.awt.Desktop;
-import java.net.URI;
 
 public class LoginController {
     @FXML
@@ -72,6 +73,13 @@ public class LoginController {
         task.setOnSucceeded(event -> {
             setLoading(false);
             AuthMe me = task.getValue();
+
+            if (!me.isAdmin()) {
+                state.clearAuth();
+                infoLabel.setText("Accès refusé: compte non administrateur.");
+                UiAlerts.error("Accès refusé", "Seuls les administrateurs peuvent se connecter à Nomina Desktop.");
+                return;
+            }
 
             state.setUserId(me.getUserId());
             state.setAdmin(me.isAdmin());
