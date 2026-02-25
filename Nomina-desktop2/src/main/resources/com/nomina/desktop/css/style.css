@@ -157,8 +157,10 @@
 }
 
 .sidebar .button {
-    -fx-background-color: transparent;
+    -fx-background-color: rgba(26,15,51,0.32);
     -fx-text-fill: -white-pure;
+    -fx-border-color: rgba(212,197,249,0.28);
+    -fx-border-radius: 10;
     -fx-alignment: CENTER_LEFT;
     -fx-padding: 10 12;
     -fx-background-radius: 10;
@@ -166,21 +168,39 @@
 }
 
 .sidebar .button:hover {
-    -fx-background-color: rgba(212,197,249,0.22);
+    -fx-background-color: rgba(26,15,51,0.52);
 }
 
 .sidebar .button:pressed {
-    -fx-background-color: rgba(123,63,242,0.45);
+    -fx-background-color: rgba(26,15,51,0.74);
     -fx-text-fill: -white-pure;
+}
+
+.sidebar .button.active {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, rgba(123,63,242,0.78), rgba(166,123,232,0.72));
+    -fx-border-color: rgba(232,180,240,0.78);
+    -fx-border-width: 1;
+    -fx-text-fill: -white-pure;
+    -fx-font-weight: 700;
+    -fx-effect: dropshadow(gaussian, rgba(232,180,240,0.35), 10, 0, 0, 0);
+}
+
+.sidebar .button.active:hover {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, rgba(123,63,242,0.88), rgba(166,123,232,0.82));
+}
+
+.sidebar .button.active:pressed {
+    -fx-background-color: linear-gradient(from 0% 0% to 100% 0%, rgba(123,63,242,0.95), rgba(166,123,232,0.88));
 }
 
 .sidebar .button.danger {
     -fx-text-fill: -white-pure;
-    -fx-background-color: transparent;
+    -fx-background-color: rgba(82,22,44,0.42);
+    -fx-border-color: rgba(242,153,153,0.45);
 }
 
 .sidebar .button.danger:hover {
-    -fx-background-color: rgba(242,153,153,0.35);
+    -fx-background-color: rgba(112,30,60,0.56);
 }
 
 .text-field,

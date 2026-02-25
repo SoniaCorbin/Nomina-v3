@@ -17,13 +17,13 @@
                 <Insets bottom="14" left="12" right="12" top="14" />
             </padding>
             <children>
-                <Button maxWidth="Infinity" onAction="#onOpenDashboard" text="Dashboard" />
-                <Button maxWidth="Infinity" onAction="#onOpenLogin" text="Connexion / Token" />
-                <Button maxWidth="Infinity" onAction="#onOpenConcepts" text="CRUD Concepts" />
-               <Button maxWidth="Infinity" onAction="#onOpenCategories" text="CRUD Categories" />
-               <Button maxWidth="Infinity" onAction="#onOpenCultures" text="CRUD Cultures" />
-               <Button maxWidth="Infinity" onAction="#onOpenUnivers" text="CRUD Univers" />
-                <Button maxWidth="Infinity" onAction="#onLogout" styleClass="danger" text="Déconnexion" />
+               <Button fx:id="dashboardButton" maxWidth="Infinity" onAction="#onOpenDashboard" text="Dashboard" />
+               <Button fx:id="loginButton" maxWidth="Infinity" onAction="#onOpenLogin" text="Connexion / Token" />
+               <Button fx:id="conceptsButton" maxWidth="Infinity" onAction="#onOpenConcepts" text="CRUD Concepts" />
+               <Button fx:id="categoriesButton" maxWidth="Infinity" onAction="#onOpenCategories" text="CRUD Categories" />
+               <Button fx:id="culturesButton" maxWidth="Infinity" onAction="#onOpenCultures" text="CRUD Cultures" />
+               <Button fx:id="universButton" maxWidth="Infinity" onAction="#onOpenUnivers" text="CRUD Univers" />
+               <Button fx:id="logoutButton" maxWidth="Infinity" onAction="#onLogout" styleClass="danger" text="Déconnexion" />
             </children>
         </VBox>
     </left>
