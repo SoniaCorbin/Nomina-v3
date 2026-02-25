@@ -44,6 +44,11 @@ Créer `Nomina-backend/.env` avec les variables suivantes:
 - `ALLOW_DEV_ADMIN_BYPASS` : laisser `false` en usage normal (si `true`, seul `DEV_ADMIN_USER_ID` peut bypass en local)
 - `BOOTSTRAP_FIRST_ADMIN` : laisser `false` pour éviter toute promotion admin implicite du premier compte
 
+### Pack IA — OpenAI (optionnel)
+
+- `OPENAI_API_KEY` : clé secrète OpenAI (requis pour l'endpoint `/generate-pack`)
+- `OPENAI_MODEL` : modèle OpenAI à utiliser (défaut : `gpt-4o-mini`)
+
 ---
 
 ## Commandes utiles
@@ -76,6 +81,38 @@ npm test                 # tests backend (Jest)
 - `GET /generate/fragments-histoire`
 - `GET /generate/titres`
 - `GET /generate/concepts`
+
+### Pack IA — OpenAI
+
+- `POST /generate-pack` : génère un pack narratif complet via OpenAI.
+
+  **Corps de la requête (JSON) :**
+  ```json
+  {
+    "language": "fr",
+    "enabled": { "personnages": true, "lieux": true, "organizations": false, ... },
+    "counts":  { "personnages": 3, "lieux": 2, "organizations": 0, ... },
+    "inputs":  { "universThematique": "fantasy", "occupation": "alchimiste" },
+    "description": "Un monde de magie et d'intrigues politiques"
+  }
+  ```
+
+  **Limites max par section :** personnages=5, lieux=10, organizations=10, events=10, creatures=10, fragmentsHistoire=20, titres=20, concepts=20.
+
+  **Réponse :**
+  ```json
+  {
+    "meta": { "language": "fr", "model": "gpt-4o-mini" },
+    "result": {
+      "personnages": [...],
+      "lieux": [...],
+      "organizations": [],
+      ...
+    }
+  }
+  ```
+
+  > ⚠️ Requiert la variable d'environnement `OPENAI_API_KEY`.
 
 Paramètres query fréquents: `count`, `cultureId`, `categorieId`, `genre`, `seed`, `keywords`.
 

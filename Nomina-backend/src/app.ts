@@ -24,6 +24,7 @@ import OccupationRoutes from "./routes/OccupationRoutes";
 import OrganizationRoutes from "./routes/OrganizationRoutes";
 import RelationTypeRoutes from "./routes/RelationTypeRoutes";
 import EventRoutes from "./routes/EventRoutes";
+import GeneratePackRoutes from "./routes/GeneratePackRoutes";
 import { getUploadsRootDir } from "./utils/uploads";
 
 dotenv.config();
@@ -81,6 +82,7 @@ function mountRoutes(prefix = "") {
   const withPrefix = (route: string) => (prefix ? `${prefix}${route}` : route);
 
   app.use(withPrefix("/generate"), GenerateRoutes);
+  app.use(withPrefix("/generate-pack"), GeneratePackRoutes);
   app.use(withPrefix("/users"), userRoutes);
   app.use(withPrefix("/auth"), authRoutes);
   app.use(withPrefix("/categories"), CategorieRoutes);

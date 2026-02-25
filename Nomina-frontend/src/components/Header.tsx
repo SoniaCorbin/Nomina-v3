@@ -97,6 +97,9 @@ export function Header() {
             <Link to="/generate" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
               Génération
             </Link>
+            <Link to="/pack-ia" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
+              Pack IA
+            </Link>
             <Link to="/docs" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
               Documentation
             </Link>
@@ -216,6 +219,9 @@ export function Header() {
               ) : null}
               <Link to="/generate" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
                 Génération
+              </Link>
+              <Link to="/pack-ia" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
+                Pack IA
               </Link>
               <Link to="/docs" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
                 Documentation
