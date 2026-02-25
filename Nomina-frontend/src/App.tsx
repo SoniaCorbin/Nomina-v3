@@ -14,6 +14,7 @@ const Pricing = lazy(() => import("./components/Pricing").then((m) => ({ default
 const Documentation = lazy(() => import("./components/Documentation").then((m) => ({ default: m.Documentation })));
 
 const GeneratePage = lazy(() => import("./pages/GeneratePage").then((m) => ({ default: m.GeneratePage })));
+const PackIAPage = lazy(() => import("./pages/PackIAPage").then((m) => ({ default: m.PackIAPage })));
 const UsersPage = lazy(() => import("./pages/UsersPage").then((m) => ({ default: m.UsersPage })));
 const AdminPage = lazy(() => import("./pages/AdminPage").then((m) => ({ default: m.AdminPage })));
 const HomePage = lazy(() => import("./pages/HomePage").then((m) => ({ default: m.HomePage })));
@@ -237,6 +238,7 @@ export default function App() {
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/docs" element={<Documentation />} />
             <Route path="/generate" element={<GeneratePage />} />
+            <Route path="/pack-ia" element={<PackIAPage />} />
             <Route path="/dashboard" element={<RequireSignedIn><DashboardPage /></RequireSignedIn>} />
             <Route path="/cultures" element={<RequireAdmin><CulturesPage /></RequireAdmin>} />
             <Route path="/categories" element={<RequireAdmin><CategoriesPage /></RequireAdmin>} />
