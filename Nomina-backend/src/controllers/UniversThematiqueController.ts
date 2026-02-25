@@ -67,7 +67,11 @@ export const getUniversThematiqueById = async (req: Request, res: Response) => {
 // POST - créer un univers (admin)
 export const createUniversThematique = async (req: Request, res: Response) => {
   try {
-    const { name, description } = req.body as { name?: string; description?: string | null };
+    const { name, description, imageUrl } = req.body as {
+      name?: string;
+      description?: string | null;
+      imageUrl?: string | null;
+    };
 
     if (!name || typeof name !== "string" || !name.trim()) {
       return res.status(400).json({ error: "Le champ \"name\" est requis" });
@@ -81,8 +85,13 @@ export const createUniversThematique = async (req: Request, res: Response) => {
       return res.status(400).json({ error: "La description est trop longue (max 500)" });
     }
 
+    const trimmedImageUrl = typeof imageUrl === "string" ? imageUrl.trim() : null;
+    if (trimmedImageUrl && trimmedImageUrl.length > 2048) {
+      return res.status(400).json({ error: "L’URL de l’image est trop longue (max 2048)" });
+    }
+
     const created = await prisma.universThematique.create({
-      data: { name: trimmedName, description: trimmedDesc },
+      data: { name: trimmedName, description: trimmedDesc, imageUrl: trimmedImageUrl },
       select: { id: true, name: true, description: true, imageUrl: true },
     });
 
@@ -102,9 +111,13 @@ export const updateUniversThematique = async (req: Request, res: Response) => {
     const id = Number(req.params.id);
     if (!Number.isFinite(id)) return res.status(400).json({ error: "ID invalide" });
 
-    const { name, description } = req.body as { name?: string | null; description?: string | null };
+    const { name, description, imageUrl } = req.body as {
+      name?: string | null;
+      description?: string | null;
+      imageUrl?: string | null;
+    };
 
-    const data: { name?: string; description?: string | null } = {};
+    const data: { name?: string; description?: string | null; imageUrl?: string | null } = {};
 
     if (name !== undefined) {
       if (name === null || typeof name !== "string" || !name.trim()) {
@@ -121,6 +134,14 @@ export const updateUniversThematique = async (req: Request, res: Response) => {
         return res.status(400).json({ error: "La description est trop longue (max 500)" });
       }
       data.description = trimmedDesc;
+    }
+
+    if (imageUrl !== undefined) {
+      const trimmedImageUrl = typeof imageUrl === "string" ? imageUrl.trim() : null;
+      if (trimmedImageUrl && trimmedImageUrl.length > 2048) {
+        return res.status(400).json({ error: "L’URL de l’image est trop longue (max 2048)" });
+      }
+      data.imageUrl = trimmedImageUrl;
     }
 
     const updated = await prisma.universThematique.update({
