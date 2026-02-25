@@ -12,6 +12,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
 <?import javafx.scene.layout.VBox?>
 
 <VBox spacing="12.0" styleClass="content" xmlns="http://javafx.com/javafx/21" xmlns:fx="http://javafx.com/fxml/1"
@@ -28,14 +29,24 @@
                         <Image url="@../images/logo5.png"/>
                     </image>
                 </ImageView>
-                <Label text="CRUD Categories" styleClass="section-title"/>
-                <Button text="Rafraîchir" onAction="#onRefresh"/>
-                <Button text="Nouveau" onAction="#onNew"/>
-                <ProgressIndicator fx:id="loadingIndicator" visible="false" managed="false" prefHeight="24" prefWidth="24"/>
+                <VBox spacing="2.0">
+                    <children>
+                        <Label text="CRUD Categories" styleClass="section-title"/>
+                        <Label text="Gestion des catégories et rattachement univers" styleClass="section-subtitle"/>
+                    </children>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <HBox spacing="8.0">
+                    <children>
+                        <Button text="Rafraîchir" onAction="#onRefresh"/>
+                        <Button text="Nouveau" onAction="#onNew"/>
+                        <ProgressIndicator fx:id="loadingIndicator" visible="false" managed="false" prefHeight="24" prefWidth="24"/>
+                    </children>
+                </HBox>
             </children>
         </HBox>
 
-        <VBox spacing="8.0" styleClass="card">
+        <VBox spacing="8.0" styleClass="card-strong">
             <padding>
                 <Insets top="12" right="12" bottom="12" left="12"/>
             </padding>
@@ -55,7 +66,7 @@
             </children>
         </VBox>
 
-        <VBox spacing="10.0" styleClass="card">
+        <VBox spacing="10.0" styleClass="card-strong">
             <padding>
                 <Insets top="12" right="12" bottom="12" left="12"/>
             </padding>
