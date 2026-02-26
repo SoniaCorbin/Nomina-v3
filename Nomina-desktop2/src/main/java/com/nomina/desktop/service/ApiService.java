@@ -14,6 +14,8 @@ import com.nomina.desktop.model.CultureInput;
 import com.nomina.desktop.model.TotalResponse;
 import com.nomina.desktop.model.UniversThematique;
 import com.nomina.desktop.model.UniversThematiqueInput;
+import com.nomina.desktop.model.User;
+import com.nomina.desktop.model.UserInput;
 
 public class ApiService {
     private final ApiClient apiClient;
@@ -121,5 +123,24 @@ public class ApiService {
 
     public void deleteUnivers(int id) throws IOException, InterruptedException {
         apiClient.request("DELETE", "/univers/" + id, null, true);
+    }
+
+    public List<User> getUsers() throws IOException, InterruptedException {
+        String raw = apiClient.request("GET", "/users", null, true);
+        return apiClient.getObjectMapper().readValue(raw, new TypeReference<>() {});
+    }
+
+    public User createUser(UserInput input) throws IOException, InterruptedException {
+        String raw = apiClient.request("POST", "/users", input, true);
+        return apiClient.getObjectMapper().readValue(raw, User.class);
+    }
+
+    public User updateUser(int id, UserInput input) throws IOException, InterruptedException {
+        String raw = apiClient.request("PUT", "/users/" + id, input, true);
+        return apiClient.getObjectMapper().readValue(raw, User.class);
+    }
+
+    public void deleteUser(int id) throws IOException, InterruptedException {
+        apiClient.request("DELETE", "/users/" + id, null, true);
     }
 }

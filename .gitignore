@@ -7,6 +7,7 @@ Nomina-backend/uploads/
 Nomina-frontend/dist/
 Nomina-frontend/out/
 Nomina-frontend/release/
+Nomina-desktop2/target/
 
 # Prisma generated (kept in source tree by this repo)
 # If you want to commit it, remove these lines.

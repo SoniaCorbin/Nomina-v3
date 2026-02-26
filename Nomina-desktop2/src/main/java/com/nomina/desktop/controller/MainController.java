@@ -38,6 +38,9 @@ public class MainController {
     private Button universButton;
 
     @FXML
+    private Button usersButton;
+
+    @FXML
     public void initialize() {
         Navigator.init(this);
         refreshHeaderStatus();
@@ -87,6 +90,13 @@ public class MainController {
     }
 
     @FXML
+    private void onOpenUsers() {
+        Navigator.showUsers();
+        setActiveButton(usersButton);
+        refreshHeaderStatus();
+    }
+
+    @FXML
     private void onLogout() {
         AppState.getInstance().clearAuth();
         refreshHeaderStatus();
@@ -114,7 +124,7 @@ public class MainController {
     }
 
     private void setActiveButton(Button activeButton) {
-        Button[] navButtons = { dashboardButton, loginButton, conceptsButton, categoriesButton, culturesButton, universButton };
+        Button[] navButtons = { dashboardButton, loginButton, conceptsButton, categoriesButton, culturesButton, universButton, usersButton };
 
         for (Button button : navButtons) {
             if (button == null) {

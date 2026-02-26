@@ -23,6 +23,7 @@
                <Button fx:id="categoriesButton" maxWidth="Infinity" onAction="#onOpenCategories" text="CRUD Categories" />
                <Button fx:id="culturesButton" maxWidth="Infinity" onAction="#onOpenCultures" text="CRUD Cultures" />
                <Button fx:id="universButton" maxWidth="Infinity" onAction="#onOpenUnivers" text="CRUD Univers" />
+                  <Button fx:id="usersButton" maxWidth="Infinity" onAction="#onOpenUsers" text="CRUD Users" />
                <Button fx:id="logoutButton" maxWidth="Infinity" onAction="#onLogout" styleClass="danger" text="Déconnexion" />
             </children>
         </VBox>

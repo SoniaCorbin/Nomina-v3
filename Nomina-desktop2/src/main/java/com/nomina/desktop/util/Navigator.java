@@ -41,6 +41,10 @@ public final class Navigator {
         loadCenter("/com/nomina/desktop/view/univers-view.fxml");
     }
 
+    public static void showUsers() {
+        loadCenter("/com/nomina/desktop/view/users-view.fxml");
+    }
+
     private static void loadCenter(String viewPath) {
         if (mainController == null) {
             return;

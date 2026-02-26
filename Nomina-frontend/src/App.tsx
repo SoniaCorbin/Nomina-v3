@@ -32,6 +32,7 @@ const UniversPage = lazy(() => import("./pages/UniversPage").then((m) => ({ defa
 const LieuxPage = lazy(() => import("./pages/LieuxPage").then((m) => ({ default: m.LieuxPage })));
 const NomFamillesPage = lazy(() => import("./pages/NomFamillesPage").then((m) => ({ default: m.NomFamillesPage })));
 const CreaturesPage = lazy(() => import("./pages/CreaturesPage").then((m) => ({ default: m.CreaturesPage })));
+const DesktopTokenPage = lazy(() => import("./pages/DesktopTokenPage").then((m) => ({ default: m.DesktopTokenPage })));
 
 function PageLoader() {
   return <main className="min-h-screen p-6">Chargement…</main>;
@@ -251,6 +252,7 @@ export default function App() {
             <Route path="/nom-familles" element={<RequireAdmin><NomFamillesPage /></RequireAdmin>} />
             <Route path="/creatures" element={<RequireAdmin><CreaturesPage /></RequireAdmin>} />
             <Route path="/users" element={<RequireAdmin><UsersPage /></RequireAdmin>} />
+            <Route path="/desktop-token" element={<RequireSignedIn><DesktopTokenPage /></RequireSignedIn>} />
             <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
