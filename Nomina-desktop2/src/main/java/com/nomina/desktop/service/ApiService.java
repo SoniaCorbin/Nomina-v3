@@ -105,7 +105,7 @@ public class ApiService {
     }
 
     public List<UniversThematique> getUnivers() throws IOException, InterruptedException {
-        String raw = apiClient.request("GET", "/univers", null, false);
+        String raw = apiClient.request("GET", "/univers/all", null, false);
         return apiClient.getObjectMapper().readValue(raw, new TypeReference<>() {});
     }
 

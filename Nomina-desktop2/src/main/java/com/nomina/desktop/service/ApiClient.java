@@ -69,7 +69,7 @@ public class ApiClient {
             return responseBody;
         }
 
-        String message = extractMessage(responseBody);
+        String message = extractMessage(status, responseBody);
         throw new ApiException(status, message);
     }
 
@@ -84,9 +84,16 @@ public class ApiClient {
         return trimmed.startsWith("<!DOCTYPE html") || trimmed.startsWith("<html");
     }
 
-    private String extractMessage(String body) {
+    private String extractMessage(int status, String body) {
         if (body == null || body.isBlank()) {
-            return "Erreur API";
+            return switch (status) {
+                case 401 -> "Non authentifié. Connecte-toi dans Nomina Desktop avec un token valide.";
+                case 403 -> "Accès refusé. Un compte administrateur est requis pour cette action.";
+                case 404 -> "Ressource introuvable (vérifie l'URL API).";
+                case 409 -> "Conflit de données (valeur déjà utilisée ou contrainte violée).";
+                case 500 -> "Erreur serveur interne.";
+                default -> "Erreur API (HTTP " + status + ")";
+            };
         }
         try {
             ApiErrorPayload payload = objectMapper.readValue(body, ApiErrorPayload.class);

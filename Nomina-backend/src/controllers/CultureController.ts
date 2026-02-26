@@ -3,8 +3,11 @@ import prisma from '../utils/prisma';
 
 export const getCultureById = async (req: Request, res: Response) => {
   try {
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'Id invalide' });
+
     const culture = await prisma.culture.findUnique({
-      where: { id: Number(req.params.id) },
+      where: { id },
       include: {
         nomPersonnages: true,    
         fragmentsHistoire: true,
@@ -20,12 +23,24 @@ export const getCultureById = async (req: Request, res: Response) => {
 
 // POST - creer une nouvelle culture
 export const createCulture = async (req: Request, res: Response) => {
-  try { const { name, description } = req.body as { name: string; description: string };
+  try {
+    const { name, description } = req.body as { name?: string; description?: string | null };
+
+    if (!name || typeof name !== 'string' || !name.trim()) {
+      return res.status(400).json({ error: 'Le champ "name" est requis' });
+    }
+
+    const trimmedName = name.trim();
+    const trimmedDescription = typeof description === 'string' ? description.trim() : null;
+
     const newCulture = await prisma.culture.create({
-      data: { name, description },
+      data: { name: trimmedName, description: trimmedDescription },
     });
     res.status(201).json(newCulture);
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ error: 'Nom de culture déjà utilisé' });
+    }
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -33,13 +48,37 @@ export const createCulture = async (req: Request, res: Response) => {
 // PUT - modifier la culture par son id
 export const updateCulture  = async (req: Request, res: Response) => {
   try {
-    const { name, description } = req.body as { name: string; description: string };
+    const id = Number(req.params.id);
+    if (!Number.isFinite(id)) return res.status(400).json({ error: 'Id invalide' });
+
+    const { name, description } = req.body as { name?: string | null; description?: string | null };
+
+    if (name !== undefined) {
+      if (name === null || typeof name !== 'string' || !name.trim()) {
+        return res.status(400).json({ error: 'Le champ "name" ne peut pas être vide' });
+      }
+    }
+
+    const data: { name?: string; description?: string | null } = {};
+    if (name !== undefined) {
+      data.name = name.trim();
+    }
+    if (description !== undefined) {
+      data.description = typeof description === 'string' ? description.trim() : null;
+    }
+
     const updatedCulture = await prisma.culture.update({
-      where: { id: Number(req.params.id) },
-      data: { name, description },
+      where: { id },
+      data,
     });
     res.json(updatedCulture);
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === 'P2002') {
+      return res.status(409).json({ error: 'Nom de culture déjà utilisé' });
+    }
+    if (error?.code === 'P2025') {
+      return res.status(404).json({ error: 'Culture non trouvée' });
+    }
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -58,11 +97,21 @@ export const deleteCulture = async (req: Request, res: Response) => {
       prisma.fragmentsHistoire.updateMany({ where: { cultureId: id }, data: { cultureId: null } }),
       prisma.titre.updateMany({ where: { cultureId: id }, data: { cultureId: null } }),
       prisma.nomFamille.updateMany({ where: { cultureId: id }, data: { cultureId: null } }),
+      prisma.personnage.updateMany({ where: { cultureId: id }, data: { cultureId: null } }),
+      prisma.creature.updateMany({ where: { cultureId: id }, data: { cultureId: null } }),
+      prisma.event.updateMany({ where: { cultureId: id }, data: { cultureId: null } }),
+      prisma.socialClass.updateMany({ where: { cultureId: id }, data: { cultureId: null } }),
+      prisma.occupation.updateMany({ where: { cultureId: id }, data: { cultureId: null } }),
+      prisma.organization.updateMany({ where: { cultureId: id }, data: { cultureId: null } }),
+      prisma.relationType.updateMany({ where: { cultureId: id }, data: { cultureId: null } }),
       prisma.culture.delete({ where: { id } }),
     ]);
 
     res.status(204).end();
-  } catch (error) {
+  } catch (error: any) {
+    if (error?.code === 'P2003') {
+      return res.status(409).json({ error: 'Impossible de supprimer cette culture car elle est encore référencée' });
+    }
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
