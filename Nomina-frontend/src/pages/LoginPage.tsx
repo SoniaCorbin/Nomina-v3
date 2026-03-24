@@ -5,6 +5,7 @@ import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { apiFetch } from "../lib/api";
+import { getClerkErrorMessage } from "../lib/error-utils";
 
 export function LoginPage() {
 	const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
@@ -87,13 +88,8 @@ export function LoginPage() {
 			setError(
 				"Une vérification supplémentaire est requise (ex. 2FA). Finaliser la connexion via l’interface Clerk, puis relancer l’essai."
 			);
-		} catch (e: any) {
-			const msg =
-				e?.errors?.[0]?.longMessage ||
-				e?.errors?.[0]?.message ||
-				e?.message ||
-				"Impossible de se connecter.";
-			setError(String(msg));
+		} catch (error) {
+			setError(getClerkErrorMessage(error, "Impossible de se connecter."));
 		} finally {
 			setPending(false);
 		}
@@ -110,13 +106,8 @@ export function LoginPage() {
 				redirectUrl: "/sso-callback",
 				redirectUrlComplete: accountType === "admin" ? "/admin" : "/dashboard",
 			});
-		} catch (e: any) {
-			const msg =
-				e?.errors?.[0]?.longMessage ||
-				e?.errors?.[0]?.message ||
-				e?.message ||
-				"Impossible de démarrer la connexion OAuth.";
-			setError(String(msg));
+		} catch (error) {
+			setError(getClerkErrorMessage(error, "Impossible de démarrer la connexion OAuth."));
 		}
 	}
 

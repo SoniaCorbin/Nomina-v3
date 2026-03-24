@@ -101,7 +101,34 @@ type Titre = {
   categorieId?: number | null;
 };
 
-type NpcResult = unknown;
+type GenerateResultItem = {
+  id?: number | string;
+  name?: string | null;
+  fullName?: string | null;
+  displayName?: string | null;
+  valeur?: string | null;
+  value?: string | null;
+  title?: string | null;
+  appliesTo?: string | null;
+  texte?: string | null;
+  type?: string | null;
+  description?: string | null;
+  backstory?: string | null;
+  imageUrl?: string | null;
+  image?: string | null;
+  thumbnailUrl?: string | null;
+  cultureId?: number | null;
+  [key: string]: unknown;
+};
+
+type GenerateResult = {
+  seed?: string | null;
+  count?: number;
+  filters?: Record<string, unknown>;
+  items?: GenerateResultItem[];
+  info?: string;
+  warning?: string;
+};
 
 type GenerateWhat = 
   | "npcs" 
@@ -154,7 +181,7 @@ export function GeneratePage() {
   const [genre, setGenre] = useState<string>("");
   const [prefixe, setPrefixe] = useState("");
 
-  const [result, setResult] = useState<NpcResult | null>(null);
+  const [result, setResult] = useState<GenerateResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [imagePreview, setImagePreview] = useState<{ url: string; title: string } | null>(null);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
@@ -166,7 +193,7 @@ export function GeneratePage() {
     return `${getApiBaseUrl()}${imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`}`;
   }
 
-  function getItemImageUrl(item: any): string | null {
+  function getItemImageUrl(item: GenerateResultItem): string | null {
     return toAbsoluteImageUrl(item?.imageUrl ?? item?.image ?? item?.thumbnailUrl ?? null);
   }
 
@@ -536,7 +563,7 @@ export function GeneratePage() {
               ? "/univers"
               : "/creatures";
         
-        const data = await apiFetch<any[]>(directEndpoint);
+        const data = await apiFetch<GenerateResultItem[]>(directEndpoint);
 
         const keywordList = trimmedKeywords
           ? trimmedKeywords
@@ -634,7 +661,7 @@ export function GeneratePage() {
       // (Sans catégorie, l'API retourne des concepts tous univers confondus.)
 
       const url = `${endpoint}?${qs.toString()}`;
-      const data = await apiFetch<NpcResult>(url);
+      const data = await apiFetch<GenerateResult>(url);
       setResult(data);
     } catch (e) {
       setError(e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e));
@@ -977,18 +1004,18 @@ export function GeneratePage() {
               </p>
               
               <div className="flex flex-wrap gap-3 mb-4 p-3 bg-[#f8f6fc] rounded-md">
-                {(result as any).seed && (
+                {result.seed && (
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-[#7b3ff2]">🎲 Préfixe:</span>
                     <code className="text-xs bg-white px-2 py-1 rounded border border-[#d4c5f9] text-[#2d1b4e]">
-                      {(result as any).seed}
+                      {result.seed}
                     </code>
                   </div>
                 )}
-                {(result as any).count !== undefined && (
+                {result.count !== undefined && (
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-semibold text-[#7b3ff2]">📊 Générés:</span>
-                    <span className="text-xs font-bold text-[#2d1b4e]">{(result as any).count}</span>
+                    <span className="text-xs font-bold text-[#2d1b4e]">{result.count}</span>
                   </div>
                 )}
 
@@ -1057,17 +1084,17 @@ export function GeneratePage() {
                 ) : null}
               </div>
 
-              {(result as any).warning && (
+              {result.warning && (
                 <div className="bg-orange-50 border-l-4 border-orange-400 text-orange-800 px-4 py-3 rounded-r-md mb-4 flex items-start gap-3">
                   <span className="text-xl">⚠️</span>
                   <div>
                     <p className="font-medium">Attention</p>
-                    <p className="text-sm">{(result as any).warning}</p>
+                    <p className="text-sm">{result.warning}</p>
                   </div>
                 </div>
               )}
 
-              {(result as any).items && Array.isArray((result as any).items) && (result as any).items.length > 0 ? (
+              {Array.isArray(result.items) && result.items.length > 0 ? (
                 <div className="max-h-[calc(100vh-350px)] overflow-y-auto pr-2">
                   <div
                     className={`grid gap-6 ${
@@ -1078,7 +1105,7 @@ export function GeneratePage() {
                           : "sm:grid-cols-2 xl:grid-cols-3"
                     }`}
                   >
-                    {(result as any).items.map((item: any, idx: number) => {
+                    {result.items.map((item: GenerateResultItem, idx: number) => {
                       const title = (() => {
                         switch (generateWhat) {
                           case "npcs":

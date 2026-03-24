@@ -6,6 +6,10 @@
 
 @layer base {
   :root {
+    --font-heading: 'Cinzel', serif;
+    --font-body: 'Poppins', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+
     --violet-deep: #2d1b4e;
     --violet-vibrant: #7b3ff2;
     --violet-light: #a67be8;
@@ -22,7 +26,7 @@
   body {
     background: var(--white-off);
     color: var(--violet-deep);
-    font-family: 'Poppins', sans-serif;
+    font-family: var(--font-body);
     font-weight: 400;
   }
 
@@ -55,19 +59,13 @@
     color: var(--violet-deep) !important;
   }
 
-  html.dark .text-\[\#c5bfd9\] {
-    color: var(--silver) !important;
-  }
-
+  html.dark .text-\[\#c5bfd9\],
   html.dark .text-\[\#6b5aa3\] {
     color: var(--silver) !important;
   }
 
   html.dark .bg-\[\#ffffff\],
-  html.dark .bg-\[\#f8f6fc\] {
-    background-color: var(--white-off) !important;
-  }
-
+  html.dark .bg-\[\#f8f6fc\],
   html.dark .bg-white {
     background-color: var(--white-off) !important;
   }
@@ -106,32 +104,35 @@
     color: var(--success) !important;
   }
 
+  h1,
+  h2 {
+    font-family: var(--font-heading);
+  }
+
   h1 {
-    font-family: 'Cinzel', serif;
     font-weight: 700;
   }
 
   h2 {
-    font-family: 'Cinzel', serif;
     font-weight: 600;
   }
 
-  h3, h4, h5, h6 {
-    font-family: 'Poppins', sans-serif;
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-family: var(--font-body);
     font-weight: 600;
   }
 
   code {
-    font-family: 'JetBrains Mono', monospace;
+    font-family: var(--font-mono);
   }
 }
 
 @layer components {
   /* Clerk (SignIn/SignUp): garantir la lisibilité des champs */
-  :where(.cl-rootBox) {
-    color: var(--violet-deep);
-  }
-
+  :where(.cl-rootBox),
   :where(.cl-formFieldLabel) {
     color: var(--violet-deep);
   }

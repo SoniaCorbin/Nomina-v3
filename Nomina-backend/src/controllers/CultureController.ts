@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { isKnownPrismaError } from '../utils/prismaErrors';
 
 export const getCultureById = async (req: Request, res: Response) => {
   try {
@@ -37,8 +38,8 @@ export const createCulture = async (req: Request, res: Response) => {
       data: { name: trimmedName, description: trimmedDescription },
     });
     res.status(201).json(newCulture);
-  } catch (error: any) {
-    if (error?.code === 'P2002') {
+  } catch (error) {
+    if (isKnownPrismaError(error, 'P2002')) {
       return res.status(409).json({ error: 'Nom de culture déjà utilisé' });
     }
     res.status(500).json({ error: 'Erreur serveur' });
@@ -72,11 +73,11 @@ export const updateCulture  = async (req: Request, res: Response) => {
       data,
     });
     res.json(updatedCulture);
-  } catch (error: any) {
-    if (error?.code === 'P2002') {
+  } catch (error) {
+    if (isKnownPrismaError(error, 'P2002')) {
       return res.status(409).json({ error: 'Nom de culture déjà utilisé' });
     }
-    if (error?.code === 'P2025') {
+    if (isKnownPrismaError(error, 'P2025')) {
       return res.status(404).json({ error: 'Culture non trouvée' });
     }
     res.status(500).json({ error: 'Erreur serveur' });
@@ -108,8 +109,8 @@ export const deleteCulture = async (req: Request, res: Response) => {
     ]);
 
     res.status(204).end();
-  } catch (error: any) {
-    if (error?.code === 'P2003') {
+  } catch (error) {
+    if (isKnownPrismaError(error, 'P2003')) {
       return res.status(409).json({ error: 'Impossible de supprimer cette culture car elle est encore référencée' });
     }
     res.status(500).json({ error: 'Erreur serveur' });

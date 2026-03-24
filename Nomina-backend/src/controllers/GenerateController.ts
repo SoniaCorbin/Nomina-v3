@@ -1,4 +1,5 @@
 import type { Request, Response } from "express";
+import type { Prisma } from "../generated/prisma/client";
 import { z } from "zod";
 import { generateNpcIdeas } from "../services/generation/npcGenerator";
 import prisma from "../utils/prisma";
@@ -112,6 +113,36 @@ function normalizeAppliesToValues(input?: string): string[] | undefined {
   return map[key] ?? [raw];
 }
 
+type GeneratedNpcIdea = {
+  nameId?: number | null;
+  name?: string | null;
+  fullName?: string | null;
+  backstory?: string | null;
+  genre?: string | null;
+  cultureId?: number | null;
+  categorieId?: number | null;
+};
+
+type GeneratedResponse<TItem> = {
+  seed?: string | null;
+  warning?: string;
+  filters?: Record<string, unknown>;
+  items?: TItem[];
+};
+
+type RankedItem<TItem> = {
+  item: TItem;
+  score: number;
+};
+
+function asGeneratedResponse<TItem>(value: unknown): GeneratedResponse<TItem> {
+  return value && typeof value === "object" ? (value as GeneratedResponse<TItem>) : {};
+}
+
+function getGeneratedItems<TItem>(value: GeneratedResponse<TItem>): TItem[] {
+  return Array.isArray(value.items) ? value.items : [];
+}
+
 export const generateNpcs = async (req: Request, res: Response) => {
   try {
     const parsed = z
@@ -156,8 +187,9 @@ export const generateNpcs = async (req: Request, res: Response) => {
       genre,
       seed,
     });
-    const baseItems = Array.isArray((result as any).items) ? (result as any).items : [];
-    const uniqueBaseItems = uniqueByNormalizedText(baseItems, (it: any) => `${it?.fullName ?? it?.name ?? ""}`);
+    const generatedResult = asGeneratedResponse<GeneratedNpcIdea>(result);
+    const baseItems = getGeneratedItems(generatedResult);
+    const uniqueBaseItems = uniqueByNormalizedText(baseItems, (it) => `${it.fullName ?? it.name ?? ""}`);
 
     const normalizeNpcWarning = (warning: unknown, itemCount: number): string | undefined => {
       if (itemCount === 0) return "Aucun Personnage ne match les filtres.";
@@ -172,29 +204,29 @@ export const generateNpcs = async (req: Request, res: Response) => {
     if (kws.length === 0) {
       const items = uniqueBaseItems.slice(0, count);
       return res.json({
-        ...(result as any),
+        ...generatedResult,
         count: items.length,
         items,
-        warning: normalizeNpcWarning((result as any).warning, items.length),
+        warning: normalizeNpcWarning(generatedResult.warning, items.length),
       });
     }
 
-    const ranked = uniqueBaseItems
-      .map((it: any) => ({
+    const ranked: RankedItem<GeneratedNpcIdea>[] = uniqueBaseItems
+      .map((it) => ({
         item: it,
-        score: scoreKeywordMatch(`${it?.name ?? ""} ${it?.backstory ?? ""}`, kws),
+        score: scoreKeywordMatch(`${it.name ?? ""} ${it.backstory ?? ""}`, kws),
       }))
-      .sort((a: any, b: any) => b.score - a.score);
+      .sort((a, b) => b.score - a.score);
 
-    const matched = ranked.filter((x: any) => x.score > 0).map((x: any) => x.item);
-    const fallback = ranked.map((x: any) => x.item);
+    const matched = ranked.filter((entry) => entry.score > 0).map((entry) => entry.item);
+    const fallback = ranked.map((entry) => entry.item);
     const items = (matched.length > 0 ? matched : fallback).slice(0, count);
 
     return res.json({
-      ...(result as any),
+      ...generatedResult,
       count: items.length,
       filters: {
-        ...((result as any).filters ?? {}),
+        ...(generatedResult.filters ?? {}),
         universId: universId ?? null,
         keywords: kws.join(", "),
       },
@@ -203,7 +235,7 @@ export const generateNpcs = async (req: Request, res: Response) => {
       warning: normalizeNpcWarning(
         matched.length === 0
           ? `Aucun PNJ ne matche directement: ${kws.join(", ")}. Suggestions affichées.`
-          : (result as any).warning,
+          : generatedResult.warning,
         items.length
       ),
     });
@@ -527,8 +559,9 @@ export const generateNomPersonnages = async (req: Request, res: Response) => {
       genre: effectiveGenre,
       seed,
     });
+    const generatedResult = asGeneratedResponse<GeneratedNpcIdea>(generated);
 
-    const toMiniBio = (text: string | undefined): string | null => {
+    const toMiniBio = (text: string | null | undefined): string | null => {
       if (!text) return null;
       const trimmed = text.trim();
       if (!trimmed) return null;
@@ -553,8 +586,8 @@ export const generateNomPersonnages = async (req: Request, res: Response) => {
       return take.length > 0 ? take : null;
     };
 
-    const mappedItems = Array.isArray((generated as any).items)
-      ? (generated as any).items.map((it: any) => ({
+    const mappedItems = getGeneratedItems(generatedResult)
+      .map((it) => ({
           nameId: it.nameId ?? null,
           name: it.name ?? null,
           displayName:
@@ -568,26 +601,25 @@ export const generateNomPersonnages = async (req: Request, res: Response) => {
           categorieId: it.categorieId ?? null,
           miniBio: toMiniBio(it.backstory),
         }))
-      : [];
 
-    const uniqueMappedItems = uniqueByNormalizedText(mappedItems, (it: any) => `${it?.displayName ?? it?.name ?? ""}`);
+    const uniqueMappedItems = uniqueByNormalizedText(mappedItems, (it) => `${it.displayName ?? it.name ?? ""}`);
 
-    const ranked = uniqueMappedItems
-      .map((it: any) => ({
+    const ranked: RankedItem<(typeof mappedItems)[number]>[] = uniqueMappedItems
+      .map((it) => ({
         item: it,
-        score: scoreKeywordMatch(`${it?.name ?? ""} ${it?.displayName ?? ""} ${it?.miniBio ?? ""}`, kws),
+        score: scoreKeywordMatch(`${it.name ?? ""} ${it.displayName ?? ""} ${it.miniBio ?? ""}`, kws),
       }))
-      .sort((a: any, b: any) => b.score - a.score);
+      .sort((a, b) => b.score - a.score);
 
-    const matched = kws.length > 0 ? ranked.filter((x: any) => x.score > 0).map((x: any) => x.item) : [];
-    const fallback = kws.length > 0 ? ranked.map((x: any) => x.item) : uniqueMappedItems;
+    const matched = kws.length > 0 ? ranked.filter((entry) => entry.score > 0).map((entry) => entry.item) : [];
+    const fallback = kws.length > 0 ? ranked.map((entry) => entry.item) : uniqueMappedItems;
     const items = (kws.length > 0 ? (matched.length > 0 ? matched : fallback) : uniqueMappedItems).slice(0, count);
 
     res.json({
-      seed: (generated as any).seed,
+      seed: generatedResult.seed,
       count: items.length,
       filters: {
-        ...((generated as any).filters ?? {
+        ...(generatedResult.filters ?? {
           cultureId: effectiveCultureId ?? null,
           categorieId: effectiveCategorieId ?? null,
           socialClassId: socialClassId ?? null,
@@ -605,7 +637,7 @@ export const generateNomPersonnages = async (req: Request, res: Response) => {
       warning:
         kws.length > 0 && matched.length === 0
           ? `Aucun nom de personnage ne matche directement: ${kws.join(", ")}. Suggestions affichées.`
-          : (generated as any).warning,
+          : generatedResult.warning,
       info: kws.length > 0 && matched.length > 0 ? `Résultats classés par pertinence pour: ${kws.join(", ")}` : undefined,
     });
   } catch (error) {
@@ -946,7 +978,7 @@ export const generateFragmentsHistoire = async (req: Request, res: Response) => 
 
     const fallbackWhereGlobal = {};
 
-    const queries: Array<{ label: string; where: any }> = [
+    const queries: Array<{ label: string; where: Prisma.FragmentsHistoireWhereInput }> = [
       { label: "strict", where: strictWhere },
       { label: "no-appliesTo", where: fallbackWhereWithoutAppliesTo },
       { label: "no-genre-no-appliesTo", where: fallbackWhereWithoutGenreAndAppliesTo },

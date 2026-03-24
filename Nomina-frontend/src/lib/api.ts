@@ -350,6 +350,14 @@ export async function apiFetch<T>(
     throw new ApiError(msg, res.status, payload as ApiErrorPayload | undefined);
   }
 
+  const noContentStatus = res.status === 204 || res.status === 205 || res.status === 304;
+  if (!isJson && !noContentStatus) {
+    const textBody = await res.text().catch(() => '');
+    if ((textBody ?? '').trim().length > 0) {
+      throw new ApiError('Réponse API invalide: JSON attendu mais contenu non-JSON reçu', 502);
+    }
+  }
+
   // Cache GET (network-first)
   if (method === 'GET' && canUseCache) {
     writeCache(url, hasAuth, payload, cacheTtlMs);

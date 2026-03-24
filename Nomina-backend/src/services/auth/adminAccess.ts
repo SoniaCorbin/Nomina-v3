@@ -1,6 +1,16 @@
 import { createClerkClient } from '@clerk/backend';
 import prisma from '../../utils/prisma';
 
+type ClerkEmailAddressLike = {
+  id?: string | null;
+  emailAddress?: string | null;
+};
+
+type ClerkUserLike = {
+  primaryEmailAddressId?: string | null;
+  emailAddresses?: ClerkEmailAddressLike[] | null;
+};
+
 const normalizeSecretKey = (value: string | undefined): string => {
   if (!value) return '';
   const trimmed = value.trim();
@@ -57,12 +67,12 @@ const allowFirstAdminBootstrap = (): boolean => {
   return false;
 };
 
-const resolvePrimaryEmail = (user: any): string | null => {
+const resolvePrimaryEmail = (user: ClerkUserLike | null | undefined): string | null => {
   const primaryId = user?.primaryEmailAddressId;
   const emailAddresses = Array.isArray(user?.emailAddresses) ? user.emailAddresses : [];
 
   if (primaryId) {
-    const primary = emailAddresses.find((e: any) => e?.id === primaryId);
+    const primary = emailAddresses.find((emailAddress) => emailAddress?.id === primaryId);
     const value = typeof primary?.emailAddress === 'string' ? primary.emailAddress.trim().toLowerCase() : '';
     if (value) return value;
   }

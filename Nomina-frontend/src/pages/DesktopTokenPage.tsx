@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
+import { getErrorMessage } from "../lib/error-utils";
 
 export function DesktopTokenPage() {
   const { getToken } = useAuth();
@@ -21,8 +22,8 @@ export function DesktopTokenPage() {
       }
       setToken(jwt);
       setStatus("Token généré avec succès.");
-    } catch (e: any) {
-      setStatus(String(e?.message ?? "Erreur pendant la récupération du token."));
+    } catch (error) {
+      setStatus(getErrorMessage(error, "Erreur pendant la récupération du token."));
     } finally {
       setPending(false);
     }

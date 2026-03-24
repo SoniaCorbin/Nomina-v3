@@ -6,6 +6,7 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { FluidBackground } from "./components/FluidBackground";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
 import { setApiTokenProvider, apiFetch, ApiError } from "./lib/api";
+import { getErrorMessage } from "./lib/error-utils";
 
 const Features = lazy(() => import("./components/Features").then((m) => ({ default: m.Features })));
 const UseCases = lazy(() => import("./components/UseCases").then((m) => ({ default: m.UseCases })));
@@ -172,7 +173,7 @@ function RequireAdminInner(props: { children: JSX.Element }) {
           return;
         }
 
-        setState({ status: "error", message: String((e as any)?.message ?? e) });
+        setState({ status: "error", message: getErrorMessage(e, "Impossible de vérifier les droits admin") });
       }
     })();
 

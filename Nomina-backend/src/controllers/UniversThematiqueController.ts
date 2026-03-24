@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import prisma from "../utils/prisma";
+import { isKnownPrismaError } from "../utils/prismaErrors";
 
 // Lister les univers thématiques pour le dropdown "Univers Thématique"
 export const getUniversThematiques = async (_req: Request, res: Response) => {
@@ -96,8 +97,8 @@ export const createUniversThematique = async (req: Request, res: Response) => {
     });
 
     res.status(201).json(created);
-  } catch (error: any) {
-    if (error?.code === "P2002") {
+  } catch (error) {
+    if (isKnownPrismaError(error, "P2002")) {
       return res.status(409).json({ error: "Nom d’univers déjà utilisé" });
     }
     console.error("Erreur createUniversThematique:", error);
@@ -151,11 +152,11 @@ export const updateUniversThematique = async (req: Request, res: Response) => {
     });
 
     res.json(updated);
-  } catch (error: any) {
-    if (error?.code === "P2002") {
+  } catch (error) {
+    if (isKnownPrismaError(error, "P2002")) {
       return res.status(409).json({ error: "Nom d’univers déjà utilisé" });
     }
-    if (error?.code === "P2025") {
+    if (isKnownPrismaError(error, "P2025")) {
       return res.status(404).json({ error: "Univers non trouvé" });
     }
     console.error("Erreur updateUniversThematique:", error);
@@ -179,8 +180,8 @@ export const deleteUniversThematique = async (req: Request, res: Response) => {
 
     await prisma.universThematique.delete({ where: { id } });
     res.status(204).end();
-  } catch (error: any) {
-    if (error?.code === "P2025") {
+  } catch (error) {
+    if (isKnownPrismaError(error, "P2025")) {
       return res.status(404).json({ error: "Univers non trouvé" });
     }
     console.error("Erreur deleteUniversThematique:", error);

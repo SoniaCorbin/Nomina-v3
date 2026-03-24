@@ -5,6 +5,12 @@ import { Button } from "../components/ui/button";
 import { Card } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 import { apiFetch } from "../lib/api";
+import { getClerkErrorMessage, getClerkRetryAfterSeconds, isClerkAlreadyVerifiedError } from "../lib/error-utils";
+
+type MissingRequirementsAttempt = {
+	missingFields?: unknown;
+	unverifiedFields?: unknown;
+};
 
 export function RegisterPage() {
 	const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
@@ -85,34 +91,11 @@ export function RegisterPage() {
 		return () => clearInterval(timer);
 	}, [resendCooldown]);
 
-	function getClerkErrorMessage(e: any, fallback: string): string {
-		const details = e?.errors?.[0];
-		const base = details?.longMessage || details?.message || e?.message || fallback;
-		const normalized = String(base).toLowerCase();
+	function getAttemptRequirements(attempt: MissingRequirementsAttempt): string[] {
+		const missingFields = Array.isArray(attempt.missingFields) ? attempt.missingFields : [];
+		const unverifiedFields = Array.isArray(attempt.unverifiedFields) ? attempt.unverifiedFields : [];
 
-		if (
-			normalized.includes("found in an online data breach") ||
-			normalized.includes("compromised") ||
-			normalized.includes("breached")
-		) {
-			return "Ce mot de passe a déjà été compromis dans une fuite de données. Pour ta sécurité, choisis un mot de passe différent, long et unique.";
-		}
-
-		const retryAfter = details?.meta?.retryAfterSeconds ?? details?.meta?.retry_after_seconds;
-		if (typeof retryAfter === "number" && retryAfter > 0) {
-			return `${base} Réessaie dans ${retryAfter}s.`;
-		}
-		return String(base);
-	}
-
-	function isAlreadyVerifiedError(e: any): boolean {
-		const msg = String(
-			e?.errors?.[0]?.longMessage ||
-				e?.errors?.[0]?.message ||
-				e?.message ||
-				""
-		).toLowerCase();
-		return msg.includes("already been verified") || msg.includes("already verified");
+		return [...missingFields, ...unverifiedFields].filter((value): value is string => typeof value === "string");
 	}
 
 	async function completeAlreadyVerifiedFlow() {
@@ -238,13 +221,7 @@ export function RegisterPage() {
 			}
 
 			if (attempt.status === "missing_requirements") {
-				const missingFields = Array.isArray((attempt as any).missingFields)
-					? (attempt as any).missingFields
-					: [];
-				const unverifiedFields = Array.isArray((attempt as any).unverifiedFields)
-					? (attempt as any).unverifiedFields
-					: [];
-				const details = [...missingFields, ...unverifiedFields].join(", ");
+				const details = getAttemptRequirements(attempt).join(", ");
 				setError(
 					details.length > 0
 						? `Vérification incomplète: exigences Clerk manquantes (${details}). Retire le téléphone du formulaire, renvoie un code puis revalide.`
@@ -256,15 +233,15 @@ export function RegisterPage() {
 			setError(
 				`Vérification incomplète (statut: ${attempt.status}). Un nouveau code peut être envoyé via “Renvoyer le code”, puis validé à nouveau.`
 			);
-		} catch (e: any) {
+		} catch (error) {
 			if (step === "verify-email") {
-				if (isAlreadyVerifiedError(e)) {
+				if (isClerkAlreadyVerifiedError(error)) {
 					await completeAlreadyVerifiedFlow();
 					return;
 				}
-				setError(getClerkErrorMessage(e, "Code invalide ou expiré. Demande un nouveau code."));
+				setError(getClerkErrorMessage(error, "Code invalide ou expiré. Demande un nouveau code."));
 			} else {
-				setError(getClerkErrorMessage(e, "Impossible de créer le compte."));
+				setError(getClerkErrorMessage(error, "Impossible de créer le compte."));
 			}
 		} finally {
 			setPending(false);
@@ -295,16 +272,16 @@ export function RegisterPage() {
 			await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
 			setInfo("Nouveau code envoyé. Le plus récent doit être utilisé depuis la boîte courriel.");
 			setResendCooldown(30);
-		} catch (e: any) {
-			if (isAlreadyVerifiedError(e)) {
+		} catch (error) {
+			if (isClerkAlreadyVerifiedError(error)) {
 				await completeAlreadyVerifiedFlow();
 				return;
 			}
-			const retryAfter = e?.errors?.[0]?.meta?.retryAfterSeconds ?? e?.errors?.[0]?.meta?.retry_after_seconds;
-			if (typeof retryAfter === "number" && retryAfter > 0) {
+			const retryAfter = getClerkRetryAfterSeconds(error);
+			if (retryAfter) {
 				setResendCooldown(retryAfter);
 			}
-			setError(getClerkErrorMessage(e, "Impossible de renvoyer le code."));
+			setError(getClerkErrorMessage(error, "Impossible de renvoyer le code."));
 		} finally {
 			setPending(false);
 		}

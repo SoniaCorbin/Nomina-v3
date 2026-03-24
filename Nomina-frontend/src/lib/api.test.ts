@@ -23,12 +23,12 @@ describe('api helpers', () => {
   });
 
   it('returns default base URL when env is missing', () => {
-    expect(getApiBaseUrl()).toBe('http://localhost:3000');
+    expect(getApiBaseUrl()).toBe('http://localhost:3000/api');
   });
 
   it('trims trailing slash from VITE_API_URL', () => {
     vi.stubEnv('VITE_API_URL', 'https://api.example.com/');
-    expect(getApiBaseUrl()).toBe('https://api.example.com');
+    expect(getApiBaseUrl()).toBe('https://api.example.com/api');
   });
 
   it('stores GET response in cache and falls back to cache on network error', async () => {
@@ -145,6 +145,7 @@ describe('api helpers', () => {
         status: 200,
         statusText: 'OK',
         headers: { get: () => 'text/html; charset=utf-8' },
+        text: async () => '<html><body>oops</body></html>',
         json: async () => undefined,
       })
     );

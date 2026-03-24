@@ -1,3 +1,4 @@
+import type { Prisma } from "../../generated/prisma/client";
 import prisma from "../../utils/prisma";
 import { createRng } from "./rng";
 
@@ -49,7 +50,7 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
     options.relationTypeId !== undefined ||
     options.eventId !== undefined;
 
-  const baseWhere: any = {
+  const baseWhere: Prisma.PersonnageWhereInput = {
     cultureId: options.cultureId,
     categorieId: options.categorieId,
     socialClassId: options.socialClassId,
@@ -64,7 +65,7 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
     genre: genreIn && genreIn.length > 0 ? { in: genreIn } : options.genre,
   };
 
-  const strictWhere: any = {
+  const strictWhere: Prisma.PersonnageWhereInput = {
     ...baseWhere,
     ...(options.organizationId !== undefined
       ? {
@@ -140,7 +141,7 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
     options.occupationId !== undefined;
 
   if (personnages.length === 0 && enforcePersonnageFilters) {
-    const strictWhereWithoutRealistic: any = {
+    const strictWhereWithoutRealistic: Prisma.PersonnageWhereInput = {
       ...strictWhere,
       socialClassId: undefined,
       occupationId: undefined,
@@ -265,31 +266,33 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
   }
   const uniqueNames = dedupeBy(names, (n) => normalizeName(composeFullName(n.valeur ?? "", n.familyName)));
     
-  const fragmentWhere: any = {
+  const fragmentWhere: Prisma.FragmentsHistoireWhereInput = {
     OR: [
       { appliesTo: null },
       { appliesTo: { in: ["npc", "personnage", "nomPersonnage"] } },
     ],
   };
+  const fragmentAnd: Prisma.FragmentsHistoireWhereInput[] = [];
 
   if (options.cultureId !== undefined) {
-    fragmentWhere.AND = [...(fragmentWhere.AND ?? []), { OR: [{ cultureId: options.cultureId }, { cultureId: null }] }];
+    fragmentAnd.push({ OR: [{ cultureId: options.cultureId }, { cultureId: null }] });
   }
   if (options.categorieId !== undefined) {
-    fragmentWhere.AND = [...(fragmentWhere.AND ?? []), { OR: [{ categorieId: options.categorieId }, { categorieId: null }] }];
+    fragmentAnd.push({ OR: [{ categorieId: options.categorieId }, { categorieId: null }] });
   }
   // NB: FragmentsHistoire ne sont pas liés directement à UniversThematique.
   // On laisse la sélection via categorieId (ou sans catégorie) pour les fragments.
   if (options.genre !== undefined) {
     const genreValues = normalizeGenreValues(options.genre);
     if (genreValues.length > 0) {
-      fragmentWhere.AND = [
-        ...(fragmentWhere.AND ?? []),
-        { OR: [{ genre: { in: genreValues } }, { genre: null }] },
-      ];
+      fragmentAnd.push({ OR: [{ genre: { in: genreValues } }, { genre: null }] });
     } else {
-      fragmentWhere.AND = [...(fragmentWhere.AND ?? []), { OR: [{ genre: options.genre }, { genre: null }] }];
+      fragmentAnd.push({ OR: [{ genre: options.genre }, { genre: null }] });
     }
+  }
+
+  if (fragmentAnd.length > 0) {
+    fragmentWhere.AND = fragmentAnd;
   }
 
   const fragments = await prisma.fragmentsHistoire.findMany({

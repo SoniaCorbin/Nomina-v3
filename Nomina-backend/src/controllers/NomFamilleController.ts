@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import prisma from "../utils/prisma";
+import { isKnownPrismaError } from "../utils/prismaErrors";
 
 // GET - lister tous les noms de famille
 export const getNomFamilles = async (_req: Request, res: Response) => {
@@ -68,8 +69,8 @@ export const createNomFamille = async (req: Request, res: Response) => {
     });
 
     res.status(201).json(created);
-  } catch (error: any) {
-    if (error?.code === "P2002") {
+  } catch (error) {
+    if (isKnownPrismaError(error, "P2002")) {
       return res.status(409).json({ error: "Nom de famille déjà utilisé" });
     }
     console.error("Erreur createNomFamille:", error);
@@ -110,11 +111,11 @@ export const updateNomFamille = async (req: Request, res: Response) => {
     });
 
     res.json(updated);
-  } catch (error: any) {
-    if (error?.code === "P2002") {
+  } catch (error) {
+    if (isKnownPrismaError(error, "P2002")) {
       return res.status(409).json({ error: "Nom de famille déjà utilisé" });
     }
-    if (error?.code === "P2025") {
+    if (isKnownPrismaError(error, "P2025")) {
       return res.status(404).json({ error: "Nom de famille non trouvé" });
     }
     console.error("Erreur updateNomFamille:", error);
@@ -134,8 +135,8 @@ export const deleteNomFamille = async (req: Request, res: Response) => {
     ]);
 
     res.status(204).end();
-  } catch (error: any) {
-    if (error?.code === "P2025") {
+  } catch (error) {
+    if (isKnownPrismaError(error, "P2025")) {
       return res.status(404).json({ error: "Nom de famille non trouvé" });
     }
     console.error("Erreur deleteNomFamille:", error);

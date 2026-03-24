@@ -6,6 +6,7 @@ import { Input } from "../components/ui/input";
 import { Textarea } from "../components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { ModelTypeNav } from "../components/ModelTypeNav";
+import { getErrorMessage } from "../lib/error-utils";
 
 type Univers = {
   id: number;
@@ -129,8 +130,8 @@ export function UniversPage() {
 
       setSuccess("Image téléversée avec succès.");
       await refreshList();
-    } catch (err) {
-      setError(String((err as any)?.message ?? err));
+    } catch (error) {
+      setError(getErrorMessage(error, "Échec du téléversement de l'image."));
     } finally {
       setUploadingImage(false);
       setUploadTargetId(null);
