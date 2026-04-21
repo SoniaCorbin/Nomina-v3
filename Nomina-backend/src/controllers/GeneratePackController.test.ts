@@ -2,6 +2,11 @@ import request from "supertest";
 import app from "../app";
 import { generatePack } from "../services/OpenAiService";
 
+jest.mock("../middleware/auth.middleware", () => ({
+  requireAuth: (_req: unknown, _res: unknown, next: () => void) => next(),
+  requireAdmin: (_req: unknown, _res: unknown, next: () => void) => next(),
+}));
+
 jest.mock("../services/OpenAiService", () => ({
   generatePack: jest.fn(),
 }));

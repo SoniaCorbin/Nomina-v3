@@ -331,7 +331,7 @@ export async function apiFetch<T>(
     !isOffline()
   ) {
     const refreshedToken = await tokenProvider().catch(() => null);
-    if (refreshedToken && refreshedToken !== effectiveToken) {
+    if (refreshedToken) {
       const retryHeaders = { ...headers, Authorization: `Bearer ${refreshedToken}` };
       try {
         res = await doRequest(retryHeaders);

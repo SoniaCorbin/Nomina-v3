@@ -112,6 +112,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     const { payload } = await verifyToken(token, {
       secretKey,
       clockSkewInMs: tokenClockSkewInMs(),
+      authorizedParties: tokenAuthorizedParties(),
     });
     const p = payload as {
       sub?: unknown;

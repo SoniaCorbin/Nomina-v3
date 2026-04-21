@@ -8,16 +8,17 @@ import {
   generateTitres,
   generateConcepts,
 } from "../controllers/GenerateController";
+import { requireAuth } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.get("/npcs", generateNpcs);
-router.get("/nom-personnages", generateNomPersonnages);
-router.get("/prenoms", generateNomPersonnages);
-router.get("/nom-famille", generateNomFamille);
-router.get("/lieux", generateLieux);
-router.get("/fragments-histoire", generateFragmentsHistoire);
-router.get("/titres", generateTitres);
-router.get("/concepts", generateConcepts);
+router.get("/npcs", requireAuth, generateNpcs);
+router.get("/nom-personnages", requireAuth, generateNomPersonnages);
+router.get("/prenoms", requireAuth, generateNomPersonnages);
+router.get("/nom-famille", requireAuth, generateNomFamille);
+router.get("/lieux", requireAuth, generateLieux);
+router.get("/fragments-histoire", requireAuth, generateFragmentsHistoire);
+router.get("/titres", requireAuth, generateTitres);
+router.get("/concepts", requireAuth, generateConcepts);
 
 export default router;

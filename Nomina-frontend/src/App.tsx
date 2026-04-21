@@ -49,7 +49,11 @@ function ClerkTokenBridgeInner() {
   const { getToken } = useAuth();
 
   useEffect(() => {
-    setApiTokenProvider(() => getToken());
+    setApiTokenProvider(async () => {
+      const freshToken = await getToken({ skipCache: true }).catch(() => null);
+      if (freshToken) return freshToken;
+      return getToken().catch(() => null);
+    });
     return () => setApiTokenProvider(null);
   }, [getToken]);
 
@@ -239,8 +243,8 @@ export default function App() {
             <Route path="/demo" element={<ApiDemo />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/docs" element={<Documentation />} />
-            <Route path="/generate" element={<GeneratePage />} />
-            <Route path="/pack-ia" element={<PackIAPage />} />
+            <Route path="/generate" element={<RequireSignedIn><GeneratePage /></RequireSignedIn>} />
+            <Route path="/pack-ia" element={<RequireSignedIn><PackIAPage /></RequireSignedIn>} />
             <Route path="/dashboard" element={<RequireSignedIn><DashboardPage /></RequireSignedIn>} />
             <Route path="/cultures" element={<RequireAdmin><CulturesPage /></RequireAdmin>} />
             <Route path="/categories" element={<RequireAdmin><CategoriesPage /></RequireAdmin>} />
