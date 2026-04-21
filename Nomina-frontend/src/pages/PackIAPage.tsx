@@ -8,6 +8,7 @@ import { Checkbox } from "../components/ui/checkbox";
 import { Label } from "../components/ui/label";
 import { Textarea } from "../components/ui/textarea";
 import { Badge } from "../components/ui/badge";
+import logoUrl from "../../assets/logo5.png";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -136,150 +137,170 @@ export function PackIAPage() {
   }
 
   return (
-    <div className="min-h-screen py-10 px-4 max-w-5xl mx-auto text-slate-900 dark:text-white bg-[#d4c5f9] dark:bg-transparent">
-      <div className="mb-8 rounded-xl bg-white/95 dark:bg-transparent p-4 shadow-sm dark:shadow-none">
-        <h1 className="text-3xl font-bold text-slate-950 dark:text-white mb-2" style={{ fontFamily: "Cinzel, serif" }}>
-          <span className="text-amber-500 dark:text-amber-300">✨</span> Pack IA
+    <div className="min-h-screen py-10 px-4 max-w-[1400px] mx-auto text-[#2d1b4e] bg-[#e9e2ff]">
+      <div className="mb-8 rounded-xl bg-white p-4 shadow-sm border border-[#d4c5f9]">
+        <h1 className="text-3xl font-bold text-[#2d1b4e] mb-2" style={{ fontFamily: "Cinzel, serif" }}>
+          <span className="text-[#f0b4e8]">✨</span> Pack IA
         </h1>
-        <p className="text-slate-600 dark:text-[#d4c5f9] opacity-90 text-sm">
+        <p className="text-[#6b5aa3] opacity-90 text-sm">
           Remplissez les champs de votre choix, sélectionnez les sections à générer et cliquez sur{" "}
           <strong>Générer</strong>. L'IA complètera tout le reste.
         </p>
       </div>
 
-      {/* ── Champs libres ──────────────────────────────────────────────────── */}
-      <Card className="bg-white dark:bg-[#1a0d2e]/80 border border-slate-200 dark:border-[#7b3ff2]/30 p-6 mb-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-slate-900 dark:text-[#e8b4f0] mb-4">Champs optionnels</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {INPUT_FIELDS.map(({ key, label, placeholder }) => (
-            <div key={key} className="flex flex-col gap-1">
-              <Label htmlFor={`input-${key}`} className="text-slate-700 dark:text-[#d4c5f9] text-xs font-medium">
-                {label}
+      <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-6 items-start">
+        <div className="space-y-6">
+          {/* ── Champs libres ──────────────────────────────────────────────── */}
+          <Card className="bg-white border border-[#d4c5f9] p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#2d1b4e] mb-4" style={{ fontFamily: "Cinzel, serif" }}>
+              ✨ Champs optionnels
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {INPUT_FIELDS.map(({ key, label, placeholder }) => (
+                <div key={key} className="flex flex-col gap-1">
+                  <Label htmlFor={`input-${key}`} className="text-[#2d1b4e] text-xs font-medium">
+                    {label}
+                  </Label>
+                  <Input
+                    id={`input-${key}`}
+                    placeholder={placeholder}
+                    value={inputs[key] ?? ""}
+                    onChange={(e) => setInput(key, e.target.value)}
+                    className="bg-white border-[#d4c5f9] text-[#2d1b4e] placeholder:text-[#6b5aa3] text-sm"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4">
+              <Label htmlFor="description" className="text-[#2d1b4e] text-xs font-medium">
+                Description libre (remplace ou complète les champs)
               </Label>
-              <Input
-                id={`input-${key}`}
-                placeholder={placeholder}
-                value={inputs[key] ?? ""}
-                onChange={(e) => setInput(key, e.target.value)}
-                className="bg-white dark:bg-[#2d1b4e]/60 border-slate-300 dark:border-[#7b3ff2]/40 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-[#7b3ff2]/50 text-sm"
+              <Textarea
+                id="description"
+                placeholder="ex: Un monde post-apocalyptique où des guildes de sorciers contrôlent les ressources rares..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="mt-1 bg-white border-[#d4c5f9] text-[#2d1b4e] placeholder:text-[#6b5aa3] text-sm min-h-[120px]"
               />
             </div>
-          ))}
-        </div>
+          </Card>
 
-        <div className="mt-4">
-          <Label htmlFor="description" className="text-slate-700 dark:text-[#d4c5f9] text-xs font-medium">
-            Description libre (remplace ou complète les champs)
-          </Label>
-          <Textarea
-            id="description"
-            placeholder="ex: Un monde post-apocalyptique où des guildes de sorciers contrôlent les ressources rares..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className="mt-1 bg-white dark:bg-[#2d1b4e]/60 border-slate-300 dark:border-[#7b3ff2]/40 text-slate-900 dark:text-white placeholder:text-slate-500 dark:placeholder:text-[#7b3ff2]/50 text-sm min-h-[80px]"
-          />
-        </div>
-      </Card>
-
-      {/* ── Sections à générer ─────────────────────────────────────────────── */}
-      <Card className="bg-[#2d1b4e] border border-[#7b3ff2]/30 p-6 mb-6 shadow-sm">
-        <h2 className="text-lg font-semibold text-[#e8b4f0] mb-4">Sections à générer</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {SECTIONS.map(({ key, label, max }) => (
-            <div
-              key={key}
-              className={`flex items-center justify-between rounded-lg px-4 py-3 border transition-colors ${
-                enabled[key]
-                  ? "bg-[#7b3ff2]/15 border-[#7b3ff2]/50"
-                  : "bg-[#2d1b4e]/30 border-[#7b3ff2]/20 opacity-70"
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <Checkbox
-                  id={`chk-${key}`}
-                  checked={enabled[key]}
-                  onCheckedChange={() => toggleSection(key)}
-                  className="border-[#7b3ff2] data-[state=checked]:bg-[#7b3ff2]"
-                />
-                <Label htmlFor={`chk-${key}`} className="text-white text-sm cursor-pointer">
-                  {label}
-                </Label>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-[#d4c5f9] text-xs opacity-80">max {max}</span>
-                <Input
-                  type="number"
-                  min={0}
-                  max={max}
-                  value={counts[key]}
-                  onChange={(e) => setCount(key, Number(e.target.value))}
-                  disabled={!enabled[key]}
-                  className="w-16 text-center bg-[#2d1b4e]/60 border-[#7b3ff2]/40 text-white text-sm"
-                />
-              </div>
+          {/* ── Sections à générer ─────────────────────────────────────────── */}
+          <Card className="bg-[#2d1b4e] border border-[#7b3ff2]/40 p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-[#e8b4f0] mb-4" style={{ fontFamily: "Cinzel, serif" }}>
+              ✨ Sections à générer
+            </h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              {SECTIONS.map(({ key, label, max }) => (
+                <div
+                  key={key}
+                  className={`flex items-center justify-between rounded-lg px-4 py-3 border transition-colors ${
+                    enabled[key]
+                      ? "bg-[#7b3ff2]/15 border-[#7b3ff2]/50"
+                      : "bg-[#2d1b4e]/30 border-[#7b3ff2]/20 opacity-70"
+                  }`}
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <Checkbox
+                      id={`chk-${key}`}
+                      checked={enabled[key]}
+                      onCheckedChange={() => toggleSection(key)}
+                      className="border-[#7b3ff2] data-[state=checked]:bg-[#7b3ff2]"
+                    />
+                    <Label htmlFor={`chk-${key}`} className="text-white text-sm cursor-pointer leading-tight">
+                      {label}
+                    </Label>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-[#d4c5f9] text-xs opacity-80">max {max}</span>
+                    <Input
+                      type="number"
+                      min={0}
+                      max={max}
+                      value={counts[key]}
+                      onChange={(e) => setCount(key, Number(e.target.value))}
+                      disabled={!enabled[key]}
+                      className="w-16 text-center bg-[#2d1b4e]/60 border-[#7b3ff2]/40 text-white text-sm"
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-      </Card>
+          </Card>
 
-      {/* ── Bouton Générer ─────────────────────────────────────────────────── */}
-      <div className="flex justify-center mb-8">
-        <Button
-          onClick={handleGenerate}
-          disabled={loading}
-          className="bg-[#2d1b4e] hover:bg-[#24163d] text-white px-10 py-3 text-base font-semibold"
-        >
-          {loading ? "Génération en cours…" : "✨ Générer"}
-        </Button>
-      </div>
-
-      {result && (
-        <div className="flex justify-center mb-8">
-          <Button
-            onClick={handleSave}
-            disabled={saving}
-            variant="outline"
-            className="border-indigo-300 dark:border-[#7b3ff2] text-indigo-700 dark:text-[#d4c5f9] hover:bg-indigo-50 dark:hover:bg-[#7b3ff2]/20 px-10 py-3 text-base font-semibold"
-          >
-            {saving ? "Enregistrement en cours…" : "💾 Enregistrer en base"}
-          </Button>
-        </div>
-      )}
-
-      {/* ── Erreur ────────────────────────────────────────────────────────── */}
-      {error && (
-        <div className="mb-6 p-4 rounded-lg bg-red-900/30 border border-red-500/40 text-red-300 text-sm">
-          {error}
-        </div>
-      )}
-
-      {saveError && (
-        <div className="mb-6 p-4 rounded-lg bg-red-900/30 border border-red-500/40 text-red-300 text-sm">
-          {saveError}
-        </div>
-      )}
-
-      {saveSummary && (
-        <div className="mb-6 p-4 rounded-lg bg-emerald-900/20 border border-emerald-500/30 text-emerald-200 text-sm">
-          Enregistrement terminé: {saveSummary.created}/{saveSummary.attempted} créés, {saveSummary.failed} en échec.
-        </div>
-      )}
-
-      {/* ── Résultats ─────────────────────────────────────────────────────── */}
-      {result && (
-        <div className="space-y-6">
-          <div className="flex items-center gap-3 mb-2">
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-[#e8b4f0]">Résultats</h2>
-            <Badge className="bg-indigo-100 dark:bg-[#7b3ff2]/30 text-indigo-800 dark:text-[#d4c5f9] border-indigo-200 dark:border-[#7b3ff2]/40 text-xs">
-              {result.meta.model}
-            </Badge>
+          {/* ── Actions et messages ────────────────────────────────────────── */}
+          <div className="flex justify-center">
+            <Button
+              onClick={handleGenerate}
+              disabled={loading}
+              className="bg-[#7b3ff2] hover:bg-[#a67be8] text-white px-10 py-3 text-base font-semibold"
+            >
+              {loading ? "Génération en cours…" : "✨ Générer"}
+            </Button>
           </div>
 
-          {SECTIONS.map(({ key, label }) => (
-            <SectionResult key={key} sectionKey={key} label={label} items={result.result[key] ?? []} />
-          ))}
+          {error && (
+            <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
+          {saveError && (
+            <div className="p-4 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              {saveError}
+            </div>
+          )}
+
+          {saveSummary && (
+            <div className="p-4 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm">
+              Enregistrement terminé: {saveSummary.created}/{saveSummary.attempted} créés, {saveSummary.failed} en échec.
+            </div>
+          )}
         </div>
-      )}
+
+        {/* ── Résultats à droite (comme GeneratePage) ───────────────────── */}
+        <Card className="bg-white border border-[#d4c5f9] p-5 shadow-sm xl:sticky xl:top-6 max-h-[calc(100vh-4rem)] overflow-y-auto">
+          {result ? (
+            <>
+              <div className="flex flex-wrap items-center gap-3 mb-4">
+                <span className="text-xs font-semibold uppercase tracking-wide text-[#7b3ff2]">Résultats</span>
+                <h2 className="text-xl font-semibold text-[#2d1b4e]" style={{ fontFamily: "Cinzel, serif" }}>
+                  ✨ Résultats narratifs
+                </h2>
+                <Badge className="bg-[#d4c5f9] text-[#2d1b4e] border-[#a67be8] text-xs">
+                  {result.meta.model}
+                </Badge>
+                <Button
+                  onClick={handleSave}
+                  disabled={saving}
+                  variant="outline"
+                  className="ml-auto border-[#d4c5f9] text-[#2d1b4e] hover:bg-[#f8f6fc] px-4 py-2 text-sm font-semibold"
+                >
+                  {saving ? "Enregistrement en cours…" : "💾 Enregistrer en base"}
+                </Button>
+              </div>
+
+              <p className="text-sm text-[#6b5aa3] mb-4">Éléments générés pour enrichir l'univers</p>
+
+              <div className="space-y-4">
+                {SECTIONS.map(({ key, label }) => (
+                  <SectionResult key={key} sectionKey={key} label={label} items={result.result[key] ?? []} />
+                ))}
+              </div>
+            </>
+          ) : (
+            <div className="h-full flex items-center justify-center text-center py-16 bg-gradient-to-br from-white to-[#f8f6fc] border-2 border-dashed border-[#d4c5f9] rounded-lg">
+              <div>
+                <p className="text-[#6b5aa3] text-sm">Les éléments générés apparaîtront ici.</p>
+                <p className="text-[#a67be8] text-xs mt-2">
+                  Lance une génération depuis le panneau de gauche.
+                </p>
+              </div>
+            </div>
+          )}
+        </Card>
+      </div>
     </div>
   );
 }
@@ -295,17 +316,49 @@ function SectionResult({
   label: string;
   items: PackResultRow[];
 }) {
-  const columns = items.length > 0 ? Object.keys(items[0]) : [];
+  const getItemTitle = (item: PackResultRow): string => {
+    const fromName = [item.prenom, item.nomFamille]
+      .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+      .join(" ")
+      .trim();
+
+    const titleCandidate =
+      fromName ||
+      (typeof item.name === "string" ? item.name : null) ||
+      (typeof item.nom === "string" ? item.nom : null) ||
+      (typeof item.valeur === "string" ? item.valeur : null) ||
+      (typeof item.value === "string" ? item.value : null) ||
+      (typeof item.title === "string" ? item.title : null) ||
+      null;
+
+    return titleCandidate && titleCandidate.trim().length > 0 ? titleCandidate : "Élément généré";
+  };
+
+  const getDisplayFields = (item: PackResultRow): Array<{ key: string; value: string }> => {
+    const hiddenKeys = new Set(["name", "nom", "prenom", "nomFamille", "valeur", "value", "title"]);
+    const fields: Array<{ key: string; value: string }> = [];
+
+    for (const [key, rawValue] of Object.entries(item)) {
+      if (hiddenKeys.has(key)) continue;
+      if (rawValue === null || rawValue === undefined) continue;
+      const value = String(rawValue).trim();
+      if (!value) continue;
+      fields.push({ key, value });
+      if (fields.length >= 6) break;
+    }
+
+    return fields;
+  };
 
   return (
-    <Card className="bg-white dark:bg-[#1a0d2e]/80 border border-slate-200 dark:border-[#7b3ff2]/30 p-5 shadow-sm">
+    <Card className="bg-white border border-[#d4c5f9] p-5 shadow-sm">
       <div className="flex items-center gap-2 mb-3">
-        <h3 className="text-base font-semibold text-slate-900 dark:text-[#e8b4f0]">{label}</h3>
+        <h3 className="text-base font-semibold text-[#2d1b4e]" style={{ fontFamily: "Cinzel, serif" }}>{label}</h3>
         <Badge
           className={`text-xs ${
             items.length > 0
-              ? "bg-indigo-100 dark:bg-[#7b3ff2]/20 text-indigo-800 dark:text-[#d4c5f9] border-indigo-200 dark:border-[#7b3ff2]/40"
-              : "bg-slate-100 dark:bg-[#2d1b4e]/40 text-slate-500 dark:text-[#7b3ff2]/60 border-slate-200 dark:border-[#7b3ff2]/20"
+              ? "bg-[#d4c5f9] text-[#2d1b4e] border-[#a67be8]"
+              : "bg-[#f8f6fc] text-[#6b5aa3] border-[#d4c5f9]"
           }`}
         >
           {items.length} élément{items.length !== 1 ? "s" : ""}
@@ -313,31 +366,49 @@ function SectionResult({
       </div>
 
       {items.length === 0 ? (
-        <p className="text-slate-500 dark:text-[#7b3ff2]/50 text-sm italic">Section désactivée ou vide.</p>
+        <p className="text-[#6b5aa3] text-sm italic">Section désactivée ou vide.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead>
-              <tr className="border-b border-slate-200 dark:border-[#7b3ff2]/20">
-                {columns.map((col) => (
-                  <th key={col} className="py-2 pr-4 text-slate-700 dark:text-[#d4c5f9] font-medium capitalize">
-                    {col}
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {items.map((item, i) => (
-                <tr key={i} className="border-b border-slate-100 dark:border-[#7b3ff2]/10 hover:bg-indigo-50/60 dark:hover:bg-[#7b3ff2]/5 transition-colors">
-                  {Object.values(item).map((val, j) => (
-                    <td key={j} className="py-2 pr-4 text-slate-800 dark:text-white align-top">
-                      {String(val ?? "")}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
+        <div className="grid grid-cols-1 gap-3">
+          {items.map((item, index) => {
+            const title = getItemTitle(item);
+            const fields = getDisplayFields(item);
+
+            return (
+              <div
+                key={index}
+                className="bg-white border border-[#d4c5f9] rounded-lg p-4 overflow-hidden hover:shadow-xl hover:shadow-[#7b3ff2]/10 transition-all duration-300 group"
+              >
+                <div className="flex items-start gap-3 mb-3">
+                  <div className="h-9 w-9 rounded-full bg-[#f8f6fc] border border-[#d4c5f9] flex items-center justify-center shrink-0">
+                    <img src={logoUrl} alt="Nomina" className="h-6 w-6 object-contain" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-[#7b3ff2] text-white text-xs font-semibold shrink-0">
+                        {index + 1}
+                      </span>
+                      <p className="text-sm font-semibold text-[#2d1b4e] break-words" style={{ fontFamily: "Cinzel, serif" }}>
+                        {title}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {fields.length > 0 ? (
+                  <div className="space-y-2">
+                    {fields.map((field) => (
+                      <div key={field.key} className="text-xs text-[#2d1b4e]">
+                        <span className="font-semibold capitalize text-[#7b3ff2]">{field.key}:</span>{" "}
+                        <span className="text-[#5b4a7f]">{field.value}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-xs text-[#6b5aa3] italic">Aucun détail supplémentaire.</p>
+                )}
+              </div>
+            );
+          })}
         </div>
       )}
     </Card>

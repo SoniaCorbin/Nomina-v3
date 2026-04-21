@@ -161,12 +161,14 @@ export function RegisterPage() {
 		try {
 			if (step === "form") {
 				const username = buildUsername();
+				const normalizedPhone = phone.trim();
 				await signUp.create({
 					emailAddress: email.trim(),
 					password: password,
 					username,
 					firstName: firstName.trim(),
 					lastName: lastName.trim(),
+					...(normalizedPhone.length > 0 ? { phoneNumber: normalizedPhone } : {}),
 				});
 
 				// Selon la config Clerk, une vérification email peut être requise.
@@ -224,8 +226,8 @@ export function RegisterPage() {
 				const details = getAttemptRequirements(attempt).join(", ");
 				setError(
 					details.length > 0
-						? `Vérification incomplète: exigences Clerk manquantes (${details}). Retire le téléphone du formulaire, renvoie un code puis revalide.`
-						: "Vérification incomplète: exigences Clerk manquantes. Retire le téléphone du formulaire, renvoie un code puis revalide."
+						? `Vérification incomplète: exigences Clerk manquantes (${details}). Vérifie les champs requis dans Clerk (email, téléphone, etc.), puis renvoie un code.`
+						: "Vérification incomplète: exigences Clerk manquantes. Vérifie les champs requis dans Clerk (email, téléphone, etc.), puis renvoie un code."
 				);
 				return;
 			}
@@ -260,12 +262,14 @@ export function RegisterPage() {
 		try {
 			if (!signUp.emailAddress) {
 				const username = buildUsername();
+				const normalizedPhone = phone.trim();
 				await signUp.create({
 					emailAddress: email.trim(),
 					password,
 					username,
 					firstName: firstName.trim(),
 					lastName: lastName.trim(),
+					...(normalizedPhone.length > 0 ? { phoneNumber: normalizedPhone } : {}),
 				});
 			}
 
