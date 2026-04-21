@@ -5,8 +5,8 @@ import dotenv from "dotenv";
 // Important!! en dev (ts-node): assure que l'augmentation Express (req.auth) est chargée.
 import "./types/expressType";
 
-import userRoutes from "./routes/userRoutes";
-import authRoutes from "./routes/authRoutes";
+import UserRoutes from "./routes/UserRoutes";
+import AuthRoutes from "./routes/AuthRoutes";
 import CategorieRoutes from "./routes/CategorieRoutes";
 import CultureRoutes from "./routes/CultureRoutes";
 import NomPersonnageRoutes from "./routes/NomPersonnageRoutes";
@@ -83,8 +83,8 @@ function mountRoutes(prefix = "") {
 
   app.use(withPrefix("/generate"), GenerateRoutes);
   app.use(withPrefix("/generate-pack"), GeneratePackRoutes);
-  app.use(withPrefix("/users"), userRoutes);
-  app.use(withPrefix("/auth"), authRoutes);
+  app.use(withPrefix("/users"), UserRoutes);
+  app.use(withPrefix("/auth"), AuthRoutes);
   app.use(withPrefix("/categories"), CategorieRoutes);
   app.use(withPrefix("/cultures"), CultureRoutes);
   app.use(withPrefix("/nomPersonnages"), NomPersonnageRoutes);

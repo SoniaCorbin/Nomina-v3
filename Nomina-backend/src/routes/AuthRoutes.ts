@@ -6,7 +6,7 @@ import {
 	listAdminRequestsController,
 	meController,
 	rejectAdminRequestController,
-} from '../controllers/authControllers';
+} from '../controllers/AuthController';
 import { requireAdmin, requireAuth } from '../middleware/auth.middleware';
 
 const router = Router();
