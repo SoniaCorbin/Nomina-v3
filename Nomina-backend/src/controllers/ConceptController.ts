@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { logger } from '../utils/logger';
 
 // GET - lister tous les concepts
 export const getConcepts = async (_req: Request, res: Response) => {
@@ -12,7 +13,7 @@ export const getConcepts = async (_req: Request, res: Response) => {
     });
     res.json(concepts);
   } catch (error) {
-    console.error('Erreur getConcepts:', error);
+    logger.error('Erreur getConcepts', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -30,7 +31,7 @@ export const getConceptById = async (req: Request, res: Response) => {
     if (!concept) return res.status(404).json({ error: 'Concept non trouvé' });
     res.json(concept);
   } catch (error) {
-    console.error('Erreur getConceptById:', error);
+    logger.error('Erreur getConceptById', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -65,7 +66,7 @@ export const createConcept = async (req: Request, res: Response) => {
 
     res.status(201).json(newConcept);
   } catch (error) {
-    console.error('Erreur createConcept:', error);
+    logger.error('Erreur createConcept', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -96,7 +97,7 @@ export const updateConcept = async (req: Request, res: Response) => {
 
     res.json(updated);
   } catch (error) {
-    console.error('Erreur updateConcept:', error);
+    logger.error('Erreur updateConcept', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -107,7 +108,7 @@ export const deleteConcept = async (req: Request, res: Response) => {
     await prisma.concept.delete({ where: { id: Number(req.params.id) } });
     res.status(204).end();
   } catch (error) {
-    console.error('Erreur deleteConcept:', error);
+    logger.error('Erreur deleteConcept', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -118,7 +119,7 @@ export const totalConcepts = async (_req: Request, res: Response) => {
     const count = await prisma.concept.count();
     res.json({ total: count });
   } catch (error) {
-    console.error('Erreur totalConcepts:', error);
+    logger.error('Erreur totalConcepts', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };

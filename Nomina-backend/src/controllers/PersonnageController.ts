@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { logger } from '../utils/logger';
 
 export const getPersonnages = async (_req: Request, res: Response) => {
   try {
@@ -12,7 +13,7 @@ export const getPersonnages = async (_req: Request, res: Response) => {
     });
     res.json(personnages);
   } catch (error) {
-    console.error('Erreur getPersonnages:', error);
+    logger.error('Erreur getPersonnages', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -36,7 +37,7 @@ export const getPersonnageById = async (req: Request, res: Response) => {
 
     res.json(personnage);
   } catch (error) {
-    console.error('Erreur getPersonnageById:', error);
+    logger.error('Erreur getPersonnageById', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -46,7 +47,7 @@ export const totalPersonnages = async (_req: Request, res: Response) => {
     const count = await prisma.personnage.count();
     res.json({ total: count });
   } catch (error) {
-    console.error('Erreur totalPersonnages:', error);
+    logger.error('Erreur totalPersonnages', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };

@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import { z } from 'zod';
 import prisma from '../utils/prisma';
+import { logger } from '../utils/logger';
 
 function canonicalizeGenre(input: unknown): "M" | "F" | "NB" | null {
   if (input === undefined || input === null) return null;
@@ -37,7 +38,7 @@ export const getNomPersonnages = async (_req: Request, res: Response) => {
     });
     res.json(noms);
   } catch (error) {
-    console.error('Erreur getNomPersonnages:', error);
+    logger.error('Erreur getNomPersonnages', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -56,7 +57,7 @@ export const getNomPersonnageById = async (req: Request, res: Response) => {
     if (!nom) return res.status(404).json({ error: 'NomPersonnage non trouvé' });
     res.json(nom);
   } catch (error) {
-    console.error('Erreur getNomPersonnageById:', error);
+    logger.error('Erreur getNomPersonnageById', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -89,7 +90,7 @@ export const createNomPersonnage = async (req: Request, res: Response) => {
 
     res.status(201).json(newNomPersonnage);
   } catch (error) {
-    console.error('Erreur createNomPersonnage:', error);
+    logger.error('Erreur createNomPersonnage', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -119,7 +120,7 @@ export const updateNomPersonnage = async (req: Request, res: Response) => {
 
     res.json(updated);
   } catch (error) {
-    console.error('Erreur updateNomPersonnage:', error);
+    logger.error('Erreur updateNomPersonnage', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -130,7 +131,7 @@ export const deleteNomPersonnage = async (req: Request, res: Response) => {
     await prisma.prenom.delete({ where: { id: Number(req.params.id) } });
     res.status(204).end();
   } catch (error) {
-    console.error('Erreur deleteNomPersonnage:', error);
+    logger.error('Erreur deleteNomPersonnage', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -141,7 +142,7 @@ export const totalNomPersonnage = async (_req: Request, res: Response) => {
     const count = await prisma.prenom.count();
     res.json({ total: count });
   } catch (error) {
-    console.error('Erreur totalNomPersonnage:', error);
+    logger.error('Erreur totalNomPersonnage', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };

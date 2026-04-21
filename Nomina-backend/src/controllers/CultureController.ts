@@ -1,6 +1,7 @@
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
 import { isKnownPrismaError } from '../utils/prismaErrors';
+import { logger } from '../utils/logger';
 
 export const getCultureById = async (req: Request, res: Response) => {
   try {
@@ -132,7 +133,7 @@ export const getCultures = async (_req: Request, res: Response) => {
     const cultures = await prisma.culture.findMany({ orderBy: { id: "asc" } });
     res.json(cultures);
   } catch (error) {
-    console.error("Erreur getCultures:", error);
+    logger.error("Erreur getCultures", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -161,7 +162,7 @@ export const uploadCultureImage = async (req: Request, res: Response) => {
       culture,
     });
   } catch (error) {
-    console.error("Erreur uploadCultureImage:", error);
+    logger.error("Erreur uploadCultureImage", { err: error });
     return res.status(500).json({ error: "Erreur serveur" });
   }
 };

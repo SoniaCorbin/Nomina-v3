@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from 'express';
 import { createClerkClient, verifyToken } from '@clerk/backend';
 import { isUserAdmin } from '../services/auth/adminAccess';
+import { logger } from '../utils/logger';
 
 const normalizeSecretKey = (value: string | undefined): string => {
   if (!value) return '';
@@ -101,7 +102,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
 
   const secretKey = normalizeSecretKey(process.env.CLERK_SECRET_KEY);
   if (!secretKey) {
-    console.error('CLERK_SECRET_KEY non défini');
+    logger.error('CLERK_SECRET_KEY non défini');
     return res.status(500).json({
       error:
         'Configuration serveur manquante: CLERK_SECRET_KEY non défini (configure Nomina-backend/.env puis redémarre le serveur)',
@@ -141,7 +142,7 @@ export const requireAuth = async (req: Request, res: Response, next: NextFunctio
     next();
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
-    console.error('Clerk token verification failed:', {
+    logger.error('Clerk token verification failed', {
       message,
       fallbackAuthorizedParties: tokenAuthorizedParties(),
     });

@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { logger } from '../utils/logger';
 
 // GET - lister tous les titres
 export const getTitres = async (_req: Request, res: Response) => {
@@ -13,7 +14,7 @@ export const getTitres = async (_req: Request, res: Response) => {
     });
     res.json(titres);
   } catch (error) {
-    console.error('Erreur getTitres:', error);
+    logger.error('Erreur getTitres', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -32,7 +33,7 @@ export const getTitreById = async (req: Request, res: Response) => {
     if (!titre) return res.status(404).json({ error: 'Titre non trouvé' });
     res.json(titre);
   } catch (error) {
-    console.error('Erreur getTitreById:', error);
+    logger.error('Erreur getTitreById', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -68,7 +69,7 @@ export const createTitre = async (req: Request, res: Response) => {
 
     res.status(201).json(newTitre);
   } catch (error) {
-    console.error('Erreur createTitre:', error);
+    logger.error('Erreur createTitre', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -100,7 +101,7 @@ export const updateTitre = async (req: Request, res: Response) => {
 
     res.json(updated);
   } catch (error) {
-    console.error('Erreur updateTitre:', error);
+    logger.error('Erreur updateTitre', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -111,7 +112,7 @@ export const deleteTitre = async (req: Request, res: Response) => {
     await prisma.titre.delete({ where: { id: Number(req.params.id) } });
     res.status(204).end();
   } catch (error) {
-    console.error('Erreur deleteTitre:', error);
+    logger.error('Erreur deleteTitre', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -122,7 +123,7 @@ export const totalTitres = async (_req: Request, res: Response) => {
     const count = await prisma.titre.count();
     res.json({ total: count });
   } catch (error) {
-    console.error('Erreur totalTitres:', error);
+    logger.error('Erreur totalTitres', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };

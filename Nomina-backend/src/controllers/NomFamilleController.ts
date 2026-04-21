@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import prisma from "../utils/prisma";
 import { isKnownPrismaError } from "../utils/prismaErrors";
+import { logger } from '../utils/logger';
 
 // GET - lister tous les noms de famille
 export const getNomFamilles = async (_req: Request, res: Response) => {
@@ -15,7 +16,7 @@ export const getNomFamilles = async (_req: Request, res: Response) => {
     });
     res.json(noms);
   } catch (error) {
-    console.error("Erreur getNomFamilles:", error);
+    logger.error("Erreur getNomFamilles", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -35,7 +36,7 @@ export const getNomFamilleById = async (req: Request, res: Response) => {
 
     res.json(nom);
   } catch (error) {
-    console.error("Erreur getNomFamilleById:", error);
+    logger.error("Erreur getNomFamilleById", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -73,7 +74,7 @@ export const createNomFamille = async (req: Request, res: Response) => {
     if (isKnownPrismaError(error, "P2002")) {
       return res.status(409).json({ error: "Nom de famille déjà utilisé" });
     }
-    console.error("Erreur createNomFamille:", error);
+    logger.error("Erreur createNomFamille", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -118,7 +119,7 @@ export const updateNomFamille = async (req: Request, res: Response) => {
     if (isKnownPrismaError(error, "P2025")) {
       return res.status(404).json({ error: "Nom de famille non trouvé" });
     }
-    console.error("Erreur updateNomFamille:", error);
+    logger.error("Erreur updateNomFamille", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -139,7 +140,7 @@ export const deleteNomFamille = async (req: Request, res: Response) => {
     if (isKnownPrismaError(error, "P2025")) {
       return res.status(404).json({ error: "Nom de famille non trouvé" });
     }
-    console.error("Erreur deleteNomFamille:", error);
+    logger.error("Erreur deleteNomFamille", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -150,7 +151,7 @@ export const totalNomFamille = async (_req: Request, res: Response) => {
     const count = await prisma.nomFamille.count();
     res.json({ total: count });
   } catch (error) {
-    console.error("Erreur totalNomFamille:", error);
+    logger.error("Erreur totalNomFamille", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };

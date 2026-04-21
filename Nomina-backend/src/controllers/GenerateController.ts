@@ -4,6 +4,7 @@ import { z } from "zod";
 import { generateNpcIdeas } from "../services/generation/npcGenerator";
 import prisma from "../utils/prisma";
 import { createRng } from "../services/generation/rng";
+import { logger } from '../utils/logger';
 
 function pick<T>(arr: T[], rnd: () => number): T {
   return arr[Math.floor(rnd() * arr.length)];
@@ -240,7 +241,7 @@ export const generateNpcs = async (req: Request, res: Response) => {
       ),
     });
   } catch (error) {
-    console.error("Erreur generateNpcs:", error);
+    logger.error("Erreur generateNpcs", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -641,7 +642,7 @@ export const generateNomPersonnages = async (req: Request, res: Response) => {
       info: kws.length > 0 && matched.length > 0 ? `Résultats classés par pertinence pour: ${kws.join(", ")}` : undefined,
     });
   } catch (error) {
-    console.error("Erreur generateNomPersonnages:", error);
+    logger.error("Erreur generateNomPersonnages", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -775,7 +776,7 @@ export const generateNomFamille = async (req: Request, res: Response) => {
       warning: uniqueRows.length === 0 ? "Aucun nom de famille ne match les filtres." : undefined,
     });
   } catch (error) {
-    console.error("Erreur generateNomFamille:", error);
+    logger.error("Erreur generateNomFamille", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -903,7 +904,7 @@ export const generateLieux = async (req: Request, res: Response) => {
       warning: uniqueRows.length === 0 ? "Aucun Lieu ne match les filtres." : undefined,
     });
   } catch (error) {
-    console.error("Erreur generateLieux:", error);
+    logger.error("Erreur generateLieux", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -1094,7 +1095,7 @@ export const generateFragmentsHistoire = async (req: Request, res: Response) => 
         : undefined,
     });
   } catch (error) {
-    console.error("Erreur generateFragmentsHistoire:", error);
+    logger.error("Erreur generateFragmentsHistoire", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -1263,7 +1264,7 @@ export const generateTitres = async (req: Request, res: Response) => {
       warning: uniqueRows.length === 0 ? "Aucun Titre ne match les filtres." : undefined,
     });
   } catch (error) {
-    console.error("Erreur generateTitres:", error);
+    logger.error("Erreur generateTitres", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -1520,7 +1521,7 @@ export const generateConcepts = async (req: Request, res: Response) => {
             : undefined,
     });
   } catch (error) {
-    console.error("Erreur generateConcepts:", error);
+    logger.error("Erreur generateConcepts", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };

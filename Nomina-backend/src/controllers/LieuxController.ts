@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { logger } from '../utils/logger';
 
 // GET - lister tous les lieux
 export const getLieux = async (_req: Request, res: Response) => {
@@ -12,7 +13,7 @@ export const getLieux = async (_req: Request, res: Response) => {
     });
     res.json(lieux);
   } catch (error) {
-    console.error('Erreur getLieux:', error);
+    logger.error('Erreur getLieux', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -30,7 +31,7 @@ export const getLieuById = async (req: Request, res: Response) => {
     if (!lieu) return res.status(404).json({ error: 'Lieu non trouvé' });
     res.json(lieu);
   } catch (error) {
-    console.error('Erreur getLieuById:', error);
+    logger.error('Erreur getLieuById', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -61,7 +62,7 @@ export const createLieu = async (req: Request, res: Response) => {
 
     res.status(201).json(newLieu);
   } catch (error) {
-    console.error('Erreur createLieu:', error);
+    logger.error('Erreur createLieu', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -90,7 +91,7 @@ export const updateLieu = async (req: Request, res: Response) => {
 
     res.json(updated);
   } catch (error) {
-    console.error('Erreur updateLieu:', error);
+    logger.error('Erreur updateLieu', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -101,7 +102,7 @@ export const deleteLieu = async (req: Request, res: Response) => {
     await prisma.lieux.delete({ where: { id: Number(req.params.id) } });
     res.status(204).end();
   } catch (error) {
-    console.error('Erreur deleteLieu:', error);
+    logger.error('Erreur deleteLieu', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -112,7 +113,7 @@ export const totalLieux = async (_req: Request, res: Response) => {
     const count = await prisma.lieux.count();
     res.json({ total: count });
   } catch (error) {
-    console.error('Erreur totalLieux:', error);
+    logger.error('Erreur totalLieux', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -144,7 +145,7 @@ export const uploadLieuImage = async (req: Request, res: Response) => {
       lieu,
     });
   } catch (error) {
-    console.error('Erreur uploadLieuImage:', error);
+    logger.error('Erreur uploadLieuImage', { err: error });
     return res.status(500).json({ error: 'Erreur serveur' });
   }
 };

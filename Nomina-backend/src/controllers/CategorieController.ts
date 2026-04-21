@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { logger } from '../utils/logger';
 
 export const getCategorieById = async (req: Request, res: Response) => {
   try {
@@ -106,7 +107,7 @@ export const getCategories = async (req: Request, res: Response) => {
 
     res.json(categories);
   } catch (error) {
-    console.error("Erreur getCategories:", error);
+    logger.error("Erreur getCategories", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -136,7 +137,7 @@ export const uploadCategorieImage = async (req: Request, res: Response) => {
       categorie,
     });
   } catch (error) {
-    console.error("Erreur uploadCategorieImage:", error);
+    logger.error("Erreur uploadCategorieImage", { err: error });
     return res.status(500).json({ error: "Erreur serveur" });
   }
 };

@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { logger } from '../utils/logger';
 
 // GET - lister tous les fragments d'histoire
 export const getFragmentsHistoire = async (_req: Request, res: Response) => {
@@ -13,7 +14,7 @@ export const getFragmentsHistoire = async (_req: Request, res: Response) => {
     });
     res.json(fragments);
   } catch (error) {
-    console.error('Erreur getFragmentsHistoire:', error);
+    logger.error('Erreur getFragmentsHistoire', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -32,7 +33,7 @@ export const getFragmentHistoireById = async (req: Request, res: Response) => {
     if (!fragment) return res.status(404).json({ error: "Fragment d'histoire non trouvé" });
     res.json(fragment);
   } catch (error) {
-    console.error('Erreur getFragmentHistoireById:', error);
+    logger.error('Erreur getFragmentHistoireById', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -85,7 +86,7 @@ export const createFragmentHistoire = async (req: Request, res: Response) => {
 
     res.status(201).json(newFragment);
   } catch (error) {
-    console.error('Erreur createFragmentHistoire:', error);
+    logger.error('Erreur createFragmentHistoire', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -135,7 +136,7 @@ export const updateFragmentHistoire = async (req: Request, res: Response) => {
 
     res.json(updated);
   } catch (error) {
-    console.error('Erreur updateFragmentHistoire:', error);
+    logger.error('Erreur updateFragmentHistoire', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -146,7 +147,7 @@ export const deleteFragmentHistoire = async (req: Request, res: Response) => {
     await prisma.fragmentsHistoire.delete({ where: { id: Number(req.params.id) } });
     res.status(204).end();
   } catch (error) {
-    console.error('Erreur deleteFragmentHistoire:', error);
+    logger.error('Erreur deleteFragmentHistoire', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -157,7 +158,7 @@ export const totalFragmentsHistoire = async (_req: Request, res: Response) => {
     const count = await prisma.fragmentsHistoire.count();
     res.json({ total: count });
   } catch (error) {
-    console.error('Erreur totalFragmentsHistoire:', error);
+    logger.error('Erreur totalFragmentsHistoire', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };

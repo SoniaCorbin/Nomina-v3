@@ -1,6 +1,7 @@
 import type { Request, Response } from "express";
 import prisma from "../utils/prisma";
 import { isKnownPrismaError } from "../utils/prismaErrors";
+import { logger } from '../utils/logger';
 
 // Lister les univers thématiques pour le dropdown "Univers Thématique"
 export const getUniversThematiques = async (_req: Request, res: Response) => {
@@ -16,7 +17,7 @@ export const getUniversThematiques = async (_req: Request, res: Response) => {
 
         res.json(cleaned);
     } catch (error) {
-    console.error("Erreur getUniversThematiques:", error);
+    logger.error("Erreur getUniversThematiques", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -30,7 +31,7 @@ export const getUniversThematiquesAdmin = async (_req: Request, res: Response) =
     });
     res.json(univers);
   } catch (error) {
-    console.error("Erreur getUniversThematiquesAdmin:", error);
+    logger.error("Erreur getUniversThematiquesAdmin", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -41,7 +42,7 @@ export const totalUniversThematiques = async (_req: Request, res: Response) => {
     const count = await prisma.universThematique.count();
     res.json({ total: count });
   } catch (error) {
-    console.error("Erreur totalUniversThematiques:", error);
+    logger.error("Erreur totalUniversThematiques", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -60,7 +61,7 @@ export const getUniversThematiqueById = async (req: Request, res: Response) => {
 
     res.json(univers);
   } catch (error) {
-    console.error("Erreur getUniversThematiqueById:", error);
+    logger.error("Erreur getUniversThematiqueById", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -101,7 +102,7 @@ export const createUniversThematique = async (req: Request, res: Response) => {
     if (isKnownPrismaError(error, "P2002")) {
       return res.status(409).json({ error: "Nom d’univers déjà utilisé" });
     }
-    console.error("Erreur createUniversThematique:", error);
+    logger.error("Erreur createUniversThematique", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -159,7 +160,7 @@ export const updateUniversThematique = async (req: Request, res: Response) => {
     if (isKnownPrismaError(error, "P2025")) {
       return res.status(404).json({ error: "Univers non trouvé" });
     }
-    console.error("Erreur updateUniversThematique:", error);
+    logger.error("Erreur updateUniversThematique", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -184,7 +185,7 @@ export const deleteUniversThematique = async (req: Request, res: Response) => {
     if (isKnownPrismaError(error, "P2025")) {
       return res.status(404).json({ error: "Univers non trouvé" });
     }
-    console.error("Erreur deleteUniversThematique:", error);
+    logger.error("Erreur deleteUniversThematique", { err: error });
     res.status(500).json({ error: "Erreur serveur" });
   }
 };
@@ -214,7 +215,7 @@ export const uploadUniversThematiqueImage = async (req: Request, res: Response) 
       univers,
     });
   } catch (error) {
-    console.error("Erreur uploadUniversThematiqueImage:", error);
+    logger.error("Erreur uploadUniversThematiqueImage", { err: error });
     return res.status(500).json({ error: "Erreur serveur" });
   }
 };

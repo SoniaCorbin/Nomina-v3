@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { logger } from '../utils/logger';
 
 export const getCreatures = async (_req: Request, res: Response) => {
   try {
@@ -13,7 +14,7 @@ export const getCreatures = async (_req: Request, res: Response) => {
     });
     res.json(creatures);
   } catch (error) {
-    console.error('Erreur getCreatures:', error);
+    logger.error('Erreur getCreatures', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -34,7 +35,7 @@ export const getCreatureById = async (req: Request, res: Response) => {
 
     res.json(creature);
   } catch (error) {
-    console.error('Erreur getCreatureById:', error);
+    logger.error('Erreur getCreatureById', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -71,7 +72,7 @@ export const createCreature = async (req: Request, res: Response) => {
 
     res.status(201).json(newCreature);
   } catch (error) {
-    console.error('Erreur createCreature:', error);
+    logger.error('Erreur createCreature', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -105,7 +106,7 @@ export const updateCreature = async (req: Request, res: Response) => {
 
     res.json(updated);
   } catch (error) {
-    console.error('Erreur updateCreature:', error);
+    logger.error('Erreur updateCreature', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -115,7 +116,7 @@ export const deleteCreature = async (req: Request, res: Response) => {
     await prisma.creature.delete({ where: { id: Number(req.params.id) } });
     res.status(204).end();
   } catch (error) {
-    console.error('Erreur deleteCreature:', error);
+    logger.error('Erreur deleteCreature', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -125,7 +126,7 @@ export const totalCreatures = async (_req: Request, res: Response) => {
     const count = await prisma.creature.count();
     res.json({ total: count });
   } catch (error) {
-    console.error('Erreur totalCreatures:', error);
+    logger.error('Erreur totalCreatures', { err: error });
     res.status(500).json({ error: 'Erreur serveur' });
   }
 };
@@ -159,7 +160,7 @@ export const uploadCreatureImage = async (req: Request, res: Response) => {
       creature,
     });
   } catch (error) {
-    console.error('Erreur uploadCreatureImage:', error);
+    logger.error('Erreur uploadCreatureImage', { err: error });
     return res.status(500).json({ error: 'Erreur serveur' });
   }
 };
