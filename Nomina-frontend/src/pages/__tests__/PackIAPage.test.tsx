@@ -1,24 +1,24 @@
 import { fireEvent, render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError } from "../lib/api";
-import type { PersistPackSummary } from "../lib/packPersistence";
-import { PackIAPage } from "./PackIAPage";
+import { ApiError } from "../../lib/api";
+import type { PersistPackSummary } from "../../lib/packPersistence";
+import { PackIAPage } from "../PackIAPage";
 
 const mocks = vi.hoisted(() => ({
   apiFetch: vi.fn(),
   persistPackResult: vi.fn(),
 }));
 
-vi.mock("../lib/api", async () => {
-  const actual = await vi.importActual<typeof import("../lib/api")>("../lib/api");
+vi.mock("../../lib/api", async () => {
+  const actual = await vi.importActual<typeof import("../../lib/api")>("../../lib/api");
   return {
     ...actual,
     apiFetch: mocks.apiFetch,
   };
 });
 
-vi.mock("../lib/packPersistence", async () => {
-  const actual = await vi.importActual<typeof import("../lib/packPersistence")>("../lib/packPersistence");
+vi.mock("../../lib/packPersistence", async () => {
+  const actual = await vi.importActual<typeof import("../../lib/packPersistence")>("../../lib/packPersistence");
   return {
     ...actual,
     persistPackResult: mocks.persistPackResult,

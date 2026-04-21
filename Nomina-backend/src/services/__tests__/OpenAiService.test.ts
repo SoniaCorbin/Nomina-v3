@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { generatePack } from "./OpenAiService";
+import { generatePack } from "../OpenAiService";
 
 jest.mock("openai");
 

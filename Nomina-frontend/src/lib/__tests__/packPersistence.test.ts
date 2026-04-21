@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { ApiError } from "./api";
-import { buildPersistRequests, persistPackResult, type PackResultData } from "./packPersistence";
+import { ApiError } from "../api";
+import { buildPersistRequests, persistPackResult, type PackResultData } from "../packPersistence";
 
 function makeData(partial: Partial<PackResultData>): PackResultData {
   return {

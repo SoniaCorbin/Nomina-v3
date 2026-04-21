@@ -6,7 +6,7 @@ import {
   getApiBaseUrl,
   getOutboxSize,
   setApiTokenProvider,
-} from './api';
+} from '../api';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 describe('api helpers', () => {

@@ -1,5 +1,5 @@
 import request from 'supertest';
-import app from './app';
+import app from '../app';
 
 describe('Backend HTTP smoke tests', () => {
   it('GET / returns 200 and running message', async () => {
