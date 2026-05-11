@@ -1,5 +1,6 @@
 import type { Request, Response } from 'express';
 import prisma from '../utils/prisma';
+import { AppError, asyncHandler } from '../middleware/error.middleware';
 import { FALLBACK_RELATION_TYPES } from '../data/lookups';
 
 export const getRelationTypes = async (_req: Request, res: Response) => {
@@ -11,59 +12,39 @@ export const getRelationTypes = async (_req: Request, res: Response) => {
   }
 };
 
-export const getRelationTypeById = async (req: Request, res: Response) => {
-  try {
-    const item = await prisma.relationType.findUnique({ where: { id: Number(req.params.id) } });
-    if (!item) return res.status(404).json({ error: 'Type de relation non trouvé' });
-    res.json(item);
-  } catch {
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-};
+export const getRelationTypeById = asyncHandler(async (req: Request, res: Response) => {
+  const item = await prisma.relationType.findUnique({ where: { id: Number(req.params.id) } });
+  if (!item) throw new AppError(404, 'Type de relation non trouvé');
+  res.json(item);
+});
 
-export const createRelationType = async (req: Request, res: Response) => {
-  try {
-    const { code, label, description, universId, categorieId, cultureId } = req.body;
-    const created = await prisma.relationType.create({
-      data: { code, label, description, universId, categorieId, cultureId },
-    });
-    res.status(201).json(created);
-  } catch {
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-};
+export const createRelationType = asyncHandler(async (req: Request, res: Response) => {
+  const { code, label, description, universId, categorieId, cultureId } = req.body;
+  const created = await prisma.relationType.create({
+    data: { code, label, description, universId, categorieId, cultureId },
+  });
+  res.status(201).json(created);
+});
 
-export const updateRelationType = async (req: Request, res: Response) => {
-  try {
-    const { code, label, description, universId, categorieId, cultureId } = req.body;
-    const updated = await prisma.relationType.update({
-      where: { id: Number(req.params.id) },
-      data: { code, label, description, universId, categorieId, cultureId },
-    });
-    res.json(updated);
-  } catch {
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-};
+export const updateRelationType = asyncHandler(async (req: Request, res: Response) => {
+  const { code, label, description, universId, categorieId, cultureId } = req.body;
+  const updated = await prisma.relationType.update({
+    where: { id: Number(req.params.id) },
+    data: { code, label, description, universId, categorieId, cultureId },
+  });
+  res.json(updated);
+});
 
-export const deleteRelationType = async (req: Request, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-    await prisma.$transaction([
-      prisma.personnageRelation.deleteMany({ where: { relationTypeId: id } }),
-      prisma.relationType.delete({ where: { id } }),
-    ]);
-    res.status(204).end();
-  } catch {
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-};
+export const deleteRelationType = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  await prisma.$transaction([
+    prisma.personnageRelation.deleteMany({ where: { relationTypeId: id } }),
+    prisma.relationType.delete({ where: { id } }),
+  ]);
+  res.status(204).end();
+});
 
-export const totalRelationType = async (_req: Request, res: Response) => {
-  try {
-    const count = await prisma.relationType.count();
-    res.json({ total: count });
-  } catch {
-    res.status(500).json({ error: 'Erreur serveur' });
-  }
-};
+export const totalRelationType = asyncHandler(async (_req: Request, res: Response) => {
+  const count = await prisma.relationType.count();
+  res.json({ total: count });
+});

@@ -89,7 +89,7 @@ model NomFamille {
   id          Int        @id @default(autoincrement())
   valeur      String?    @unique
   cultureId   Int?
-  culture     Culture?   @relation(fields: [cultureId], references: [id])
+  culture     Culture?   @relation(fields: [cultureId], references: [id], onDelete: SetNull)
   categorieId Int?
   categorie   Categorie? @relation(fields: [categorieId], references: [id])
   createdAt   DateTime   @default(now())
@@ -104,7 +104,7 @@ model Prenom {
   valeur       String?
   genre        String?
   cultureId    Int?
-  culture      Culture?    @relation(fields: [cultureId], references: [id])
+  culture      Culture?    @relation(fields: [cultureId], references: [id], onDelete: SetNull)
   categorieId  Int?
   categorie    Categorie?  @relation(fields: [categorieId], references: [id])
   nomFamilleId Int?
@@ -148,7 +148,7 @@ model FragmentsHistoire {
   minNameLength Int?
   maxNameLength Int?
   cultureId     Int?
-  culture       Culture?   @relation(fields: [cultureId], references: [id])
+  culture       Culture?   @relation(fields: [cultureId], references: [id], onDelete: SetNull)
   categorieId   Int?
   categorie     Categorie? @relation(fields: [categorieId], references: [id])
   createdAt     DateTime   @default(now())
@@ -161,7 +161,7 @@ model Titre {
   type        String?
   genre       String?
   cultureId   Int?
-  culture     Culture?   @relation(fields: [cultureId], references: [id])
+  culture     Culture?   @relation(fields: [cultureId], references: [id], onDelete: SetNull)
   categorieId Int?
   categorie   Categorie? @relation(fields: [categorieId], references: [id])
   personnages Personnage[]
@@ -194,7 +194,7 @@ model Personnage {
   residencePlace   Lieux? @relation("ResidencePlace", fields: [residencePlaceId], references: [id])
 
   cultureId    Int?
-  culture      Culture?   @relation(fields: [cultureId], references: [id])
+  culture      Culture?   @relation(fields: [cultureId], references: [id], onDelete: SetNull)
   categorieId  Int?
   categorie    Categorie? @relation(fields: [categorieId], references: [id])
 
@@ -237,7 +237,7 @@ model Creature {
   personnageId Int?
   personnage   Personnage? @relation(fields: [personnageId], references: [id])
   cultureId   Int?
-  culture     Culture?   @relation(fields: [cultureId], references: [id])
+  culture     Culture?   @relation(fields: [cultureId], references: [id], onDelete: SetNull)
   categorieId Int?
   categorie   Categorie? @relation(fields: [categorieId], references: [id])
   createdAt   DateTime   @default(now())
@@ -255,7 +255,7 @@ model SocialClass {
   categorieId Int?
   categorie   Categorie?         @relation(fields: [categorieId], references: [id])
   cultureId   Int?
-  culture     Culture?           @relation(fields: [cultureId], references: [id])
+  culture     Culture?           @relation(fields: [cultureId], references: [id], onDelete: SetNull)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -279,7 +279,7 @@ model Occupation {
   categorieId Int?
   categorie   Categorie?         @relation(fields: [categorieId], references: [id])
   cultureId   Int?
-  culture     Culture?           @relation(fields: [cultureId], references: [id])
+  culture     Culture?           @relation(fields: [cultureId], references: [id], onDelete: SetNull)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -305,7 +305,7 @@ model Organization {
   categorieId Int?
   categorie   Categorie?         @relation(fields: [categorieId], references: [id])
   cultureId   Int?
-  culture     Culture?           @relation(fields: [cultureId], references: [id])
+  culture     Culture?           @relation(fields: [cultureId], references: [id], onDelete: SetNull)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -348,7 +348,7 @@ model RelationType {
   categorieId Int?
   categorie   Categorie?         @relation(fields: [categorieId], references: [id])
   cultureId   Int?
-  culture     Culture?           @relation(fields: [cultureId], references: [id])
+  culture     Culture?           @relation(fields: [cultureId], references: [id], onDelete: SetNull)
 
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -400,7 +400,7 @@ model Event {
   univers      UniversThematique? @relation(fields: [universId], references: [id])
 
   cultureId    Int?
-  culture      Culture?   @relation(fields: [cultureId], references: [id])
+  culture      Culture?   @relation(fields: [cultureId], references: [id], onDelete: SetNull)
 
   categorieId  Int?
   categorie    Categorie? @relation(fields: [categorieId], references: [id])

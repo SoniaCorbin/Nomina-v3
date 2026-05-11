@@ -1,157 +1,104 @@
-import type { Request, Response } from "express";
-import prisma from "../utils/prisma";
-import { isKnownPrismaError } from "../utils/prismaErrors";
-import { logger } from '../utils/logger';
+import type { Request, Response } from 'express';
+import prisma from '../utils/prisma';
+import { AppError, asyncHandler } from '../middleware/error.middleware';
 
-// GET - lister tous les noms de famille
-export const getNomFamilles = async (_req: Request, res: Response) => {
-  try {
-    const noms = await prisma.nomFamille.findMany({
-      include: {
-        culture: true,
-        categorie: true,
-        _count: { select: { personnages: true } },
-      },
-      orderBy: { id: "asc" },
-    });
-    res.json(noms);
-  } catch (error) {
-    logger.error("Erreur getNomFamilles", { err: error });
-    res.status(500).json({ error: "Erreur serveur" });
+export const getNomFamilles = asyncHandler(async (_req: Request, res: Response) => {
+  const noms = await prisma.nomFamille.findMany({
+    include: {
+      culture: true,
+      categorie: true,
+      _count: { select: { personnages: true } },
+    },
+    orderBy: { id: 'asc' },
+  });
+  res.json(noms);
+});
+
+export const getNomFamilleById = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) throw new AppError(400, 'ID invalide');
+
+  const nom = await prisma.nomFamille.findUnique({
+    where: { id },
+    include: { culture: true, categorie: true, personnages: true },
+  });
+
+  if (!nom) throw new AppError(404, 'Nom de famille non trouvé');
+  res.json(nom);
+});
+
+export const createNomFamille = asyncHandler(async (req: Request, res: Response) => {
+  const { valeur, cultureId, categorieId } = req.body as {
+    valeur?: string;
+    cultureId?: number | string | null;
+    categorieId?: number | string | null;
+  };
+
+  if (!valeur || typeof valeur !== 'string' || !valeur.trim()) {
+    throw new AppError(400, 'Le champ "valeur" est requis');
   }
-};
 
-// GET - récupérer un nom de famille par id
-export const getNomFamilleById = async (req: Request, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-    if (!Number.isFinite(id)) return res.status(400).json({ error: "ID invalide" });
+  const trimmed = valeur.trim();
+  if (trimmed.length > 120) throw new AppError(400, 'La valeur est trop longue (max 120)');
 
-    const nom = await prisma.nomFamille.findUnique({
-      where: { id },
-      include: { culture: true, categorie: true, personnages: true },
-    });
+  const created = await prisma.nomFamille.create({
+    data: {
+      valeur: trimmed,
+      cultureId: cultureId != null ? Number(cultureId) : null,
+      categorieId: categorieId != null ? Number(categorieId) : null,
+    },
+    include: { culture: true, categorie: true },
+  });
 
-    if (!nom) return res.status(404).json({ error: "Nom de famille non trouvé" });
+  res.status(201).json(created);
+});
 
-    res.json(nom);
-  } catch (error) {
-    logger.error("Erreur getNomFamilleById", { err: error });
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-};
+export const updateNomFamille = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) throw new AppError(400, 'ID invalide');
 
-// POST - créer un nom de famille
-export const createNomFamille = async (req: Request, res: Response) => {
-  try {
-    const { valeur, cultureId, categorieId } = req.body as {
-      valeur?: string;
-      cultureId?: number | string | null;
-      categorieId?: number | string | null;
-    };
+  const { valeur, cultureId, categorieId } = req.body as {
+    valeur?: string | null;
+    cultureId?: number | string | null;
+    categorieId?: number | string | null;
+  };
 
-    if (!valeur || typeof valeur !== "string" || !valeur.trim()) {
-      return res.status(400).json({ error: 'Le champ "valeur" est requis' });
+  const data: { valeur?: string; cultureId?: number | null; categorieId?: number | null } = {};
+
+  if (valeur !== undefined) {
+    if (valeur === null || typeof valeur !== 'string' || !valeur.trim()) {
+      throw new AppError(400, 'Le champ "valeur" ne peut pas être vide');
     }
-
     const trimmed = valeur.trim();
-    if (trimmed.length > 120) return res.status(400).json({ error: "La valeur est trop longue (max 120)" });
-
-    const cultureIdNum = cultureId !== undefined && cultureId !== null ? Number(cultureId) : null;
-    const categorieIdNum = categorieId !== undefined && categorieId !== null ? Number(categorieId) : null;
-
-    const created = await prisma.nomFamille.create({
-      data: {
-        valeur: trimmed,
-        cultureId: cultureIdNum,
-        categorieId: categorieIdNum,
-      },
-      include: { culture: true, categorie: true },
-    });
-
-    res.status(201).json(created);
-  } catch (error) {
-    if (isKnownPrismaError(error, "P2002")) {
-      return res.status(409).json({ error: "Nom de famille déjà utilisé" });
-    }
-    logger.error("Erreur createNomFamille", { err: error });
-    res.status(500).json({ error: "Erreur serveur" });
+    if (trimmed.length > 120) throw new AppError(400, 'La valeur est trop longue (max 120)');
+    data.valeur = trimmed;
   }
-};
 
-// PUT - modifier un nom de famille
-export const updateNomFamille = async (req: Request, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-    if (!Number.isFinite(id)) return res.status(400).json({ error: "ID invalide" });
+  if (cultureId !== undefined) data.cultureId = cultureId === null ? null : Number(cultureId);
+  if (categorieId !== undefined) data.categorieId = categorieId === null ? null : Number(categorieId);
 
-    const { valeur, cultureId, categorieId } = req.body as {
-      valeur?: string | null;
-      cultureId?: number | string | null;
-      categorieId?: number | string | null;
-    };
+  const updated = await prisma.nomFamille.update({
+    where: { id },
+    data,
+    include: { culture: true, categorie: true },
+  });
 
-    const data: { valeur?: string; cultureId?: number | null; categorieId?: number | null } = {};
+  res.json(updated);
+});
 
-    if (valeur !== undefined) {
-      if (valeur === null || typeof valeur !== "string" || !valeur.trim()) {
-        return res.status(400).json({ error: 'Le champ "valeur" ne peut pas être vide' });
-      }
-      const trimmed = valeur.trim();
-      if (trimmed.length > 120) return res.status(400).json({ error: "La valeur est trop longue (max 120)" });
-      data.valeur = trimmed;
-    }
+export const deleteNomFamille = asyncHandler(async (req: Request, res: Response) => {
+  const id = Number(req.params.id);
+  if (!Number.isFinite(id)) throw new AppError(400, 'ID invalide');
 
-    if (cultureId !== undefined) data.cultureId = cultureId === null ? null : Number(cultureId);
-    if (categorieId !== undefined) data.categorieId = categorieId === null ? null : Number(categorieId);
+  await prisma.$transaction([
+    prisma.prenom.updateMany({ where: { nomFamilleId: id }, data: { nomFamilleId: null } }),
+    prisma.nomFamille.delete({ where: { id } }),
+  ]);
 
-    const updated = await prisma.nomFamille.update({
-      where: { id },
-      data,
-      include: { culture: true, categorie: true },
-    });
+  res.status(204).end();
+});
 
-    res.json(updated);
-  } catch (error) {
-    if (isKnownPrismaError(error, "P2002")) {
-      return res.status(409).json({ error: "Nom de famille déjà utilisé" });
-    }
-    if (isKnownPrismaError(error, "P2025")) {
-      return res.status(404).json({ error: "Nom de famille non trouvé" });
-    }
-    logger.error("Erreur updateNomFamille", { err: error });
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-};
-
-// DELETE - supprimer un nom de famille
-export const deleteNomFamille = async (req: Request, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-    if (!Number.isFinite(id)) return res.status(400).json({ error: "ID invalide" });
-
-    await prisma.$transaction([
-      prisma.prenom.updateMany({ where: { nomFamilleId: id }, data: { nomFamilleId: null } }),
-      prisma.nomFamille.delete({ where: { id } }),
-    ]);
-
-    res.status(204).end();
-  } catch (error) {
-    if (isKnownPrismaError(error, "P2025")) {
-      return res.status(404).json({ error: "Nom de famille non trouvé" });
-    }
-    logger.error("Erreur deleteNomFamille", { err: error });
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-};
-
-// Aggregation - obtenir le nombre total de noms de famille
-export const totalNomFamille = async (_req: Request, res: Response) => {
-  try {
-    const count = await prisma.nomFamille.count();
-    res.json({ total: count });
-  } catch (error) {
-    logger.error("Erreur totalNomFamille", { err: error });
-    res.status(500).json({ error: "Erreur serveur" });
-  }
-};
+export const totalNomFamille = asyncHandler(async (_req: Request, res: Response) => {
+  const count = await prisma.nomFamille.count();
+  res.json({ total: count });
+});

@@ -25,15 +25,33 @@ import OrganizationRoutes from "./routes/OrganizationRoutes";
 import RelationTypeRoutes from "./routes/RelationTypeRoutes";
 import EventRoutes from "./routes/EventRoutes";
 import GeneratePackRoutes from "./routes/GeneratePackRoutes";
+
 import { getUploadsRootDir } from "./utils/uploads";
+import prisma from "./utils/prisma";
+import { logger } from "./utils/logger";
+import { errorHandler, notFoundHandler } from "./middleware/error.middleware";
+import { requestId, securityHeaders } from "./middleware/security.middleware";
+import { globalLimiter } from "./middleware/rateLimit.middleware";
 
 dotenv.config();
 
 const app = express();
 
-app.use(express.json());
+// 1) Sécurité d'abord — pose les en-têtes avant tout traitement.
+app.use(securityHeaders);
+app.use(requestId);
+
+// 2) Body parsers avec limites explicites (refuse les bodies géants).
+app.use(express.json({ limit: "100kb" }));
+app.use(express.urlencoded({ extended: true, limit: "100kb" }));
+
+// 3) Rate limit global (filet de sécurité — ne touche pas l'UX normale).
+app.use(globalLimiter);
+
+// 4) Statique uploads avec un CORS permissif (servi par helmet en cross-origin).
 app.use("/uploads", express.static(getUploadsRootDir()));
 
+// 5) CORS — liste durcie, plus de wildcard *.vercel.app.
 const envCorsOrigins = (process.env.CORS_ORIGINS ?? "")
   .split(",")
   .map((origin) => origin.trim())
@@ -43,92 +61,113 @@ const corsOrigins = [
   ...envCorsOrigins,
   process.env.FRONTEND_URL,
   "https://nomina-v3.vercel.app",
-  "http://localhost:5173", // dev Vite
-  "http://localhost:3000", // tests locaux
+  "http://localhost:5173",
+  "http://localhost:3000",
 ].filter((origin): origin is string => Boolean(origin));
 
-const vercelPreviewRegex = /^https:\/\/[a-z0-9-]+\.vercel\.app$/i;
+// On accepte uniquement les previews Vercel du projet Nomina, pas n'importe
+// quelle URL *.vercel.app (qui laissait n'importe quel projet appeler l'API).
+const nominaPreviewRegex = /^https:\/\/nomina-v3(-[a-z0-9-]+)?\.vercel\.app$/i;
 
 const corsOptions: CorsOptions = {
   origin: (origin, callback) => {
-    // Certains contextes (Electron/file://) n'envoient pas d'en-tête Origin.
-    if (!origin) return callback(null, true);
-
+    if (!origin) return callback(null, true); // Electron / file:// / curl
     if (corsOrigins.includes(origin)) return callback(null, true);
-
-    if (vercelPreviewRegex.test(origin)) return callback(null, true);
-
+    if (nominaPreviewRegex.test(origin)) return callback(null, true);
     return callback(new Error(`CORS: origin non autorisée: ${origin}`));
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  allowedHeaders: ["Content-Type", "Authorization", "X-Request-Id"],
+  exposedHeaders: ["X-Request-Id"],
 };
 
-// CORS pour toutes les requêtes
 app.use(cors(corsOptions));
 
-app.get("/", (_req, res) => res.send("Nomina-backend running"));
-app.get("/healthz", (_req, res) => res.json({ ok: true }));
-app.get("/api", (_req, res) => res.json({ ok: true, scope: "api" }));
-app.get("/api/index", (_req, res) => res.redirect(308, "/api"));
-app.use("/api/index", (req, res) => {
-  const legacySuffix = req.originalUrl.slice("/api/index".length);
-  const target = `/api${legacySuffix}` || "/api";
-  return res.redirect(308, target);
+// 6) Endpoints racine
+app.get("/", (_req, res) => {
+  res.json({ ok: true, service: "Nomina-backend", version: "v4" });
 });
 
-function mountRoutes(prefix = "") {
-  const withPrefix = (route: string) => (prefix ? `${prefix}${route}` : route);
-
-  app.use(withPrefix("/generate"), GenerateRoutes);
-  app.use(withPrefix("/generate-pack"), GeneratePackRoutes);
-  app.use(withPrefix("/users"), UserRoutes);
-  app.use(withPrefix("/auth"), AuthRoutes);
-  app.use(withPrefix("/categories"), CategorieRoutes);
-  app.use(withPrefix("/cultures"), CultureRoutes);
-  app.use(withPrefix("/nomPersonnages"), NomPersonnageRoutes);
-  app.use(withPrefix("/nomFamilles"), NomFamilleRoutes);
-  app.use(withPrefix("/personnages"), PersonnageRoutes);
-  app.use(withPrefix("/fragmentsHistoire"), FragmentsHistoireRoutes);
-  app.use(withPrefix("/titres"), TitreRoutes);
-  app.use(withPrefix("/concepts"), ConceptRoutes);
-  app.use(withPrefix("/creatures"), CreatureRoutes);
-  app.use(withPrefix("/lieux"), LieuxRoutes);
-  app.use(withPrefix("/univers"), UniversThematiqueRoutes);
-  app.use(withPrefix("/socialClasses"), SocialClassRoutes);
-  app.use(withPrefix("/occupations"), OccupationRoutes);
-  app.use(withPrefix("/organizations"), OrganizationRoutes);
-  app.use(withPrefix("/relationTypes"), RelationTypeRoutes);
-  app.use(withPrefix("/events"), EventRoutes);
-
-  const legacyAliases: Array<[string, string]> = [
-    ["/prenoms", "/nomPersonnages"],
-    ["/socialclasses", "/socialClasses"],
-    ["/social-classes", "/socialClasses"],
-    ["/socialClass", "/socialClasses"],
-    ["/occupation", "/occupations"],
-    ["/organization", "/organizations"],
-    ["/relationtypes", "/relationTypes"],
-    ["/relation-types", "/relationTypes"],
-    ["/relationType", "/relationTypes"],
-    ["/event", "/events"],
-  ];
-
-  for (const [legacyRoute, canonicalRoute] of legacyAliases) {
-    app.use(withPrefix(legacyRoute), (req, res) => {
-      const legacyBase = withPrefix(legacyRoute);
-      const canonicalBase = withPrefix(canonicalRoute);
-      const suffix = req.originalUrl.slice(legacyBase.length);
-
-      return res.redirect(308, `${canonicalBase}${suffix}`);
-    });
+/**
+ * Healthz "deep" — ping Prisma avec un timeout court. Si la DB est down,
+ * renvoie 503 plutôt qu'un faux positif.
+ */
+app.get("/healthz", async (req, res) => {
+  const start = Date.now();
+  try {
+    await Promise.race([
+      prisma.$queryRawUnsafe("SELECT 1"),
+      new Promise((_resolve, reject) =>
+        setTimeout(() => reject(new Error("DB timeout")), 1500),
+      ),
+    ]);
+    res.json({ ok: true, db: "up", latencyMs: Date.now() - start });
+  } catch (err) {
+    logger.error("healthz: DB unreachable", { err, reqId: (req as any).id });
+    res.status(503).json({ ok: false, db: "down", latencyMs: Date.now() - start });
   }
+});
+
+app.get("/api", (_req, res) => res.json({ ok: true, scope: "api" }));
+
+// 7) Routes — un seul montage sous /api (canonique). Les anciens chemins
+// sans préfixe sont redirigés en 308 pour préserver les anciens clients
+// pendant la migration. Supprime ce bloc quand le front aura migré.
+const LEGACY_ROUTES = [
+  "generate",
+  "generate-pack",
+  "users",
+  "auth",
+  "categories",
+  "cultures",
+  "nomPersonnages",
+  "nomFamilles",
+  "personnages",
+  "fragmentsHistoire",
+  "titres",
+  "concepts",
+  "creatures",
+  "lieux",
+  "univers",
+  "socialClasses",
+  "occupations",
+  "organizations",
+  "relationTypes",
+  "events",
+] as const;
+
+for (const route of LEGACY_ROUTES) {
+  app.use(`/${route}`, (req, res) => {
+    res.setHeader("Deprecation", "true");
+    res.setHeader("Link", `</api/${route}>; rel="successor-version"`);
+    return res.redirect(308, `/api/${route}${req.url === "/" ? "" : req.url}`);
+  });
 }
 
-// Compatibilité: accepte les routes avec préfixe /api et sans préfixe
-// (certaines builds frontend historiques appellent /auth/* directement).
-mountRoutes("");
-mountRoutes("/api");
+app.use("/api/generate", GenerateRoutes);
+app.use("/api/generate-pack", GeneratePackRoutes);
+app.use("/api/users", UserRoutes);
+app.use("/api/auth", AuthRoutes);
+app.use("/api/categories", CategorieRoutes);
+app.use("/api/cultures", CultureRoutes);
+app.use("/api/nomPersonnages", NomPersonnageRoutes);
+app.use("/api/nomFamilles", NomFamilleRoutes);
+app.use("/api/personnages", PersonnageRoutes);
+app.use("/api/fragmentsHistoire", FragmentsHistoireRoutes);
+app.use("/api/titres", TitreRoutes);
+app.use("/api/concepts", ConceptRoutes);
+app.use("/api/creatures", CreatureRoutes);
+app.use("/api/lieux", LieuxRoutes);
+app.use("/api/univers", UniversThematiqueRoutes);
+app.use("/api/socialClasses", SocialClassRoutes);
+app.use("/api/occupations", OccupationRoutes);
+app.use("/api/organizations", OrganizationRoutes);
+app.use("/api/relationTypes", RelationTypeRoutes);
+app.use("/api/events", EventRoutes);
+
+// 8) 404 + gestionnaire d'erreurs — DOIT être en dernier.
+app.use(notFoundHandler);
+app.use(errorHandler);
 
 export default app;

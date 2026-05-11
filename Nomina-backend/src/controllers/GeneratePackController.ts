@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { z } from "zod";
-import { generatePack, type SectionKey } from "../services/OpenAiService";
+import { generatePack as callGeneratePack, type SectionKey } from "../services/OpenAiService";
 
 const SECTION_KEYS: SectionKey[] = [
   "personnages",
@@ -75,7 +75,7 @@ export async function generatePackController(req: Request, res: Response): Promi
   }
 
   try {
-    const result = await generatePack(parsed.data);
+    const result = await callGeneratePack(parsed.data);
     res.json(result);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
@@ -95,3 +95,6 @@ export async function generatePackController(req: Request, res: Response): Promi
     res.status(500).json({ error: `Erreur OpenAI: ${message}` });
   }
 }
+
+// Alias v4 — GeneratePackRoutes importe `generatePack`
+export const generatePack = generatePackController;

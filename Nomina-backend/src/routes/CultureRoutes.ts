@@ -1,16 +1,22 @@
 import { Router } from "express";
 import path from "path";
 import multer from "multer";
+
 import { requireAdmin, requireAuth } from "../middleware/auth.middleware";
+import { writeLimiter } from "../middleware/rateLimit.middleware";
 import { ensureUploadsSubdir } from "../utils/uploads";
 import {
-  getCultures,
-  getCultureById,
   createCulture,
-  updateCulture,
   deleteCulture,
+  getCultureById,
+  getCultures,
   totalCulture,
+  updateCulture,
   uploadCultureImage,
+  validateCultureCreate,
+  validateCultureId,
+  validateCultureList,
+  validateCultureUpdate,
 } from "../controllers/CultureController";
 
 const router = Router();
@@ -37,13 +43,23 @@ const upload = multer({
   },
 });
 
+// Lectures publiques (paginées maintenant)
 router.get("/total", totalCulture);
-router.get("/", getCultures);
-router.get("/:id", getCultureById);
-// CRUD admin: écritures protégées
-router.post("/", requireAuth, requireAdmin, createCulture);
-router.put("/:id", requireAuth, requireAdmin, updateCulture);
-router.post("/:id/image", requireAuth, requireAdmin, upload.single("image"), uploadCultureImage);
-router.delete("/:id", requireAuth, requireAdmin, deleteCulture);
+router.get("/", validateCultureList, getCultures);
+router.get("/:id", validateCultureId, getCultureById);
+
+// Écritures admin uniquement, sous rate-limit "write"
+router.post("/", requireAuth, requireAdmin, writeLimiter, validateCultureCreate, createCulture);
+router.put("/:id", requireAuth, requireAdmin, writeLimiter, validateCultureId, validateCultureUpdate, updateCulture);
+router.post(
+  "/:id/image",
+  requireAuth,
+  requireAdmin,
+  writeLimiter,
+  validateCultureId,
+  upload.single("image"),
+  uploadCultureImage,
+);
+router.delete("/:id", requireAuth, requireAdmin, writeLimiter, validateCultureId, deleteCulture);
 
 export default router;
