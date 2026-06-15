@@ -13,40 +13,40 @@ export function FluidBackground({ variant = "auto" }: FluidBackgroundProps) {
         className={
           "absolute -top-24 -left-24 h-96 w-96 rounded-full blur-3xl " +
           (forcedDark
-            ? "bg-[#7b3ff2]/25"
+            ? "bg-[#c87941]/20"
             : forcedLight
-              ? "bg-[#7b3ff2]/12"
-              : "bg-[#7b3ff2]/12 dark:bg-[#7b3ff2]/25")
+              ? "bg-[#c87941]/10"
+              : "bg-[#c87941]/10 dark:bg-[#c87941]/20")
         }
       />
       <div
         className={
           "absolute top-24 -right-24 h-[28rem] w-[28rem] rounded-full blur-3xl " +
           (forcedDark
-            ? "bg-[#e8b4f0]/20"
+            ? "bg-[#3d4a66]/20"
             : forcedLight
-              ? "bg-[#e8b4f0]/14"
-              : "bg-[#e8b4f0]/14 dark:bg-[#e8b4f0]/20")
+              ? "bg-[#3d4a66]/12"
+              : "bg-[#3d4a66]/12 dark:bg-[#3d4a66]/20")
         }
       />
       <div
         className={
           "absolute bottom-[-10rem] left-1/3 h-[30rem] w-[30rem] rounded-full blur-3xl " +
           (forcedDark
-            ? "bg-[#a67be8]/18"
+            ? "bg-[#c87941]/12"
             : forcedLight
-              ? "bg-[#a67be8]/12"
-              : "bg-[#a67be8]/12 dark:bg-[#a67be8]/18")
+              ? "bg-[#c87941]/8"
+              : "bg-[#c87941]/8 dark:bg-[#c87941]/12")
         }
       />
 
       {/* Voile / gradient de base */}
-      {forcedDark ? <div className="absolute inset-0 bg-gradient-to-b from-[#1a0f33] via-transparent to-[#1a0f33]" /> : null}
-      {forcedLight ? <div className="absolute inset-0 bg-gradient-to-b from-[#f8f6fc] via-white to-[#f8f6fc]" /> : null}
+      {forcedDark ? <div className="absolute inset-0 bg-gradient-to-b from-[#1a1815] via-transparent to-[#1a1815]" /> : null}
+      {forcedLight ? <div className="absolute inset-0 bg-gradient-to-b from-[#f6f3ec] via-[#f6f3ec] to-[#f6f3ec]" /> : null}
       {!forcedDark && !forcedLight ? (
         <>
-          <div className="absolute inset-0 bg-gradient-to-b from-[#f8f6fc] via-white to-[#f8f6fc] dark:hidden" />
-          <div className="absolute inset-0 hidden dark:block bg-gradient-to-b from-[#1a0f33] via-transparent to-[#1a0f33]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#f6f3ec] via-[#f6f3ec] to-[#f6f3ec] dark:hidden" />
+          <div className="absolute inset-0 hidden dark:block bg-gradient-to-b from-[#1a1815] via-transparent to-[#1a1815]" />
         </>
       ) : null}
     </div>

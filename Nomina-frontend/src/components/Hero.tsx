@@ -136,28 +136,28 @@ export function Hero() {
   }
 
   return (
-    <section className="relative overflow-hidden bg-gradient-to-b from-[#2d1b4e] via-[#1a0f33] to-[#2d1b4e] py-20 md:py-32">
+    <section className="relative overflow-hidden bg-[#f6f3ec] py-20 md:py-32">
       {/* Éléments décoratifs */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-[#7b3ff2] rounded-full blur-3xl"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#a67be8] rounded-full blur-3xl"></div>
+      <div className="absolute inset-0 opacity-30">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-[#c87941] rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#3d4a66] rounded-full blur-3xl"></div>
       </div>
 
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-4xl mx-auto text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#7b3ff2]/20 border border-[#7b3ff2]/30 rounded-full mb-6">
-            <Sparkles className="w-4 h-4 text-[#e8b4f0]" />
-            <span className="text-sm text-[#d4c5f9]">API de génération narrative</span>
+          <div className="inline-flex items-center gap-2 px-4 py-2 bg-[#c87941]/10 border border-[#c87941]/25 rounded-full mb-6">
+            <Sparkles className="w-4 h-4 text-[#c87941]" />
+            <span className="text-sm text-[#7a8499]">API de génération narrative</span>
           </div>
 
           {/* Titre principal */}
-          <h1 className="text-4xl md:text-6xl lg:text-7xl text-white mb-6" style={{ fontFamily: 'Cinzel, serif' }}>
+          <h1 className="text-4xl md:text-6xl lg:text-7xl text-[#14213d] mb-6" style={{ fontFamily: 'Cinzel, serif' }}>
             Créez, Nommez, Racontez
           </h1>
 
           {/* Description */}
-          <p className="text-lg md:text-xl text-[#d4c5f9] mb-8 max-w-2xl mx-auto">
+          <p className="text-lg md:text-xl text-[#3d4a66] mb-8 max-w-2xl mx-auto">
             Une API innovante dédiée à la narration et à la création de contenu à partir de quelques mots. 
             Créez des personnages, des lieux et des créatures avec des histoires captivantes.
           </p>
@@ -170,20 +170,20 @@ export function Hero() {
                 <ArrowRight className="w-5 h-5" />
               </Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-[#7b3ff2] text-[#d4c5f9] hover:bg-[#7b3ff2]/20">
+            <Button asChild size="lg" variant="outline" className="border-[#c87941] text-[#14213d] hover:bg-[#c87941]/10">
               <Link to="/docs">Voir la documentation</Link>
             </Button>
           </div>
 
-          <p className="text-sm text-[#d4c5f9] -mt-8 mb-12">
+          <p className="text-sm text-[#3d4a66] -mt-8 mb-12">
             Compte existant ?{" "}
-            <Link to="/login" className="text-[#e8b4f0] hover:underline">
+            <Link to="/login" className="text-[#c87941] hover:underline">
               Se connecter
             </Link>
           </p>
 
           {/* Aperçu : générateur */}
-          <Card className="bg-[#f8f6fc] border-[#d4c5f9] shadow-xl shadow-[#7b3ff2]/10 max-w-2xl mx-auto text-left">
+          <Card className="bg-white border-[#dcd6c5] shadow-xl shadow-[#14213d]/8 max-w-2xl mx-auto text-left">
             <CardHeader>
               <CardTitle className="text-[#2d1b4e]" style={{ fontFamily: "Cinzel, serif" }}>
                 Générer un nom

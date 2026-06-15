@@ -10,17 +10,36 @@
     --font-body: 'Poppins', sans-serif;
     --font-mono: 'JetBrains Mono', monospace;
 
-    --violet-deep: #2d1b4e;
-    --violet-vibrant: #7b3ff2;
-    --violet-light: #a67be8;
-    --lavender: #d4c5f9;
-    --white-pure: #ffffff;
-    --white-off: #f8f6fc;
-    --rose-gold: #e8b4f0;
-    --silver: #c5bfd9;
-    --success: #a67be8;
-    --error: #f29999;
-    --attention: #f0b4e8;
+    /* ── Palette Nomina — crème chaud × bleu encre × terracotta ── */
+    --paper:     #f6f3ec;
+    --paper-2:   #ece7da;
+    --ink:       #14213d;
+    --ink-2:     #3d4a66;
+    --ink-3:     #7a8499;
+    --rule:      #dcd6c5;
+    --rule-2:    #c5beac;
+    --accent:    oklch(0.62 0.14 38);   /* terracotta chaude */
+    --accent-2:  oklch(0.55 0.10 200);  /* bleu pétrole */
+    --ok:        oklch(0.55 0.09 160);  /* vert sauge */
+    --crit:      oklch(0.55 0.15 28);
+    --crit-bg:   oklch(0.95 0.035 28);
+    --warn:      oklch(0.62 0.12 75);
+    --warn-bg:   oklch(0.95 0.045 75);
+    --reco:      oklch(0.52 0.10 230);
+    --reco-bg:   oklch(0.95 0.03 230);
+
+    /* Aliases — compatibilité composants existants */
+    --white-pure:     #ffffff;
+    --white-off:      var(--paper);
+    --violet-deep:    var(--ink);
+    --violet-vibrant: var(--accent);
+    --violet-light:   oklch(0.72 0.10 38);
+    --lavender:       var(--paper-2);
+    --rose-gold:      var(--accent-2);
+    --silver:         var(--ink-3);
+    --success:        var(--ok);
+    --error:          var(--crit);
+    --attention:      var(--warn);
   }
 
   body {
@@ -33,21 +52,36 @@
   html.dark {
     color-scheme: dark;
 
-    --white-pure: #0b0714;
-    --white-off: #120b22;
+    /* ── Palette sombre — encre inversée × fond brun profond ── */
+    --paper:     #1a1815;
+    --paper-2:   #252219;
+    --ink:       #ede8de;
+    --ink-2:     #c8c0b0;
+    --ink-3:     #8a8478;
+    --rule:      #3a3629;
+    --rule-2:    #4a4638;
+    --accent:    oklch(0.72 0.14 38);
+    --accent-2:  oklch(0.65 0.10 200);
+    --ok:        oklch(0.65 0.09 160);
+    --crit:      oklch(0.65 0.15 28);
+    --crit-bg:   oklch(0.20 0.035 28);
+    --warn:      oklch(0.72 0.12 75);
+    --warn-bg:   oklch(0.20 0.045 75);
+    --reco:      oklch(0.65 0.10 230);
+    --reco-bg:   oklch(0.20 0.03 230);
 
-    --silver: #b9b3cf;
-
-    --violet-deep: #e9e2ff;
-    --violet-vibrant: #9a6bff;
-    --violet-light: #c7b0ff;
-    --lavender: #2a1d45;
-
-    --rose-gold: #f0a6ff;
-
-    --success: #4ade80;
-    --error: #fb7185;
-    --attention: #fbbf24;
+    /* Aliases dark */
+    --white-pure:     #0f0e0b;
+    --white-off:      var(--paper);
+    --violet-deep:    var(--ink);
+    --violet-vibrant: var(--accent);
+    --violet-light:   oklch(0.78 0.10 38);
+    --lavender:       var(--paper-2);
+    --rose-gold:      var(--accent-2);
+    --silver:         var(--ink-3);
+    --success:        var(--ok);
+    --error:          var(--crit);
+    --attention:      var(--warn);
   }
 
   html.dark body {
@@ -156,4 +190,74 @@
   :where(.cl-footerActionLink) {
     color: var(--violet-vibrant);
   }
+}
+
+/* ── Remapping palette violet → crème × encre × terracotta ── */
+/* Les composants utilisent des classes Tailwind hardcodées (#7b3ff2, etc.)  */
+/* Ces overrides les redirigent vers les tokens de la nouvelle palette.       */
+@layer utilities {
+  /* — Fonds — */
+  .bg-\[\#7b3ff2\]  { background-color: var(--accent)   !important; }
+  .bg-\[\#a67be8\]  { background-color: oklch(0.72 0.10 38) !important; }
+  .bg-\[\#2d1b4e\]  { background-color: var(--ink)      !important; }
+  .bg-\[\#f8f6fc\]  { background-color: var(--paper)    !important; }
+  .bg-\[\#f4efff\]  { background-color: var(--paper-2)  !important; }
+  .bg-\[\#efe7ff\]  { background-color: var(--paper-2)  !important; }
+  .bg-\[\#f3efff\]  { background-color: var(--paper)    !important; }
+  .bg-\[\#e7defc\]  { background-color: var(--paper-2)  !important; }
+  .bg-\[\#1e1537\]  { background-color: var(--ink)      !important; }
+  .bg-\[\#1a1230\]  { background-color: var(--paper-2)  !important; }
+  .bg-\[\#1a0f33\]  { background-color: var(--ink)      !important; }
+
+  /* — Textes — */
+  .text-\[\#2d1b4e\] { color: var(--ink)     !important; }
+  .text-\[\#2b1748\] { color: var(--ink)     !important; }
+  .text-\[\#3b275f\] { color: var(--ink)     !important; }
+  .text-\[\#7b3ff2\] { color: var(--accent)  !important; }
+  .text-\[\#a67be8\] { color: var(--accent)  !important; }
+  .text-\[\#6f4da5\] { color: var(--accent-2) !important; }
+  .text-\[\#5b4a7f\] { color: var(--ink-2)   !important; }
+  .text-\[\#6b5aa3\] { color: var(--ink-2)   !important; }
+  .text-\[\#b9a3e3\] { color: var(--ink-2)   !important; }
+  .text-\[\#c5bfd9\] { color: var(--ink-3)   !important; }
+  .text-\[\#b9b3cf\] { color: var(--ink-3)   !important; }
+  .text-\[\#d4c5f9\] { color: var(--ink-2)   !important; }
+  .text-\[\#e8b4f0\] { color: var(--accent)  !important; }
+  .text-\[\#efe7ff\] { color: var(--paper-2) !important; }
+  .text-\[\#e7defc\] { color: var(--paper-2) !important; }
+  .text-\[\#f3efff\] { color: var(--paper)   !important; }
+
+  /* — Bordures — */
+  .border-\[\#d4c5f9\] { border-color: var(--rule)   !important; }
+  .border-\[\#7b3ff2\] { border-color: var(--accent)  !important; }
+  .border-\[\#4f3a7a\] { border-color: var(--rule-2) !important; }
+  .border-\[\#bda3ec\] { border-color: var(--rule)   !important; }
+  .border-\[\#bfa1ea\] { border-color: var(--rule)   !important; }
+  .border-\[\#3e2a66\] { border-color: var(--rule-2) !important; }
+
+  /* — Variantes d'opacité violet → terracotta / crème — */
+  /* backgrounds */
+  .bg-\[\#7b3ff2\]\/5  { background-color: rgb(200 121 65 / 0.05)  !important; }
+  .bg-\[\#7b3ff2\]\/10 { background-color: rgb(200 121 65 / 0.10)  !important; }
+  .bg-\[\#7b3ff2\]\/15 { background-color: rgb(200 121 65 / 0.15)  !important; }
+  .bg-\[\#7b3ff2\]\/20 { background-color: rgb(200 121 65 / 0.20)  !important; }
+  .bg-\[\#7b3ff2\]\/25 { background-color: rgb(200 121 65 / 0.25)  !important; }
+  .bg-\[\#7b3ff2\]\/30 { background-color: rgb(200 121 65 / 0.30)  !important; }
+  .bg-\[\#7b3ff2\]\/40 { background-color: rgb(200 121 65 / 0.40)  !important; }
+  .bg-\[\#5c2bb8\]\/20 { background-color: rgb(200 121 65 / 0.15)  !important; }
+  .bg-\[\#1a0f33\]\/40 { background-color: rgb(61  74  102 / 0.20) !important; }
+  .bg-\[\#2d1b4e\]\/45 { background-color: rgb(61  74  102 / 0.20) !important; }
+  .bg-\[\#2d1b4e\]\/60 { background-color: rgb(61  74  102 / 0.30) !important; }
+  /* borders */
+  .border-\[\#7b3ff2\]\/15 { border-color: rgb(200 121 65 / 0.15) !important; }
+  .border-\[\#7b3ff2\]\/20 { border-color: rgb(200 121 65 / 0.20) !important; }
+  .border-\[\#7b3ff2\]\/25 { border-color: rgb(200 121 65 / 0.25) !important; }
+  .border-\[\#7b3ff2\]\/30 { border-color: rgb(200 121 65 / 0.30) !important; }
+  .border-\[\#7b3ff2\]\/40 { border-color: rgb(200 121 65 / 0.40) !important; }
+  .border-\[\#7b3ff2\]\/50 { border-color: rgb(200 121 65 / 0.50) !important; }
+  .border-\[\#7b3ff2\]\/60 { border-color: rgb(200 121 65 / 0.60) !important; }
+  .border-\[\#d4c5f9\]\/70 { border-color: rgb(220 214 197 / 0.70) !important; }
+  /* texte */
+  .text-\[\#d4c5f9\]\/90 { color: rgb(61 74 102 / 0.90) !important; }
+  .text-\[\#2d1b4e\]\/70 { color: rgb(20 33 61 / 0.70)  !important; }
 }

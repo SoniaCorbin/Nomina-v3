@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "main": "electron-dist/main.js",
   "engines": {
     "node": ">=20"
   },
@@ -13,6 +14,9 @@
     "test:watch": "vitest",
     "build:src": "vite build --mode src",
     "preview": "vite preview",
+    "electron:build": "tsc -p electron/tsconfig.json",
+    "electron:dev": "npm run electron:build && concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
+    "electron:dist": "npm run build && npm run electron:build && electron-builder",
     "migrate": "node -e \"console.error('Les migrations Prisma se font dans Nomina-backend. Utilise: npm run backend:migrate'); process.exit(1)\"",
     "seed": "node -e \"console.error('Le seed se fait dans Nomina-backend. Utilise: npm run backend:seed'); process.exit(1)\"",
     "backend:migrate": "npm --prefix ../Nomina-backend run migrate",
@@ -22,16 +26,16 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Nocturne1975/Nomina-v3.git"
+    "url": "git+https://github.com/SoniaCorbin/Nomina-v3.git"
   },
   "keywords": [],
-  "author": "",
+  "author": "Sonia Corbin",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/Nocturne1975/Nomina-v3/issues"
+    "url": "https://github.com/SoniaCorbin/Nomina-v3/issues"
   },
-  "homepage": "https://github.com/Nocturne1975/Nomina-v3#readme",
-  "description": "",
+  "homepage": "https://github.com/SoniaCorbin/Nomina-v3#readme",
+  "description": "Nomina — API Génératrice & Narratrice de Noms",
   "dependencies": {
     "@clerk/clerk-react": "^5.59.5",
     "@radix-ui/react-accordion": "^1.2.3",
@@ -86,11 +90,37 @@
     "@types/react-dom": "^18.3.1",
     "@vitejs/plugin-react-swc": "^3.10.2",
     "autoprefixer": "^10.4.21",
+    "concurrently": "^10.0.3",
+    "electron": "^42.4.0",
+    "electron-builder": "^26.15.3",
     "jsdom": "^28.1.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
     "typescript": "^5.9.3",
     "vite": "6.3.5",
-    "vitest": "^4.0.18"
+    "vitest": "^4.0.18",
+    "wait-on": "^9.0.10"
+  },
+  "build": {
+    "appId": "com.nomina.desktop",
+    "productName": "Nomina",
+    "files": [
+      "dist/**/*",
+      "electron-dist/**/*",
+      "assets/**/*"
+    ],
+    "directories": {
+      "output": "release"
+    },
+    "win": {
+      "target": "nsis",
+      "icon": "assets/logo5.png"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "linux": {
+      "target": "AppImage"
+    }
   }
 }
