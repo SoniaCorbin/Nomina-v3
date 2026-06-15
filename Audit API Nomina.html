@@ -1,0 +1,921 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Audit API · Nomina</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,300;8..60,400;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    /* Bleu encre profond (sérieux, professionnel) sur fond crème chaud
+       (accueillant, pas clinique). Accents terracotta + sauge pour la
+       chaleur humaine — équilibre studio créatif × outil pro. */
+    --paper: #f6f3ec;
+    --paper-2: #ece7da;
+    --ink: #14213d;
+    --ink-2: #3d4a66;
+    --ink-3: #7a8499;
+    --rule: #dcd6c5;
+    --rule-2: #c5beac;
+
+    --accent: oklch(0.62 0.14 38);   /* terracotta chaude */
+    --accent-2: oklch(0.55 0.10 200); /* bleu pétrole pour liens secondaires */
+
+    --crit: oklch(0.55 0.15 28);
+    --crit-bg: oklch(0.95 0.035 28);
+    --warn: oklch(0.62 0.12 75);
+    --warn-bg: oklch(0.95 0.045 75);
+    --reco: oklch(0.52 0.10 230);
+    --reco-bg: oklch(0.95 0.03 230);
+    --ok: oklch(0.55 0.09 160);
+
+    --serif: "Source Serif 4", "Iowan Old Style", Georgia, serif;
+    --sans: "IBM Plex Sans", system-ui, sans-serif;
+    --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 56px 48px 120px; }
+
+  /* ===== Top bar ===== */
+  .topbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 14px;
+    margin-bottom: 56px;
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+  }
+  .topbar .brand { color: var(--ink); font-weight: 600; letter-spacing: 0.12em; }
+  .topbar .brand::before {
+    content: "";
+    display: inline-block;
+    width: 9px; height: 9px;
+    background: var(--accent);
+    border-radius: 50%;
+    margin-right: 9px;
+    transform: translateY(0px);
+  }
+  .topbar .meta { display: flex; gap: 24px; }
+  .topbar .dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--ok); margin-right: 6px; transform: translateY(-1px); }
+
+  /* ===== Hero ===== */
+  .hero {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 64px;
+    align-items: end;
+    margin-bottom: 72px;
+  }
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin-bottom: 18px;
+  }
+  h1.title {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 76px;
+    line-height: 1.02;
+    letter-spacing: -0.02em;
+    margin: 0 0 22px;
+  }
+  h1.title em { font-style: italic; color: var(--accent); }
+  .lede {
+    font-family: var(--serif);
+    font-size: 21px;
+    line-height: 1.45;
+    color: var(--ink-2);
+    max-width: 58ch;
+    margin: 0;
+  }
+
+  .score-card {
+    border: 1px solid var(--rule-2);
+    background: linear-gradient(180deg, #fff 0%, #fdfbf6 100%);
+    padding: 28px 28px 24px;
+    border-radius: 3px;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.02), 0 18px 40px -28px rgba(20,33,61,0.22);
+    position: relative;
+  }
+  .score-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0;
+    width: 48px; height: 3px;
+    background: var(--accent);
+  }
+  .score-card .label { font-family: var(--mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--ink-3); }
+  .score-card .grade {
+    font-family: var(--serif);
+    font-size: 96px;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    margin: 10px 0 6px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .score-card .grade span.suffix { font-size: 24px; color: var(--ink-3); letter-spacing: 0; }
+  .score-bars { display: grid; gap: 8px; margin-top: 16px; }
+  .bar-row { display: grid; grid-template-columns: 80px 1fr 36px; gap: 12px; align-items: center; font-family: var(--mono); font-size: 11px; }
+  .bar-row .name { color: var(--ink-2); text-transform: uppercase; letter-spacing: 0.06em; }
+  .bar-row .track { height: 4px; background: var(--paper-2); border-radius: 2px; overflow: hidden; }
+  .bar-row .fill { height: 100%; background: linear-gradient(90deg, var(--ink) 0%, var(--accent-2) 100%); }
+  .bar-row .num { text-align: right; color: var(--ink-3); }
+
+  /* ===== Section heads ===== */
+  .section-head {
+    display: grid;
+    grid-template-columns: 80px 1fr;
+    gap: 24px;
+    margin: 72px 0 28px;
+    align-items: baseline;
+  }
+  .section-head .num {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    color: var(--ink-3);
+    padding-top: 10px;
+  }
+  .section-head h2 {
+    font-family: var(--serif);
+    font-weight: 400;
+    font-size: 38px;
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    margin: 0 0 8px;
+  }
+  .section-head p { color: var(--ink-2); margin: 0; max-width: 60ch; }
+
+  /* ===== Executive summary ===== */
+  .exec {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--rule);
+    border: 1px solid var(--rule);
+  }
+  .exec .cell { background: var(--paper); padding: 24px 22px; }
+  .exec .cell .stat { font-family: var(--serif); font-size: 44px; line-height: 1; letter-spacing: -0.02em; }
+  .exec .cell .stat.crit { color: var(--crit); }
+  .exec .cell .stat.warn { color: var(--warn); }
+  .exec .cell .stat.reco { color: var(--reco); }
+  .exec .cell .lbl {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--ink-3);
+    margin-top: 12px;
+  }
+  .exec .cell .sub { font-size: 13px; color: var(--ink-2); margin-top: 6px; }
+
+  /* ===== Findings filter ===== */
+  .filter-row {
+    display: flex;
+    gap: 8px;
+    margin: 0 0 24px 104px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .chip {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 7px 12px;
+    border: 1px solid var(--rule-2);
+    background: transparent;
+    color: var(--ink-2);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+  }
+  .chip:hover { background: var(--paper-2); }
+  .chip.active { background: var(--ink); color: var(--paper); border-color: var(--ink); box-shadow: 0 2px 8px -2px rgba(20,33,61,0.3); }
+  .chip .count { color: var(--ink-3); margin-left: 6px; }
+  .chip.active .count { color: rgba(250,247,240,0.6); }
+
+  /* ===== Findings list ===== */
+  .findings { margin-left: 104px; }
+  .finding {
+    display: grid;
+    grid-template-columns: 110px 1fr 120px;
+    gap: 24px;
+    padding: 22px 0;
+    border-top: 1px solid var(--rule);
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .finding:last-child { border-bottom: 1px solid var(--rule); }
+  .finding:hover { background: rgba(255,255,255,0.5); }
+  .finding[data-open="true"] { background: #fff; }
+
+  .sev {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    padding: 4px 8px;
+    border-radius: 2px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    align-self: start;
+    height: fit-content;
+    margin-top: 2px;
+  }
+  .sev .sdot { width: 6px; height: 6px; border-radius: 50%; }
+  .sev.crit { background: var(--crit-bg); color: var(--crit); }
+  .sev.crit .sdot { background: var(--crit); }
+  .sev.warn { background: var(--warn-bg); color: var(--warn); }
+  .sev.warn .sdot { background: var(--warn); }
+  .sev.reco { background: var(--reco-bg); color: var(--reco); }
+  .sev.reco .sdot { background: var(--reco); }
+
+  .f-body h3 {
+    font-family: var(--serif);
+    font-weight: 500;
+    font-size: 21px;
+    line-height: 1.25;
+    margin: 0 0 4px;
+    letter-spacing: -0.005em;
+  }
+  .f-body .where {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+  .f-body .summary { color: var(--ink-2); font-size: 14.5px; max-width: 70ch; }
+  .f-body .detail {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.35s ease, margin 0.35s ease;
+    margin-top: 0;
+  }
+  .finding[data-open="true"] .detail {
+    max-height: 2000px;
+    margin-top: 18px;
+  }
+  .detail h4 {
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-3);
+    margin: 16px 0 8px;
+    font-weight: 500;
+  }
+  .detail p { margin: 0 0 10px; color: var(--ink-2); max-width: 70ch; }
+  .detail ul { margin: 0 0 10px 18px; color: var(--ink-2); padding: 0; }
+  .detail ul li { margin-bottom: 4px; }
+
+  .code {
+    background: #14213d;
+    color: #e8eaf2;
+    font-family: var(--mono);
+    font-size: 12.5px;
+    line-height: 1.6;
+    padding: 16px 18px;
+    border-radius: 3px;
+    overflow-x: auto;
+    margin: 8px 0 4px;
+  }
+  .code .c-key { color: #e3a87a; }
+  .code .c-str { color: #a8c9a5; }
+  .code .c-com { color: #6f7b95; font-style: italic; }
+  .code .c-fn  { color: #f0bda5; }
+  .code .c-add { color: #a8d9b0; }
+  .code .c-del { color: #e09a96; }
+
+  .effort {
+    font-family: var(--mono);
+    font-size: 10.5px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-3);
+    text-align: right;
+    align-self: start;
+    margin-top: 4px;
+  }
+  .effort .e-val { display: block; color: var(--ink); font-size: 14px; font-family: var(--serif); letter-spacing: 0; text-transform: none; margin-top: 2px; }
+
+  /* ===== Roadmap ===== */
+  .roadmap { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-left: 104px; }
+  .phase { background: var(--paper); padding: 24px 22px 26px; position: relative; }
+  .phase .ph-num { font-family: var(--mono); font-size: 11px; letter-spacing: 0.18em; color: var(--ink-3); }
+  .phase .ph-name { font-family: var(--serif); font-size: 26px; line-height: 1.15; margin: 8px 0 4px; letter-spacing: -0.01em; }
+  .phase .ph-window { font-family: var(--mono); font-size: 11px; color: var(--ink-3); margin-bottom: 14px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .phase ul { margin: 0; padding: 0; list-style: none; }
+  .phase li { font-size: 13.5px; color: var(--ink-2); padding: 7px 0; border-top: 1px dashed var(--rule); display: flex; gap: 8px; align-items: baseline; }
+  .phase li:first-child { border-top: 0; }
+  .phase li::before {
+    content: "";
+    width: 5px; height: 5px;
+    background: var(--accent);
+    border-radius: 50%;
+    flex-shrink: 0;
+    transform: translateY(-2px);
+  }
+  .phase.now { background: #fdfbf6; }
+  .phase.now::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+  }
+  .phase.now .ph-name { color: var(--ink); }
+
+  /* ===== What's good ===== */
+  .keepers {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-left: 104px;
+  }
+  .keeper {
+    display: grid;
+    grid-template-columns: 22px 1fr;
+    gap: 12px;
+    padding: 14px 16px;
+    background: #fff;
+    border: 1px solid var(--rule);
+    border-radius: 2px;
+  }
+  .keeper {
+    background: linear-gradient(180deg, #fff 0%, #fdfbf6 100%);
+  }
+  .keeper .check {
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--ok);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 11px;
+    font-weight: 700;
+    margin-top: 1px;
+  }
+  .keeper strong { font-family: var(--serif); font-weight: 500; font-size: 15px; display: block; margin-bottom: 2px; }
+  .keeper span { color: var(--ink-2); font-size: 13.5px; }
+
+  /* ===== Footer ===== */
+  .foot {
+    margin-top: 96px;
+    padding-top: 24px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .arrow {
+    display: inline-block;
+    transition: transform 0.3s ease;
+    color: var(--ink-3);
+    font-family: var(--mono);
+  }
+  .finding[data-open="true"] .arrow { transform: rotate(90deg); color: var(--ink); }
+
+  @media (max-width: 900px) {
+    .wrap { padding: 36px 24px 80px; }
+    .hero { grid-template-columns: 1fr; gap: 32px; }
+    h1.title { font-size: 48px; }
+    .section-head { grid-template-columns: 1fr; gap: 8px; }
+    .filter-row, .findings, .roadmap, .keepers { margin-left: 0; }
+    .finding { grid-template-columns: 1fr; gap: 8px; }
+    .effort { text-align: left; }
+    .exec, .roadmap, .keepers { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="brand">Nomina · backend</div>
+    <div class="meta">
+      <span><span class="dot"></span>API en ligne</span>
+      <span>v3 — févr. 2026</span>
+      <span>node 20 · express 5 · prisma 7</span>
+    </div>
+  </div>
+
+  <!-- ===== Hero ===== -->
+  <section class="hero">
+    <div>
+      <div class="eyebrow">Rapport d'audit · 11 mai 2026</div>
+      <h1 class="title">Ton API tient debout.<br /><em>On peut la rendre solide.</em></h1>
+      <p class="lede">
+        Vingt-deux contrôleurs, soixante-trois routes, une base Prisma propre.
+        Les bases sont bonnes&nbsp;— mais le code répète des patterns qu'un
+        middleware central pourrait absorber, et plusieurs garde-fous attendus
+        en production manquent encore. Voici ce que je garderais, ce que je
+        changerais, et dans quel ordre.
+      </p>
+    </div>
+
+    <aside class="score-card">
+      <div class="label">Note globale</div>
+      <div class="grade">B<span class="suffix">/ A+</span></div>
+      <div style="font-size: 13px; color: var(--ink-2); margin-bottom: 4px;">Solide pour un projet académique. Quelques chantiers pour un usage public.</div>
+      <div class="score-bars">
+        <div class="bar-row"><span class="name">Archi</span><span class="track"><span class="fill" style="width: 72%"></span></span><span class="num">B</span></div>
+        <div class="bar-row"><span class="name">Sécurité</span><span class="track"><span class="fill" style="width: 55%"></span></span><span class="num">C+</span></div>
+        <div class="bar-row"><span class="name">DX</span><span class="track"><span class="fill" style="width: 60%"></span></span><span class="num">C+</span></div>
+        <div class="bar-row"><span class="name">Perfs</span><span class="track"><span class="fill" style="width: 68%"></span></span><span class="num">B−</span></div>
+        <div class="bar-row"><span class="name">Tests</span><span class="track"><span class="fill" style="width: 30%"></span></span><span class="num">D</span></div>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ===== Exec summary ===== -->
+  <div class="section-head">
+    <div class="num">01 — APERÇU</div>
+    <div>
+      <h2>En un coup d'œil</h2>
+      <p>Les chiffres bruts d'abord, sans complaisance. Les trois critiques bloquent un passage en prod ; les sept importantes coûtent du temps de dev tous les jours.</p>
+    </div>
+  </div>
+
+  <section class="exec">
+    <div class="cell">
+      <div class="stat crit">3</div>
+      <div class="lbl">Critiques</div>
+      <div class="sub">Bloquantes pour un usage public.</div>
+    </div>
+    <div class="cell">
+      <div class="stat warn">7</div>
+      <div class="lbl">Importantes</div>
+      <div class="sub">À traiter avant la v4.</div>
+    </div>
+    <div class="cell">
+      <div class="stat reco">5</div>
+      <div class="lbl">Recommandées</div>
+      <div class="sub">Polish &amp; ergonomie devs.</div>
+    </div>
+    <div class="cell">
+      <div class="stat">~38h</div>
+      <div class="lbl">Effort estimé</div>
+      <div class="sub">Total des trois phases.</div>
+    </div>
+  </section>
+
+  <!-- ===== Findings ===== -->
+  <div class="section-head">
+    <div class="num">02 — CONSTATS</div>
+    <div>
+      <h2>Ce que j'ai trouvé</h2>
+      <p>Quinze observations classées par sévérité. Clique pour déplier le détail, le diagnostic et un correctif type.</p>
+    </div>
+  </div>
+
+  <div class="filter-row" id="filters">
+    <button class="chip active" data-filter="all">Tout <span class="count">15</span></button>
+    <button class="chip" data-filter="crit">Critique <span class="count">3</span></button>
+    <button class="chip" data-filter="warn">Important <span class="count">7</span></button>
+    <button class="chip" data-filter="reco">Recommandé <span class="count">5</span></button>
+  </div>
+
+  <div class="findings" id="findings">
+
+    <!-- ===== CRITIQUES ===== -->
+
+    <div class="finding" data-sev="crit">
+      <div><span class="sev crit"><span class="sdot"></span>Critique</span></div>
+      <div class="f-body">
+        <h3>Pas de rate limit sur <code>/generate-pack</code> (OpenAI)</h3>
+        <div class="where">routes/GeneratePackRoutes.ts · controllers/GeneratePackController.ts</div>
+        <div class="summary">Une route publique qui appelle GPT-4o-mini sans plafond&nbsp;: un script de 5 lignes peut vider ta clé OpenAI en quelques minutes. Le coût est facturé à toi, pas à l'appelant.</div>
+        <div class="detail">
+          <h4>Diagnostic</h4>
+          <p>Aucun middleware de limitation. La route est ouverte (pas de <code>requireAuth</code>). Le contrôleur cap les counts par section (5–20), mais rien n'empêche d'envoyer 1000 requêtes/seconde avec count=20.</p>
+          <h4>Correctif</h4>
+          <p>Installer <code>express-rate-limit</code>, créer une limite stricte sur <code>/generate-pack</code> (ex. 10 req / 10 min / IP), et une limite globale plus souple sur le reste.</p>
+<div class="code"><span class="c-com">// src/middleware/rateLimit.ts</span>
+<span class="c-key">import</span> rateLimit <span class="c-key">from</span> <span class="c-str">"express-rate-limit"</span>;
+
+<span class="c-key">export const</span> <span class="c-fn">aiLimiter</span> = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  max: 10,
+  standardHeaders: <span class="c-key">true</span>,
+  message: { error: <span class="c-str">"Trop de requêtes IA, réessaie dans 10 min"</span> },
+});
+
+<span class="c-com">// routes/GeneratePackRoutes.ts</span>
+<span class="c-add">router.post(<span class="c-str">"/"</span>, aiLimiter, generatePack);</span></div>
+          <h4>Bonus</h4>
+          <ul>
+            <li>Logger le coût estimé par requête (input/output tokens × tarif).</li>
+            <li>Exiger l'auth Clerk pour le pack IA : suit l'utilisateur, pas l'IP.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~2h</span></div>
+    </div>
+
+    <div class="finding" data-sev="crit">
+      <div><span class="sev crit"><span class="sdot"></span>Critique</span></div>
+      <div class="f-body">
+        <h3>Aucun gestionnaire d'erreurs centralisé</h3>
+        <div class="where">22 contrôleurs · ~140 blocs <code>try/catch</code> identiques</div>
+        <div class="summary">Chaque endpoint répète <code>catch (error) { res.status(500).json({ error: 'Erreur serveur' }) }</code>. Une stack trace, un code Prisma exotique, une assertion Zod manquée — tout finit en 500 opaque côté client.</div>
+        <div class="detail">
+          <h4>Diagnostic</h4>
+          <p>L'absence de middleware <code>errorHandler(err, req, res, next)</code> rend impossible&nbsp;: la corrélation d'erreurs, le logging structuré uniforme, la conversion automatique des erreurs Prisma (P2002 → 409, P2025 → 404), et la sérialisation des <code>ZodError</code>.</p>
+          <h4>Correctif</h4>
+<div class="code"><span class="c-com">// src/middleware/error.middleware.ts</span>
+<span class="c-key">export const</span> <span class="c-fn">asyncHandler</span> = (fn) =&gt; (req, res, next) =&gt;
+  Promise.resolve(fn(req, res, next)).<span class="c-fn">catch</span>(next);
+
+<span class="c-key">export function</span> <span class="c-fn">errorHandler</span>(err, req, res, next) {
+  <span class="c-key">if</span> (err <span class="c-key">instanceof</span> ZodError) {
+    <span class="c-key">return</span> res.status(<span class="c-str">400</span>).json({ error: <span class="c-str">"Validation"</span>, issues: err.issues });
+  }
+  <span class="c-key">if</span> (isKnownPrismaError(err, <span class="c-str">"P2002"</span>)) <span class="c-key">return</span> res.status(<span class="c-str">409</span>).json(...);
+  <span class="c-key">if</span> (isKnownPrismaError(err, <span class="c-str">"P2025"</span>)) <span class="c-key">return</span> res.status(<span class="c-str">404</span>).json(...);
+
+  logger.error(<span class="c-str">"Unhandled"</span>, { err, reqId: req.id, path: req.path });
+  res.status(<span class="c-str">500</span>).json({ error: <span class="c-str">"Erreur serveur"</span>, reqId: req.id });
+}</div>
+          <p>Les contrôleurs deviennent linéaires&nbsp;: plus de try/catch, on <code>throw</code> et le middleware s'en occupe.</p>
+          <h4>Gain</h4>
+          <ul>
+            <li>−300 lignes de boilerplate environ.</li>
+            <li>Format d'erreur enfin uniforme côté client.</li>
+            <li>Un seul endroit où ajouter Sentry / NewRelic / etc.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~4h</span></div>
+    </div>
+
+    <div class="finding" data-sev="crit">
+      <div><span class="sev crit"><span class="sdot"></span>Critique</span></div>
+      <div class="f-body">
+        <h3>Sécurité HTTP quasi-absente (pas de helmet)</h3>
+        <div class="where">src/server.ts · src/app.ts</div>
+        <div class="summary">Le middleware <code>securityHeaders</code> ne pose que <code>X-Frame-Options: DENY</code> (et même pas correctement&nbsp;: il oublie <code>next()</code>). Pas de CSP, pas de HSTS, pas de <code>X-Content-Type-Options</code>, pas de body size limit explicite.</p>
+        <div class="detail">
+          <h4>Bug bonus</h4>
+          <p>Ton middleware actuel ne fait <em>jamais</em> <code>next()</code>, donc soit il bloque tout (en réalité Express 5 timeout), soit Express l'ignore parce qu'il est branché après <code>listen()</code>. Lis attentivement <code>server.ts</code>.</p>
+<div class="code"><span class="c-del">// server.ts</span>
+<span class="c-del">function securityHeaders(req, res, next) {</span>
+<span class="c-del">  res.setHeader("X-Frame-Options", "DENY");</span>
+<span class="c-del">  // pas de next() !</span>
+<span class="c-del">}</span>
+<span class="c-del">app.use(securityHeaders);  // après app.listen — never runs</span>
+
+<span class="c-add">// app.ts</span>
+<span class="c-add">import helmet from "helmet";</span>
+<span class="c-add">app.use(helmet());</span>
+<span class="c-add">app.use(express.json({ limit: "100kb" }));</span></div>
+          <h4>À ajouter</h4>
+          <ul>
+            <li><code>helmet()</code> avec CSP minimale.</li>
+            <li><code>express.json({ limit: "100kb" })</code> pour bloquer les bodies gigantesques.</li>
+            <li>Limite <code>multer</code> sur tous les uploads (déjà fait sur <code>cultures</code>, à généraliser).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~1h</span></div>
+    </div>
+
+    <!-- ===== IMPORTANTS ===== -->
+
+    <div class="finding" data-sev="warn">
+      <div><span class="sev warn"><span class="sdot"></span>Important</span></div>
+      <div class="f-body">
+        <h3>Validation Zod inline, copiée 20 fois</h3>
+        <div class="where">controllers/GenerateController.ts · etc.</div>
+        <div class="summary">Chaque contrôleur déclare son schéma, parse <code>req.query</code>, et fait son propre <code>if (!parsed.success) return 400</code>. Sortez ça dans un middleware <code>validate(schema, "query" | "body" | "params")</code>.</div>
+        <div class="detail">
+          <h4>Bénéfice</h4>
+          <ul>
+            <li>Les schémas deviennent réutilisables et exportables (utile pour un futur OpenAPI).</li>
+            <li>Les contrôleurs reçoivent un <code>req.validated</code> typé.</li>
+            <li>L'erreur 400 est uniforme, gérée par <code>errorHandler</code>.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~3h</span></div>
+    </div>
+
+    <div class="finding" data-sev="warn">
+      <div><span class="sev warn"><span class="sdot"></span>Important</span></div>
+      <div class="f-body">
+        <h3>Pas de pagination sur les listes</h3>
+        <div class="where">getCultures, getCategories, getNomPersonnages, …</div>
+        <div class="summary"><code>GET /cultures</code> renvoie <em>toutes</em> les cultures. À 500 enregistrements ça passe ; à 50&nbsp;000, le payload tue le client mobile et la base.</div>
+        <div class="detail">
+          <h4>Pattern proposé</h4>
+<div class="code">GET /cultures?page=1&amp;pageSize=20&amp;sort=name
+
+<span class="c-com">// Réponse</span>
+{
+  data: [...],
+  page: 1,
+  pageSize: 20,
+  total: 142,
+  totalPages: 8
+}</div>
+          <p>Un helper <code>paginate(prisma.culture, { where, page, pageSize })</code> standardise la chose pour tous les CRUD.</p>
+        </div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~3h</span></div>
+    </div>
+
+    <div class="finding" data-sev="warn">
+      <div><span class="sev warn"><span class="sdot"></span>Important</span></div>
+      <div class="f-body">
+        <h3>Double montage <code>/</code> et <code>/api</code> → middlewares dupliqués</h3>
+        <div class="where">app.ts · <code>mountRoutes("") + mountRoutes("/api")</code></div>
+        <div class="summary">Chaque requête passe par les routeurs deux fois, et tu maintiens 22 alias legacy en plus. C'est une dette de migration, pas un design.</div>
+        <div class="detail">
+          <h4>Plan</h4>
+          <ul>
+            <li>Versionne&nbsp;: <code>/api/v1/*</code> devient le canonical.</li>
+            <li>Sur <code>/</code> sans préfixe, retourne un 308 unique vers <code>/api/v1/...</code> au lieu de remonter tout le tree.</li>
+            <li>Supprime les alias <code>/prenoms → /nomPersonnages</code> &amp; co. quand le frontend a migré (mets un header <code>Deprecation</code> en attendant).</li>
+          </ul>
+        </div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~4h</span></div>
+    </div>
+
+    <div class="finding" data-sev="warn">
+      <div><span class="sev warn"><span class="sdot"></span>Important</span></div>
+      <div class="f-body">
+        <h3>GenerateController = 1529 lignes</h3>
+        <div class="where">src/controllers/GenerateController.ts</div>
+        <div class="summary">Sept handlers de génération, plus des helpers, plus des dictionnaires de mots-clés. Découper par ressource (<code>generators/npcs.ts</code>, <code>generators/lieux.ts</code>…) et factoriser les helpers communs (<code>splitKeywords</code>, <code>scoreKeywordMatch</code>, <code>sampleWithoutReplacement</code>) dans <code>services/generation/</code>.</div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~5h</span></div>
+    </div>
+
+    <div class="finding" data-sev="warn">
+      <div><span class="sev warn"><span class="sdot"></span>Important</span></div>
+      <div class="f-body">
+        <h3>Cascade DELETE écrite à la main</h3>
+        <div class="where">deleteCulture · 12 <code>updateMany</code> + 1 <code>delete</code> en transaction</div>
+        <div class="summary">Tu mets <code>cultureId = null</code> sur 12 tables enfants avant de supprimer. C'est exactement ce que <code>onDelete: SetNull</code> fait dans Prisma. Migration unique, contrôleur de 6 lignes.</div>
+        <div class="detail">
+          <h4>Vérifier aussi</h4>
+          <p>Que toutes les FKs critiques ont une stratégie explicite (<code>Cascade</code>, <code>SetNull</code>, <code>Restrict</code>) — sinon Postgres bloque ou supprime des données silencieusement selon le défaut Prisma.</p>
+        </div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~2h</span></div>
+    </div>
+
+    <div class="finding" data-sev="warn">
+      <div><span class="sev warn"><span class="sdot"></span>Important</span></div>
+      <div class="f-body">
+        <h3><code>/healthz</code> ne vérifie pas la DB</h3>
+        <div class="where">app.ts:73</div>
+        <div class="summary">Le endpoint renvoie <code>{ ok: true }</code> tant que Node tourne. Fly.io / Vercel ne sauront jamais si Prisma a perdu la connexion. Fais un <code>prisma.$queryRaw\`SELECT 1\`</code> avec timeout 1s.</div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~30min</span></div>
+    </div>
+
+    <div class="finding" data-sev="warn">
+      <div><span class="sev warn"><span class="sdot"></span>Important</span></div>
+      <div class="f-body">
+        <h3>Pas de documentation OpenAPI</h3>
+        <div class="where">Repo entier</div>
+        <div class="summary">63 routes, paramétrées avec 8–12 query params chacune dans certains cas. Le README liste les routes principales mais ce n'est pas un contrat exécutable. Génère un Swagger UI à partir de <code>zod-to-openapi</code>.</div>
+        <div class="detail">
+          <p>Tu réutilises les schémas Zod du middleware <code>validate</code>, donc la doc reste synchronisée gratuitement. Hébergement sous <code>/api/docs</code>.</p>
+        </div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~4h</span></div>
+    </div>
+
+    <!-- ===== RECOMMANDÉS ===== -->
+
+    <div class="finding" data-sev="reco">
+      <div><span class="sev reco"><span class="sdot"></span>Recommandé</span></div>
+      <div class="f-body">
+        <h3>Couverture de tests &lt; 5%</h3>
+        <div class="where">__tests__/app.test.ts · GeneratePackController.test.ts · OpenAiService.test.ts</div>
+        <div class="summary">Trois fichiers de tests pour 22 contrôleurs. Avec Supertest + un schéma Prisma de test (SQLite ou Postgres jetable), tu peux couvrir tous les CRUD en quelques jours.</div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~8h</span></div>
+    </div>
+
+    <div class="finding" data-sev="reco">
+      <div><span class="sev reco"><span class="sdot"></span>Recommandé</span></div>
+      <div class="f-body">
+        <h3>Pas de request-id ni de logs structurés</h3>
+        <div class="where">utils/logger.ts</div>
+        <div class="summary">Le logger maison est OK pour démarrer mais ne sait pas tracer une requête de bout en bout. Pino + <code>pino-http</code> + un <code>X-Request-Id</code> dans le middleware errorHandler te donnent ça pour 50 lignes de config.</div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~2h</span></div>
+    </div>
+
+    <div class="finding" data-sev="reco">
+      <div><span class="sev reco"><span class="sdot"></span>Recommandé</span></div>
+      <div class="f-body">
+        <h3>CORS regex Vercel trop permissive</h3>
+        <div class="where">app.ts:51 · <code>/^https:\/\/[a-z0-9-]+\.vercel\.app$/i</code></div>
+        <div class="summary">N'importe quel projet sur vercel.app peut appeler ton API avec credentials. Restreins à <code>nomina-v3-*.vercel.app</code> ou whiteliste explicitement les previews via env var.</div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~15min</span></div>
+    </div>
+
+    <div class="finding" data-sev="reco">
+      <div><span class="sev reco"><span class="sdot"></span>Recommandé</span></div>
+      <div class="f-body">
+        <h3>Réponses non-DTO : tu renvoies les modèles Prisma bruts</h3>
+        <div class="where">getCultureById, getCultures, …</div>
+        <div class="summary"><code>createdAt</code>, <code>updatedAt</code>, FKs internes, champs marqués nullable mais toujours présents&nbsp;: tout fuite côté client. Un mapper <code>toCultureDTO()</code> par ressource te donne un contrat stable même si la DB bouge.</div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~3h</span></div>
+    </div>
+
+    <div class="finding" data-sev="reco">
+      <div><span class="sev reco"><span class="sdot"></span>Recommandé</span></div>
+      <div class="f-body">
+        <h3>Normalisation de genre dispersée</h3>
+        <div class="where">GenerateController, NomPersonnageController, scripts/</div>
+        <div class="summary">La logique <code>"m" → ["M", "Masculin", "homme", …]</code> existe en 3+ endroits avec des variantes. Centralise dans <code>utils/genre.ts</code> et migre la DB pour stocker une valeur canonique (les libellés sont du presentation, pas du data).</div>
+      </div>
+      <div class="effort">Effort<span class="e-val">~3h</span></div>
+    </div>
+
+  </div>
+
+  <!-- ===== Roadmap ===== -->
+  <div class="section-head">
+    <div class="num">03 — PLAN</div>
+    <div>
+      <h2>Par où je commencerais</h2>
+      <p>Trois phases, deux semaines de travail si tu fais une heure par jour. Chaque phase produit un commit que tu peux merger seul.</p>
+    </div>
+  </div>
+
+  <div class="roadmap">
+    <div class="phase now">
+      <div class="ph-num">PHASE 01 · MAINTENANT</div>
+      <div class="ph-name">Stop&nbsp;the&nbsp;bleed</div>
+      <div class="ph-window">~7h · semaine en cours</div>
+      <ul>
+        <li>helmet + body limits</li>
+        <li>rate limit sur <code>/generate-pack</code></li>
+        <li>fix du middleware <code>securityHeaders</code></li>
+        <li>healthz qui ping Prisma</li>
+        <li>CORS Vercel restreinte</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="ph-num">PHASE 02 · ENSUITE</div>
+      <div class="ph-name">Le grand nettoyage</div>
+      <div class="ph-window">~18h · sprint suivant</div>
+      <ul>
+        <li>middleware <code>errorHandler</code> + <code>asyncHandler</code></li>
+        <li>middleware <code>validate(schema)</code></li>
+        <li>pagination standard sur les CRUD</li>
+        <li>cascade Prisma à la place du manuel</li>
+        <li>découpe de GenerateController</li>
+      </ul>
+    </div>
+    <div class="phase">
+      <div class="ph-num">PHASE 03 · PLUS TARD</div>
+      <div class="ph-name">Pro&nbsp;polish</div>
+      <div class="ph-window">~13h · au calme</div>
+      <ul>
+        <li>OpenAPI auto-généré + Swagger UI</li>
+        <li>pino + request-id + Sentry</li>
+        <li>DTOs explicites par ressource</li>
+        <li>versioning <code>/api/v1</code> + dépréciation des alias</li>
+        <li>tests CRUD avec Supertest</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ===== Keepers ===== -->
+  <div class="section-head">
+    <div class="num">04 — KEEPERS</div>
+    <div>
+      <h2>Ce qui tient déjà bien</h2>
+      <p>Toute critique mérite son contrepoint. Voici ce que je ne toucherais pas — au contraire, des fondations à protéger pendant les refactos.</p>
+    </div>
+  </div>
+
+  <div class="keepers">
+    <div class="keeper">
+      <div class="check">✓</div>
+      <div>
+        <strong>Schéma Prisma propre et structuré</strong>
+        <span>Trois blocs réalisme (lieux, métier/orga, relations/events) avec des types paramétrables au lieu d'enums figés. Réutilisable hors fantasy.</span>
+      </div>
+    </div>
+    <div class="keeper">
+      <div class="check">✓</div>
+      <div>
+        <strong>Auth Clerk avec fallback session</strong>
+        <span>Le double mécanisme (<code>verifyToken</code> + <code>fallbackValidateSession</code>) gère les bords (clock skew, refresh) sans laisser l'utilisateur dans le noir.</span>
+      </div>
+    </div>
+    <div class="keeper">
+      <div class="check">✓</div>
+      <div>
+        <strong>Gestion des erreurs Prisma typée</strong>
+        <span><code>isKnownPrismaError(err, "P2002")</code> est utilisé proprement&nbsp;: P2002 → 409, P2025 → 404, P2003 → 409. Bonne base, à centraliser.</span>
+      </div>
+    </div>
+    <div class="keeper">
+      <div class="check">✓</div>
+      <div>
+        <strong>RNG seedé et reproductible</strong>
+        <span><code>services/generation/rng.ts</code> permet aux clients de rejouer une génération avec le même <code>seed</code>. Rare et précieux.</span>
+      </div>
+    </div>
+    <div class="keeper">
+      <div class="check">✓</div>
+      <div>
+        <strong>Fallbacks intelligents sur les mots-clés</strong>
+        <span>Quand un match strict ne donne rien, l'API renvoie des suggestions classées par pertinence au lieu d'un tableau vide. C'est de l'UX serveur, pas du code de stagiaire.</span>
+      </div>
+    </div>
+    <div class="keeper">
+      <div class="check">✓</div>
+      <div>
+        <strong>Scripts opérationnels en place</strong>
+        <span>Seed, backfill, normalize, report, clean — chaque migration métier a son script versionné. Disciplines qui paient.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Nomina · Audit API · v3 → v4</span>
+    <span>15 constats · 38h estimées · trois phases</span>
+  </div>
+
+</div>
+
+<script>
+  // Filter chips
+  const filters = document.getElementById('filters');
+  const findings = document.querySelectorAll('.finding');
+  filters.addEventListener('click', (e) => {
+    const btn = e.target.closest('.chip');
+    if (!btn) return;
+    filters.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    const f = btn.dataset.filter;
+    findings.forEach(card => {
+      card.style.display = (f === 'all' || card.dataset.sev === f) ? '' : 'none';
+    });
+  });
+
+  // Expand findings
+  findings.forEach(card => {
+    // add arrow indicator
+    const body = card.querySelector('.f-body');
+    if (body && !body.querySelector('.arrow-wrap')) {
+      const h3 = body.querySelector('h3');
+      if (h3) {
+        const arr = document.createElement('span');
+        arr.className = 'arrow';
+        arr.textContent = '›';
+        arr.style.cssText = 'margin-right: 8px; display: inline-block;';
+        h3.prepend(arr);
+      }
+    }
+    card.addEventListener('click', () => {
+      const open = card.dataset.open === 'true';
+      card.dataset.open = open ? 'false' : 'true';
+    });
+  });
+</script>
+</body>
+</html>

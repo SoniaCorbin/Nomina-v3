@@ -1,6 +1,0 @@
-Placer le logo ici avec un des noms suivants :
-- logo.png (recommandé)
-- logo.jpg
-- logo.jpeg
-
-Le contrôleur MainController charge automatiquement le premier trouvé.

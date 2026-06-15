@@ -1,5 +1,4 @@
-# Nomina — Projet de session (Lab 3)
-
+# Nomina
 Ce dépôt contient un **backend** (API) et un **frontend web** (interface React).
 
 Application **full‑stack** :
@@ -7,11 +6,7 @@ Application **full‑stack** :
 - **Frontend** : React (Vite)
 - **Auth** : Clerk (inscription / connexion / déconnexion)
 
-## Résultat attendu du laboratoire
-
-À la fin de ce laboratoire, vous aurez une application full-stack fonctionnelle prête à être présentée lors de l'examen final. Cette application démontrera votre maîtrise des concepts de services web modernes, de l'architecture client-serveur, et des bonnes pratiques de sécurité.
-
-## Fonctionnalités (Lab 3)
+## Fonctionnalités
 
 - Auth complète : inscription, connexion, déconnexion, session persistante, routes protégées
 - UI : navigation cohérente, page d’accueil, dashboard après connexion, feedback (loading/erreurs/succès)
@@ -77,22 +72,14 @@ Frontend : `http://localhost:5173`
 - [ ] **Username à l’inscription** : tester une inscription avec username saisi, puis une inscription avec username vide (génération auto).
 - [ ] **Username modifiable plus tard** : depuis le dashboard, utiliser “Modifier mon profil” et confirmer que le username peut être changé.
 
-## Captures d’écran (à inclure pour la remise)
-
-Ajoute au moins **3 captures** montrant :
-1. Page de connexion / inscription
-2. Dashboard après connexion
-3. CRUD Cultures (liste + formulaire)
-
-> Astuce : tu peux créer un dossier `docs/screenshots/` et y mettre tes images, puis les référencer ici.
 
 ## Auteurs
 
-- Projet académique — section à compléter par l’équipe de remise (nom et matricule).
+- Sonia Corbin
 
 ## Dépôt
 
-- Monorepo : https://github.com/Nocturne1975/Nomina-v3
+- Monorepo : https://github.com/SoniaCorbin/Nomina-v3
 
 ## Notes de mise à jour (février 2026)
 
