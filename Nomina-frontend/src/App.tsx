@@ -3,7 +3,6 @@ import { Footer } from "./components/Footer";
 import { lazy, Suspense, useEffect, useState } from "react";
 import { flushOutbox } from "./lib/api";
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
-import { FluidBackground } from "./components/FluidBackground";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
 import { setApiTokenProvider, apiFetch, ApiError } from "./lib/api";
 import { getErrorMessage } from "./lib/error-utils";
@@ -226,13 +225,9 @@ export default function App() {
   }, []);
 
   return (
-    <div className="min-h-screen relative overflow-hidden">
-      <FluidBackground />
+    <div className="min-h-screen relative overflow-hidden">      
       <Header />
-      <ClerkTokenBridge />
-      {!isHome ? (
-        <div className="pointer-events-none fixed top-20 inset-x-0 z-40 h-7 bg-gradient-to-b from-[#2d1b4e]/70 via-[#2d1b4e]/20 to-transparent" />
-      ) : null}
+      <ClerkTokenBridge />      
       <main>
         <Suspense fallback={<PageLoader />}>
           <Routes>
@@ -256,8 +251,7 @@ export default function App() {
             <Route path="/lieux" element={<RequireAdmin><LieuxPage /></RequireAdmin>} />
             <Route path="/nom-familles" element={<RequireAdmin><NomFamillesPage /></RequireAdmin>} />
             <Route path="/creatures" element={<RequireAdmin><CreaturesPage /></RequireAdmin>} />
-            <Route path="/users" element={<RequireAdmin><UsersPage /></RequireAdmin>} />
-            <Route path="/desktop-token" element={<RequireSignedIn><DesktopTokenPage /></RequireSignedIn>} />
+            <Route path="/users" element={<RequireAdmin><UsersPage /></RequireAdmin>} />            
             <Route path="/admin" element={<RequireAdmin><AdminPage /></RequireAdmin>} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/register" element={<RegisterPage />} />
