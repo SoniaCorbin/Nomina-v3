@@ -31,10 +31,9 @@ const UniversPage = lazy(() => import("./pages/UniversPage").then((m) => ({ defa
 const LieuxPage = lazy(() => import("./pages/LieuxPage").then((m) => ({ default: m.LieuxPage })));
 const NomFamillesPage = lazy(() => import("./pages/NomFamillesPage").then((m) => ({ default: m.NomFamillesPage })));
 const CreaturesPage = lazy(() => import("./pages/CreaturesPage").then((m) => ({ default: m.CreaturesPage })));
-const DesktopTokenPage = lazy(() => import("./pages/DesktopTokenPage").then((m) => ({ default: m.DesktopTokenPage })));
 
 function PageLoader() {
-  return <main className="min-h-screen p-6">Chargement…</main>;
+  return <main className="min-h-screen p-6 bg-paper text-ink-3">Chargement…</main>;
 }
 
 function ClerkTokenBridge() {
@@ -63,7 +62,7 @@ function RequireSignedIn(props: { children: JSX.Element }) {
 
   if (!clerkEnabled) {
     return (
-      <main className="min-h-screen p-6">
+      <main className="min-h-screen p-6 bg-paper">
         <h1 className="text-2xl font-semibold mb-2">Accès restreint</h1>
         <p className="opacity-80">L’authentification est désactivée (clé Clerk manquante).</p>
       </main>
@@ -200,7 +199,7 @@ function RequireAdminInner(props: { children: JSX.Element }) {
         ) : (
           <main className="min-h-screen p-6">
             <h1 className="text-2xl font-semibold mb-2">Erreur</h1>
-            <p className="text-red-600">{state.message}</p>
+            <p className="text-crit">{state.message}</p>
           </main>
         )}
       </SignedIn>
