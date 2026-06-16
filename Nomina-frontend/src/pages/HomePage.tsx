@@ -3,6 +3,7 @@ import { Features } from "../components/Features";
 import { Pricing } from "../components/Pricing";
 import { Documentation } from "../components/Documentation";
 import logoClair from "../../assets/logoClair.jpg";
+import { UseCases } from "../components/UseCases";
 
 export function HomePage() {
   return (
@@ -156,6 +157,7 @@ export function HomePage() {
 
       {/* ── Sections existantes (à refaire progressivement) ── */}
       <Features />
+	  <UseCases />
       <Pricing />
       <Documentation />
     </div>

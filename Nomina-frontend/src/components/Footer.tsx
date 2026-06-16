@@ -1,130 +1,127 @@
-import { Twitter, Github, Linkedin } from "lucide-react";
+import { Github, Linkedin } from "lucide-react";
 import { Link } from "react-router-dom";
-
-import logoUrl from "../../assets/logo5.png";
+import logoDark from "../../assets/logoSombre.jpg";
 
 export function Footer() {
   return (
-    <footer className="bg-[#2d1b4e] border-t border-[#7b3ff2]/20 py-12">
-      <div className="container mx-auto px-4">
-        <div className="grid md:grid-cols-4 gap-8 mb-8">
-          {/* Brand */}
+    <footer className="bg-ink border-t border-rule/20 py-14">
+      <div className="mx-auto max-w-6xl px-6">
+        <div className="grid md:grid-cols-4 gap-10 mb-10">
+          {/* ── Marque ── */}
           <div>
-            <a
-              href="/"
-              className="inline-flex items-center gap-3 mb-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8b4f0]/60 rounded-lg"
-              aria-label="Aller à l’accueil"
-            >
-              <div className="w-10 h-10 bg-gradient-to-br from-[#7b3ff2] to-[#a67be8] rounded-lg flex items-center justify-center">
-                <img src={logoUrl} alt="Nomina" className="w-7 h-7 object-contain" draggable={false} />
-              </div>
-              <span className="text-2xl text-white" style={{ fontFamily: 'Cinzel, serif' }}>
-                Nomina
+            <Link to="/" className="inline-flex items-center gap-2.5 mb-4">
+              <img src={logoDark} alt="Nomina" className="w-9 h-9 rounded-full object-cover" />
+              <span className="font-heading text-lg tracking-[0.16em] text-paper pl-[0.16em]">
+                NOMINA
               </span>
-            </a>
-            <p className="text-sm text-[#d4c5f9]">
-              Créez, Nommez, Racontez avec l'API de génération narrative
+            </Link>
+            <p className="text-sm text-ink-3 leading-relaxed">
+              Créez, nommez, racontez — l'API de génération narrative.
             </p>
           </div>
 
-          {/* Product */}
+          {/* ── Produit ── */}
           <div>
-            <h4 className="text-white mb-4">Produit</h4>
-            <ul className="space-y-2">
+            <h4 className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-3 mb-4">
+              Produit
+            </h4>
+            <ul className="space-y-2.5">
               <li>
-                <Link to="/features" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
+                <Link to="/features" className="text-sm text-paper/70 hover:text-paper transition-colors">
                   Fonctionnalités
                 </Link>
               </li>
               <li>
-                <Link to="/pricing" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
+                <Link to="/pricing" className="text-sm text-paper/70 hover:text-paper transition-colors">
                   Tarifs
                 </Link>
               </li>
               <li>
-                <Link to="/docs" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
+                <Link to="/docs" className="text-sm text-paper/70 hover:text-paper transition-colors">
                   Documentation
                 </Link>
               </li>
               <li>
-                <a href="#/changelog" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                  Changelog
+                <Link to="/generate" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                  Génération
+                </Link>
+              </li>
+            </ul>
+          </div>
+
+          {/* ── Ressources ── */}
+          <div>
+            <h4 className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-3 mb-4">
+              Ressources
+            </h4>
+            <ul className="space-y-2.5">
+              <li>
+                <Link to="/docs" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                  Guide de démarrage
+                </Link>
+              </li>
+              <li>
+                <Link to="/pack-ia" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                  Pack IA
+                </Link>
+              </li>
+              <li>
+                <a href="https://github.com/SoniaCorbin/Nomina-v3" target="_blank" rel="noopener noreferrer" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                  GitHub
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* Resources */}
+          {/* ── Entreprise ── */}
           <div>
-            <h4 className="text-white mb-4">Ressources</h4>
-            <ul className="space-y-2">
+            <h4 className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-3 mb-4">
+              Légal
+            </h4>
+            <ul className="space-y-2.5">
               <li>
-                <a href="#/blog" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#/guides" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                  Guides
-                </a>
-              </li>
-              <li>
-                <a href="#/community" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                  Communauté
-                </a>
-              </li>
-              <li>
-                <a href="#/support" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                  Support
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Company */}
-          <div>
-            <h4 className="text-white mb-4">Entreprise</h4>
-            <ul className="space-y-2">
-              <li>
-                <a href="#/about" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                  À propos
-                </a>
-              </li>
-              <li>
-                <a href="#/careers" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                  Carrières
-                </a>
-              </li>
-              <li>
-                <a href="#/contact" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                  Contact
-                </a>
-              </li>
-              <li>
-                <a href="#/privacy" className="text-sm text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
+                <a href="#/privacy" className="text-sm text-paper/70 hover:text-paper transition-colors">
                   Confidentialité
+                </a>
+              </li>
+              <li>
+                <a href="#/terms" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                  Conditions d'utilisation
+                </a>
+              </li>
+              <li>
+                <a href="mailto:contact@nomina.app" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                  Contact
                 </a>
               </li>
             </ul>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="pt-8 border-t border-[#7b3ff2]/20 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-[#c5bfd9]">
-            © 2025 Nomina. Tous droits réservés.
+        {/* ── Barre du bas ── */}
+        <div className="pt-8 border-t border-rule/15 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="font-mono text-[11px] tracking-wide text-ink-3">
+            © 2026 Nomina · Corbin Creative Tech Inc.
           </p>
 
-          {/* Social Links */}
           <div className="flex items-center gap-4">
-            <a href="#/twitter" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-              <Twitter className="w-5 h-5" />
+            <a
+              href="https://github.com/SoniaCorbin/Nomina-v3"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-ink-3 hover:text-paper transition-colors"
+              aria-label="GitHub"
+            >
+              <Github className="w-4 h-4" />
             </a>
-            <a href="#/github" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-              <Github className="w-5 h-5" />
-            </a>
-            <a href="#/linkedin" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-              <Linkedin className="w-5 h-5" />
+            <a
+              href="https://linkedin.com"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-ink-3 hover:text-paper transition-colors"
+              aria-label="LinkedIn"
+            >
+              <Linkedin className="w-4 h-4" />
             </a>
           </div>
         </div>

@@ -9,7 +9,6 @@ import { getErrorMessage } from "./lib/error-utils";
 
 const Features = lazy(() => import("./components/Features").then((m) => ({ default: m.Features })));
 const UseCases = lazy(() => import("./components/UseCases").then((m) => ({ default: m.UseCases })));
-const ApiDemo = lazy(() => import("./components/ApiDemo").then((m) => ({ default: m.ApiDemo })));
 const Pricing = lazy(() => import("./components/Pricing").then((m) => ({ default: m.Pricing })));
 const Documentation = lazy(() => import("./components/Documentation").then((m) => ({ default: m.Documentation })));
 
@@ -234,8 +233,7 @@ export default function App() {
             <Route path="/" element={<HomePage />} />
             <Route path="/homepage" element={<Navigate to="/" replace />} />
             <Route path="/features" element={<Features />} />
-            <Route path="/usecases" element={<UseCases />} />
-            <Route path="/demo" element={<ApiDemo />} />
+            <Route path="/usecases" element={<UseCases />} />           
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/docs" element={<Documentation />} />
             <Route path="/generate" element={<RequireSignedIn><GeneratePage /></RequireSignedIn>} />
