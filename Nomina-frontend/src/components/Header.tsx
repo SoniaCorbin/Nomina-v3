@@ -1,12 +1,9 @@
-import { Button } from "./ui/button";
 import { LogOut, Menu, Moon, Sun, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { SignedIn, SignedOut, UserButton, useAuth, useClerk, useUser } from "@clerk/clerk-react";
-import { Link } from "react-router-dom";
-
+import { Link, useLocation } from "react-router-dom";
 import { apiFetch } from "../lib/api";
-
-import logoUrl from "../../assets/logo5.png";
+import logoDark from "../../assets/logoSombre.jpg";
 
 const THEME_KEY = "nomina-theme";
 
@@ -15,17 +12,16 @@ export function Header() {
   const { isSignedIn } = useAuth();
   const { signOut } = useClerk();
   const { user } = useUser();
+  const location = useLocation();
   const [isAdmin, setIsAdmin] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem(THEME_KEY);
     const initial = saved === "dark" || saved === "light"
       ? saved
-      : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
-
+      : window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
     setTheme(initial);
     document.documentElement.classList.toggle("dark", initial === "dark");
   }, []);
@@ -39,254 +35,216 @@ export function Header() {
 
   useEffect(() => {
     let cancelled = false;
-    if (!clerkEnabled || !isSignedIn) {
-      setIsAdmin(false);
-      return;
-    }
-
+    if (!clerkEnabled || !isSignedIn) { setIsAdmin(false); return; }
     (async () => {
       try {
         const data = await apiFetch<{ isAdmin: boolean }>("/auth/me", { cacheTtlMs: 0 });
         if (!cancelled) setIsAdmin(Boolean(data.isAdmin));
-      } catch {
-        if (!cancelled) setIsAdmin(false);
-      }
+      } catch { if (!cancelled) setIsAdmin(false); }
     })();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [clerkEnabled, isSignedIn]);
 
+  const isActive = (path: string) => location.pathname === path;
+
+  const navLinks = [
+    { to: "/features", label: "Fonctionnalités", auth: false },
+    { to: "/generate", label: "Génération", auth: true },
+    { to: "/pack-ia", label: "Pack IA", auth: true },
+    { to: "/pricing", label: "Tarifs", auth: false },
+    { to: "/docs", label: "Documentation", auth: false },
+  ];
+
+  const adminLinks = [
+    { to: "/dashboard", label: "Dashboard" },
+  ];
+
   return (
-    <header className="sticky top-0 z-50 bg-[#2d1b4e] border-b border-[#7b3ff2]/20">
-      <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-20">
-          {/* Logo */}
-          <Link
-            to="/"
-            className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#e8b4f0]/60 rounded-lg"
-            aria-label="Aller à l’accueil"
-          >
-            <div className="w-14 h-14 bg-[#2d1b4e] rounded-lg flex items-center justify-center"> 
-              <img src={logoUrl} alt="Nomina" className="w-11 h-11 object-contain" draggable={false} />
-            </div>
-            <span className="text-2xl text-white" style={{ fontFamily: 'Cinzel, serif' }}>
-              Nomina
+    <header className="sticky top-0 z-50 bg-ink border-b border-rule-2/20">
+      <div className="mx-auto max-w-7xl px-6">
+        <div className="flex items-center justify-between h-[60px]">
+
+          {/* ── Logo ── */}
+          {/* Ancien monogramme N → nouveau logo */}
+          <Link to="/" className="flex items-center gap-2.5 shrink-0">
+            <img src={logoDark} alt="Nomina" className="w-8 h-8 rounded-full object-cover" />
+            <span className="font-heading text-lg tracking-[0.16em] text-paper pl-[0.16em]">
+              NOMINA
             </span>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8">
-            <Link to="/features" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-              Fonctionnalités
-            </Link>
-            <Link to="/usecases" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-              Cas d'usage
-            </Link>
-            <Link to="/pricing" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-              Tarifs
-            </Link>
-            {clerkEnabled ? (
-              <SignedIn>
-                <Link to="/dashboard" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                  Dashboard
+          {/* ── Desktop Nav ── */}
+          <nav className="hidden md:flex items-center gap-5">
+            {navLinks.map(link => {
+              if (link.auth && (!clerkEnabled || !isSignedIn)) return null;
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  className={`text-[13px] transition-colors ${
+                    isActive(link.to)
+                      ? "text-paper"
+                      : "text-ink-3 hover:text-paper"
+                  }`}
+                >
+                  {link.label}
                 </Link>
-                <Link to="/desktop-token" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                  Token Desktop
-                </Link>
-              </SignedIn>
-            ) : null}
-            <Link to="/generate" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-              Génération
-            </Link>
-            <Link to="/pack-ia" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-              Pack IA
-            </Link>
-            <Link to="/docs" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-              Documentation
-            </Link>
+              );
+            })}
+            {clerkEnabled && isSignedIn && isAdmin && adminLinks.map(link => (
+              <Link
+                key={link.to}
+                to={link.to}
+                className={`text-[13px] transition-colors ${
+                  isActive(link.to) ? "text-paper" : "text-ink-3 hover:text-paper"
+                }`}
+              >
+                {link.label}
+              </Link>
+            ))}
           </nav>
 
-          {/* Boutons d'action */}
-          <div className="hidden md:flex items-center gap-4">
-            <Button
-              variant="ghost"
-              className="text-[#d4c5f9] hover:text-white hover:bg-[#7b3ff2]/20 px-2"
+          {/* ── Desktop Actions ── */}
+          <div className="hidden md:flex items-center gap-3 shrink-0">
+            <button
               onClick={toggleTheme}
-              aria-label={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
-              title={theme === "dark" ? "Mode clair" : "Mode sombre"}
+              className="text-ink-3 hover:text-paper transition-colors p-1.5"
+              aria-label={theme === "dark" ? "Mode clair" : "Mode sombre"}
             >
               {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </Button>
+            </button>
+
             {clerkEnabled ? (
               <>
                 <SignedOut>
-                  <Button asChild variant="ghost" className="text-[#d4c5f9] hover:text-white hover:bg-[#7b3ff2]/20">
-                    <Link to="/login">Connexion</Link>
-                  </Button>
-                  <Button asChild className="bg-[#7b3ff2] hover:bg-[#a67be8] text-white">
-                    <Link to="/register">Commencer</Link>
-                  </Button>
+                  <Link to="/login" className="text-[13px] text-ink-3 hover:text-paper transition-colors">
+                    Se connecter
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="bg-wax hover:bg-wax-hover text-velin rounded-lg px-4 py-2 text-[13px] font-semibold transition-colors"
+                  >
+                    Commencer
+                  </Link>
                 </SignedOut>
+
                 <SignedIn>
-                  <div className="flex items-center gap-3">
-                    <div className="hidden lg:flex flex-col items-end leading-tight">
-                      <span className="text-xs text-[#d4c5f9] opacity-80">Connecté</span>
-                      <span className="text-sm text-white">
-                        {user?.firstName || user?.primaryEmailAddress?.emailAddress || "Compte"}
-                        {isAdmin ? <span className="ml-2 text-xs text-[#e8b4f0]">Admin</span> : null}
-                      </span>
-                    </div>
-                    <Button
-                      variant="outline"
-                      className="border-[#7b3ff2] text-[#d4c5f9] hover:text-white hover:bg-[#7b3ff2]/20"
-                      onClick={() => signOut({ redirectUrl: "/" })}
-                      aria-label="Se déconnecter"
-                      title="Se déconnecter"
-                    >
-                      <LogOut className="w-4 h-4 mr-2" />
-                      Déconnexion
-                    </Button>
-                    <UserButton
-                      afterSignOutUrl="/"
-                      appearance={{
-                        elements: {
-                          avatarBox: "w-9 h-9",
-                        },
-                      }}
-                    />
-                  </div>
+                  <span className="text-[12.5px] text-ink-3">
+                    {user?.firstName || user?.primaryEmailAddress?.emailAddress || "Compte"}
+                  </span>
+                  {isAdmin && (
+                    <span className="font-mono text-[9px] tracking-wide uppercase text-wax border border-wax/40 rounded px-1.5 py-0.5">
+                      Admin
+                    </span>
+                  )}
+                  <UserButton
+                    afterSignOutUrl="/"
+                    appearance={{ elements: { avatarBox: "w-[30px] h-[30px]" } }}
+                  />
+                  <button
+                    onClick={() => signOut({ redirectUrl: "/" })}
+                    className="text-ink-3 hover:text-paper transition-colors p-1.5"
+                    aria-label="Se déconnecter"
+                    title="Se déconnecter"
+                  >
+                    <LogOut className="w-4 h-4" />
+                  </button>
                 </SignedIn>
               </>
-            ) : (
-              <div className="text-sm text-[#d4c5f9] opacity-80">
-                Auth désactivée (clé Clerk manquante)
-              </div>
-            )}
+            ) : null}
           </div>
 
-          {/* Mobile Actions */}
+          {/* ── Mobile Actions ── */}
           <div className="md:hidden flex items-center gap-2">
-            <Button
-              variant="ghost"
-              className="text-[#d4c5f9] hover:text-white hover:bg-[#7b3ff2]/20 px-2"
+            <button
               onClick={toggleTheme}
-              aria-label={theme === "dark" ? "Passer en mode clair" : "Passer en mode sombre"}
-              title={theme === "dark" ? "Mode clair" : "Mode sombre"}
+              className="text-ink-3 hover:text-paper p-1.5"
+              aria-label={theme === "dark" ? "Mode clair" : "Mode sombre"}
             >
               {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-            </Button>
-            {clerkEnabled ? (
-              <SignedIn>
-                <Button
-                  variant="ghost"
-                  className="text-[#d4c5f9] hover:text-white hover:bg-[#7b3ff2]/20 px-2"
-                  onClick={() => signOut({ redirectUrl: "/" })}
-                  aria-label="Se déconnecter"
-                  title="Se déconnecter"
-                >
-                  <LogOut className="w-4 h-4" />
-                </Button>
-              </SignedIn>
-            ) : null}
+            </button>
+            {clerkEnabled && isSignedIn && (
+              <button
+                onClick={() => signOut({ redirectUrl: "/" })}
+                className="text-ink-3 hover:text-paper p-1.5"
+                aria-label="Se déconnecter"
+              >
+                <LogOut className="w-4 h-4" />
+              </button>
+            )}
             <button
-              className="text-white"
+              className="text-paper p-1"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "Fermer le menu" : "Ouvrir le menu"}
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile Menu */}
+        {/* ── Mobile Menu ── */}
         {mobileMenuOpen && (
-          <div className="md:hidden py-4 border-t border-[#7b3ff2]/20">
-            <nav className="flex flex-col gap-4">
-              <Link to="/features" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                Fonctionnalités
+          <nav className="md:hidden py-4 border-t border-rule-2/20 flex flex-col gap-3">
+            {navLinks.map(link => {
+              if (link.auth && (!clerkEnabled || !isSignedIn)) return null;
+              return (
+                <Link
+                  key={link.to}
+                  to={link.to}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className={`text-[13px] ${isActive(link.to) ? "text-paper" : "text-ink-3"}`}
+                >
+                  {link.label}
+                </Link>
+              );
+            })}
+            {clerkEnabled && isSignedIn && isAdmin && adminLinks.map(link => (
+              <Link
+                key={link.to}
+                to={link.to}
+                onClick={() => setMobileMenuOpen(false)}
+                className={`text-[13px] ${isActive(link.to) ? "text-paper" : "text-ink-3"}`}
+              >
+                {link.label}
               </Link>
-              <Link to="/usecases" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                Cas d'usage
-              </Link>
-              <Link to="/pricing" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                Tarifs
-              </Link>
+            ))}
+            <div className="pt-2 flex flex-col gap-2">
               {clerkEnabled ? (
-                <SignedIn>
-                  <Link to="/dashboard" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                    Dashboard
-                  </Link>
-                  <Link to="/desktop-token" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                    Token Desktop
-                  </Link>
-                </SignedIn>
+                <>
+                  <SignedOut>
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="text-[13px] text-ink-3"
+                    >
+                      Se connecter
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="bg-wax text-velin rounded-lg px-4 py-2.5 text-[13px] font-semibold text-center"
+                    >
+                      Commencer
+                    </Link>
+                  </SignedOut>
+                  <SignedIn>
+                    <div className="flex items-center gap-2 py-1">
+                      <span className="text-[12.5px] text-ink-3">
+                        {user?.firstName || "Compte"}
+                      </span>
+                      {isAdmin && (
+                        <span className="font-mono text-[9px] uppercase text-wax border border-wax/40 rounded px-1.5 py-0.5">
+                          Admin
+                        </span>
+                      )}
+                    </div>
+                  </SignedIn>
+                </>
               ) : null}
-              <Link to="/generate" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                Génération
-              </Link>
-              <Link to="/pack-ia" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                Pack IA
-              </Link>
-              <Link to="/docs" className="text-[#d4c5f9] hover:text-[#e8b4f0] transition-colors">
-                Documentation
-              </Link>
-              <div className="flex flex-col gap-2 pt-2">
-                {clerkEnabled ? (
-                  <>
-                    <SignedOut>
-                      <Button asChild variant="outline" className="border-[#7b3ff2] text-[#d4c5f9]">
-                        <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
-                          Connexion
-                        </Link>
-                      </Button>
-                      <Button asChild className="bg-[#7b3ff2] hover:bg-[#a67be8] text-white">
-                        <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
-                          Commencer
-                        </Link>
-                      </Button>
-                    </SignedOut>
-                    <SignedIn>
-                      <div className="flex flex-col items-center gap-2 py-2">
-                        <div className="text-center">
-                          <div className="text-xs text-[#d4c5f9] opacity-80">Connecté</div>
-                          <div className="text-sm text-white">
-                            {user?.firstName || user?.primaryEmailAddress?.emailAddress || "Compte"}
-                            {isAdmin ? <span className="ml-2 text-xs text-[#e8b4f0]">Admin</span> : null}
-                          </div>
-                        </div>
-                        <Button
-                          variant="outline"
-                          className="border-[#7b3ff2] text-[#d4c5f9]"
-                          onClick={() => signOut({ redirectUrl: "/" })}
-                        >
-                          <LogOut className="w-4 h-4 mr-2" />
-                          Se déconnecter
-                        </Button>
-                        <UserButton
-                          afterSignOutUrl="/"
-                          appearance={{
-                            elements: {
-                              avatarBox: "w-9 h-9",
-                            },
-                          }}
-                        />
-                      </div>
-                    </SignedIn>
-                  </>
-                ) : (
-                  <div className="text-sm text-[#d4c5f9] opacity-80">
-                    Auth désactivée (clé Clerk manquante)
-                  </div>
-                )}
-              </div>
-            </nav>
-          </div>
+            </div>
+          </nav>
         )}
       </div>
-
-      {null}
     </header>
   );
 }

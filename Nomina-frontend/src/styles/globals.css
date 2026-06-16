@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Poppins:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400;1,500&family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,258 +6,131 @@
 
 @layer base {
   :root {
-    --font-heading: 'Cinzel', serif;
-    --font-body: 'Poppins', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    /* ── Typographie ── */
+    --font-heading: 'Spectral', 'Iowan Old Style', Georgia, serif;
+    --font-body: 'Instrument Sans', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
 
-    /* ── Palette Nomina — crème chaud × bleu encre × terracotta ── */
-    --paper:     #f6f3ec;
-    --paper-2:   #ece7da;
-    --ink:       #14213d;
-    --ink-2:     #3d4a66;
-    --ink-3:     #7a8499;
-    --rule:      #dcd6c5;
-    --rule-2:    #c5beac;
-    --accent:    oklch(0.62 0.14 38);   /* terracotta chaude */
-    --accent-2:  oklch(0.55 0.10 200);  /* bleu pétrole */
-    --ok:        oklch(0.55 0.09 160);  /* vert sauge */
-    --crit:      oklch(0.55 0.15 28);
-    --crit-bg:   oklch(0.95 0.035 28);
-    --warn:      oklch(0.62 0.12 75);
-    --warn-bg:   oklch(0.95 0.045 75);
-    --reco:      oklch(0.52 0.10 230);
-    --reco-bg:   oklch(0.95 0.03 230);
+    /* ── Palette Nomina — parchemin × encre × sceau de cire ── */
+    --ink:       #1c1a2e;
+    --ink-2:     #45415a;
+    --ink-3:     #837e94;
+    --paper:     #f5f1e8;
+    --paper-2:   #ece6d8;
+    --velin:     #fdfbf5;
+    --wax:       #b3402c;
+    --wax-hover: #963529;
+    --wax-soft:  rgba(179, 64, 44, 0.12);
+    --ink-blue:  #3f4a73;
+    --sage:      #5b7355;
+    --rule:      #e0d9c9;
+    --rule-2:    #cbc3b0;
 
-    /* Aliases — compatibilité composants existants */
-    --white-pure:     #ffffff;
-    --white-off:      var(--paper);
-    --violet-deep:    var(--ink);
-    --violet-vibrant: var(--accent);
-    --violet-light:   oklch(0.72 0.10 38);
-    --lavender:       var(--paper-2);
-    --rose-gold:      var(--accent-2);
-    --silver:         var(--ink-3);
-    --success:        var(--ok);
-    --error:          var(--crit);
-    --attention:      var(--warn);
-  }
+    /* Sémantique */
+    --crit:    #a23a2e;
+    --crit-bg: #f4e0db;
+    --warn:    #9a6b2a;
+    --warn-bg: #f1e6cf;
+    --ok:      var(--sage);
+    --ok-bg:   #e2ead9;
 
-  body {
-    background: var(--white-off);
-    color: var(--violet-deep);
-    font-family: var(--font-body);
-    font-weight: 400;
+    /* Aliases shadcn/ui */
+    --background:           var(--paper);
+    --foreground:           var(--ink);
+    --card:                 var(--velin);
+    --card-foreground:      var(--ink);
+    --popover:              var(--velin);
+    --popover-foreground:   var(--ink);
+    --primary:              var(--wax);
+    --primary-foreground:   var(--velin);
+    --secondary:            var(--paper-2);
+    --secondary-foreground: var(--ink);
+    --muted:                var(--paper-2);
+    --muted-foreground:     var(--ink-3);
+    --accent:               var(--wax-soft);
+    --accent-foreground:    var(--ink);
+    --destructive:          var(--crit);
+    --destructive-foreground: var(--velin);
+    --border:               var(--rule);
+    --input:                var(--rule);
+    --ring:                 var(--wax);
+    --radius:               8px;
   }
 
   html.dark {
     color-scheme: dark;
 
-    /* ── Palette sombre — encre inversée × fond brun profond ── */
-    --paper:     #1a1815;
-    --paper-2:   #252219;
     --ink:       #ede8de;
     --ink-2:     #c8c0b0;
     --ink-3:     #8a8478;
+    --paper:     #1a1815;
+    --paper-2:   #252219;
+    --velin:     #2a2720;
+    --wax:       #e0857a;
+    --wax-hover: #c96e64;
+    --wax-soft:  rgba(224, 133, 122, 0.15);
+    --ink-blue:  #8a9bc4;
+    --sage:      #8aad82;
     --rule:      #3a3629;
     --rule-2:    #4a4638;
-    --accent:    oklch(0.72 0.14 38);
-    --accent-2:  oklch(0.65 0.10 200);
-    --ok:        oklch(0.65 0.09 160);
-    --crit:      oklch(0.65 0.15 28);
-    --crit-bg:   oklch(0.20 0.035 28);
-    --warn:      oklch(0.72 0.12 75);
-    --warn-bg:   oklch(0.20 0.045 75);
-    --reco:      oklch(0.65 0.10 230);
-    --reco-bg:   oklch(0.20 0.03 230);
 
-    /* Aliases dark */
-    --white-pure:     #0f0e0b;
-    --white-off:      var(--paper);
-    --violet-deep:    var(--ink);
-    --violet-vibrant: var(--accent);
-    --violet-light:   oklch(0.78 0.10 38);
-    --lavender:       var(--paper-2);
-    --rose-gold:      var(--accent-2);
-    --silver:         var(--ink-3);
-    --success:        var(--ok);
-    --error:          var(--crit);
-    --attention:      var(--warn);
+    --crit:    #e09a96;
+    --crit-bg: #3a2220;
+    --warn:    #d4b06a;
+    --warn-bg: #3a3020;
   }
 
-  html.dark body {
-    background: var(--white-pure);
-    color: var(--violet-deep);
+  /* ── Base ── */
+  body {
+    background: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-body);
+    font-size: 15px;
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
-  html.dark .text-\[\#2d1b4e\] {
-    color: var(--violet-deep) !important;
+  ::selection {
+    background: var(--wax-soft);
   }
 
-  html.dark .text-\[\#c5bfd9\],
-  html.dark .text-\[\#6b5aa3\] {
-    color: var(--silver) !important;
-  }
-
-  html.dark .bg-\[\#ffffff\],
-  html.dark .bg-\[\#f8f6fc\],
-  html.dark .bg-white {
-    background-color: var(--white-off) !important;
-  }
-
-  html.dark .border-\[\#d4c5f9\],
-  html.dark .border {
-    border-color: var(--lavender) !important;
-  }
-
-  html.dark input,
-  html.dark textarea,
-  html.dark select {
-    background: var(--white-off) !important;
-    color: var(--violet-deep) !important;
-    border-color: var(--lavender) !important;
-  }
-
-  html.dark input::placeholder,
-  html.dark textarea::placeholder {
-    color: var(--silver) !important;
-  }
-
-  html.dark table {
-    color: var(--violet-deep);
-  }
-
-  html.dark tr:hover {
-    background: rgba(123, 63, 242, 0.12);
-  }
-
-  html.dark .text-red-600 {
-    color: var(--error) !important;
-  }
-
-  html.dark .text-green-700 {
-    color: var(--success) !important;
-  }
-
-  h1,
-  h2 {
+  /* ── Typographie ── */
+  h1, h2 {
     font-family: var(--font-heading);
+    letter-spacing: -0.02em;
   }
-
-  h1 {
-    font-weight: 700;
-  }
-
-  h2 {
-    font-weight: 600;
-  }
-
-  h3,
-  h4,
-  h5,
-  h6 {
+  h1 { font-weight: 600; }
+  h2 { font-weight: 500; }
+  h3, h4, h5, h6 {
     font-family: var(--font-body);
     font-weight: 600;
   }
-
-  code {
+  code, pre {
     font-family: var(--font-mono);
   }
 }
 
 @layer components {
-  /* Clerk (SignIn/SignUp): garantir la lisibilité des champs */
+  /* ── Clerk auth ── */
   :where(.cl-rootBox),
   :where(.cl-formFieldLabel) {
-    color: var(--violet-deep);
+    color: var(--foreground);
   }
-
   :where(.cl-formFieldInput, .cl-input) {
-    background: var(--white-pure);
-    color: var(--violet-deep);
-    border: 1px solid var(--lavender);
-    border-radius: 12px;
+    background: var(--card);
+    color: var(--foreground);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     min-height: 40px;
   }
-
   :where(.cl-formButtonPrimary) {
-    background: var(--violet-vibrant);
+    background: var(--primary);
   }
-
   :where(.cl-formButtonPrimary:hover) {
-    background: var(--violet-light);
+    background: var(--wax-hover);
   }
-
   :where(.cl-footerActionLink) {
-    color: var(--violet-vibrant);
+    color: var(--primary);
   }
-}
-
-/* ── Remapping palette violet → crème × encre × terracotta ── */
-/* Les composants utilisent des classes Tailwind hardcodées (#7b3ff2, etc.)  */
-/* Ces overrides les redirigent vers les tokens de la nouvelle palette.       */
-@layer utilities {
-  /* — Fonds — */
-  .bg-\[\#7b3ff2\]  { background-color: var(--accent)   !important; }
-  .bg-\[\#a67be8\]  { background-color: oklch(0.72 0.10 38) !important; }
-  .bg-\[\#2d1b4e\]  { background-color: var(--ink)      !important; }
-  .bg-\[\#f8f6fc\]  { background-color: var(--paper)    !important; }
-  .bg-\[\#f4efff\]  { background-color: var(--paper-2)  !important; }
-  .bg-\[\#efe7ff\]  { background-color: var(--paper-2)  !important; }
-  .bg-\[\#f3efff\]  { background-color: var(--paper)    !important; }
-  .bg-\[\#e7defc\]  { background-color: var(--paper-2)  !important; }
-  .bg-\[\#1e1537\]  { background-color: var(--ink)      !important; }
-  .bg-\[\#1a1230\]  { background-color: var(--paper-2)  !important; }
-  .bg-\[\#1a0f33\]  { background-color: var(--ink)      !important; }
-
-  /* — Textes — */
-  .text-\[\#2d1b4e\] { color: var(--ink)     !important; }
-  .text-\[\#2b1748\] { color: var(--ink)     !important; }
-  .text-\[\#3b275f\] { color: var(--ink)     !important; }
-  .text-\[\#7b3ff2\] { color: var(--accent)  !important; }
-  .text-\[\#a67be8\] { color: var(--accent)  !important; }
-  .text-\[\#6f4da5\] { color: var(--accent-2) !important; }
-  .text-\[\#5b4a7f\] { color: var(--ink-2)   !important; }
-  .text-\[\#6b5aa3\] { color: var(--ink-2)   !important; }
-  .text-\[\#b9a3e3\] { color: var(--ink-2)   !important; }
-  .text-\[\#c5bfd9\] { color: var(--ink-3)   !important; }
-  .text-\[\#b9b3cf\] { color: var(--ink-3)   !important; }
-  .text-\[\#d4c5f9\] { color: var(--ink-2)   !important; }
-  .text-\[\#e8b4f0\] { color: var(--accent)  !important; }
-  .text-\[\#efe7ff\] { color: var(--paper-2) !important; }
-  .text-\[\#e7defc\] { color: var(--paper-2) !important; }
-  .text-\[\#f3efff\] { color: var(--paper)   !important; }
-
-  /* — Bordures — */
-  .border-\[\#d4c5f9\] { border-color: var(--rule)   !important; }
-  .border-\[\#7b3ff2\] { border-color: var(--accent)  !important; }
-  .border-\[\#4f3a7a\] { border-color: var(--rule-2) !important; }
-  .border-\[\#bda3ec\] { border-color: var(--rule)   !important; }
-  .border-\[\#bfa1ea\] { border-color: var(--rule)   !important; }
-  .border-\[\#3e2a66\] { border-color: var(--rule-2) !important; }
-
-  /* — Variantes d'opacité violet → terracotta / crème — */
-  /* backgrounds */
-  .bg-\[\#7b3ff2\]\/5  { background-color: rgb(200 121 65 / 0.05)  !important; }
-  .bg-\[\#7b3ff2\]\/10 { background-color: rgb(200 121 65 / 0.10)  !important; }
-  .bg-\[\#7b3ff2\]\/15 { background-color: rgb(200 121 65 / 0.15)  !important; }
-  .bg-\[\#7b3ff2\]\/20 { background-color: rgb(200 121 65 / 0.20)  !important; }
-  .bg-\[\#7b3ff2\]\/25 { background-color: rgb(200 121 65 / 0.25)  !important; }
-  .bg-\[\#7b3ff2\]\/30 { background-color: rgb(200 121 65 / 0.30)  !important; }
-  .bg-\[\#7b3ff2\]\/40 { background-color: rgb(200 121 65 / 0.40)  !important; }
-  .bg-\[\#5c2bb8\]\/20 { background-color: rgb(200 121 65 / 0.15)  !important; }
-  .bg-\[\#1a0f33\]\/40 { background-color: rgb(61  74  102 / 0.20) !important; }
-  .bg-\[\#2d1b4e\]\/45 { background-color: rgb(61  74  102 / 0.20) !important; }
-  .bg-\[\#2d1b4e\]\/60 { background-color: rgb(61  74  102 / 0.30) !important; }
-  /* borders */
-  .border-\[\#7b3ff2\]\/15 { border-color: rgb(200 121 65 / 0.15) !important; }
-  .border-\[\#7b3ff2\]\/20 { border-color: rgb(200 121 65 / 0.20) !important; }
-  .border-\[\#7b3ff2\]\/25 { border-color: rgb(200 121 65 / 0.25) !important; }
-  .border-\[\#7b3ff2\]\/30 { border-color: rgb(200 121 65 / 0.30) !important; }
-  .border-\[\#7b3ff2\]\/40 { border-color: rgb(200 121 65 / 0.40) !important; }
-  .border-\[\#7b3ff2\]\/50 { border-color: rgb(200 121 65 / 0.50) !important; }
-  .border-\[\#7b3ff2\]\/60 { border-color: rgb(200 121 65 / 0.60) !important; }
-  .border-\[\#d4c5f9\]\/70 { border-color: rgb(220 214 197 / 0.70) !important; }
-  /* texte */
-  .text-\[\#d4c5f9\]\/90 { color: rgb(61 74 102 / 0.90) !important; }
-  .text-\[\#2d1b4e\]\/70 { color: rgb(20 33 61 / 0.70)  !important; }
 }
