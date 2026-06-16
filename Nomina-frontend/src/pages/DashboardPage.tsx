@@ -1,22 +1,8 @@
 import { useEffect, useState } from "react";
 import { SignedIn, SignedOut, useClerk } from "@clerk/clerk-react";
 import { apiFetch, ApiError } from "../lib/api";
-import { Button } from "../components/ui/button";
-import { Card } from "../components/ui/card";
 import { Link } from "react-router-dom";
-import { 
-  Users, 
-  Globe, 
-  Tag, 
-  Lightbulb, 
-  Award, 
-  BookOpen, 
-  User, 
-  MapPin,
-  Sparkles,
-  TrendingUp,
-  Activity
-} from "lucide-react";
+import { Sparkles } from "lucide-react";
 
 type Me = { userId: string; isAdmin: boolean };
 type Stats = {
@@ -31,17 +17,31 @@ type Stats = {
   users: number;
 };
 
+const ADMIN_LINKS = [
+  { to: "/cultures", label: "Cultures", letter: "C" },
+  { to: "/univers", label: "Univers", letter: "U" },
+  { to: "/categories", label: "Catégories", letter: "K" },
+  { to: "/concepts", label: "Concepts", letter: "O" },
+  { to: "/titres", label: "Titres", letter: "T" },
+  { to: "/fragments-histoire", label: "Fragments", letter: "F" },
+  { to: "/nom-personnages", label: "Noms", letter: "N" },
+  { to: "/nom-familles", label: "Familles", letter: "Fa" },
+  { to: "/lieux", label: "Lieux", letter: "L" },
+  { to: "/creatures", label: "Créatures", letter: "Cr" },
+  { to: "/users", label: "Utilisateurs", letter: "Us" },
+];
+
 export function DashboardPage() {
   const clerkEnabled = Boolean(import.meta.env.VITE_CLERK_PUBLISHABLE_KEY);
 
   if (!clerkEnabled) {
     return (
-      <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50 dark:from-[#120b22] dark:via-[#0f0a1b] dark:to-[#140b24]">
-        <div className="mx-auto w-full max-w-5xl">
-          <Card className="bg-white border-[#d4c5f9] p-6 dark:bg-[#1a1230] dark:border-[#3e2a66]">
-            <h1 className="text-3xl font-semibold mb-2">Dashboard</h1>
-            <p className="opacity-80">Auth désactivée (clé Clerk manquante).</p>
-          </Card>
+      <main className="min-h-screen p-6 bg-paper">
+        <div className="mx-auto max-w-5xl">
+          <div className="bg-velin border border-rule rounded-xl p-6">
+            <h1 className="font-heading text-2xl text-ink">Dashboard</h1>
+            <p className="text-ink-3 mt-1">Auth désactivée (clé Clerk manquante).</p>
+          </div>
         </div>
       </main>
     );
@@ -50,15 +50,18 @@ export function DashboardPage() {
   return (
     <>
       <SignedOut>
-        <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50 dark:from-[#120b22] dark:via-[#0f0a1b] dark:to-[#140b24]">
-          <div className="mx-auto w-full max-w-5xl">
-            <Card className="bg-white border-[#d4c5f9] p-6 dark:bg-[#1a1230] dark:border-[#3e2a66]">
-              <h1 className="text-3xl font-semibold mb-2">Dashboard</h1>
-              <p className="opacity-80 mb-4">Connexion requise pour accéder au dashboard.</p>
-              <Button asChild className="bg-[#7b3ff2] hover:bg-[#a67be8] text-white">
-                <Link to="/login">Connexion</Link>
-              </Button>
-            </Card>
+        <main className="min-h-screen p-6 bg-paper">
+          <div className="mx-auto max-w-5xl">
+            <div className="bg-velin border border-rule rounded-xl p-6">
+              <h1 className="font-heading text-2xl text-ink mb-2">Dashboard</h1>
+              <p className="text-ink-3 mb-4">Connexion requise pour accéder au dashboard.</p>
+              <Link
+                to="/login"
+                className="inline-block bg-wax hover:bg-wax-hover text-velin rounded-lg px-5 py-2.5 text-sm font-semibold transition-colors"
+              >
+                Connexion
+              </Link>
+            </div>
           </div>
         </main>
       </SignedOut>
@@ -89,19 +92,14 @@ function DashboardInner() {
         if (cancelled) return;
         if (e instanceof ApiError && (e.status === 401 || e.status === 403)) {
           setMe({ userId: "session-unavailable", isAdmin: false });
-          setError(null);
           return;
         }
-        const msg = e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e);
-        setError(msg);
+        setError(e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e));
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -109,413 +107,191 @@ function DashboardInner() {
     (async () => {
       setStatsLoading(true);
       try {
-        const [cultures, categories, concepts, titres, fragments, nomPersonnages, lieux, creatures, users] = await Promise.all([
-          apiFetch<{ total: number }>("/cultures/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/categories/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/concepts/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/titres/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/fragmentsHistoire/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/nomPersonnages/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/lieux/total").catch(() => ({ total: 0 })),
-          apiFetch<{ total: number }>("/creatures/total").catch(() => ({ total: 0 })),
-          me?.isAdmin 
-            ? apiFetch<{ total: number }>("/users/total").catch(() => ({ total: 0 }))
-            : Promise.resolve({ total: 0 }),
-        ]);
-
-        if (!cancelled) {
+        const [cultures, categories, concepts, titres, fragments, nomPersonnages, lieux, creatures, users] =
+          await Promise.all([
+            apiFetch<{ total: number }>("/cultures/total").catch(() => ({ total: 0 })),
+            apiFetch<{ total: number }>("/categories/total").catch(() => ({ total: 0 })),
+            apiFetch<{ total: number }>("/concepts/total").catch(() => ({ total: 0 })),
+            apiFetch<{ total: number }>("/titres/total").catch(() => ({ total: 0 })),
+            apiFetch<{ total: number }>("/fragmentsHistoire/total").catch(() => ({ total: 0 })),
+            apiFetch<{ total: number }>("/nomPersonnages/total").catch(() => ({ total: 0 })),
+            apiFetch<{ total: number }>("/lieux/total").catch(() => ({ total: 0 })),
+            apiFetch<{ total: number }>("/creatures/total").catch(() => ({ total: 0 })),
+            me?.isAdmin
+              ? apiFetch<{ total: number }>("/users/total").catch(() => ({ total: 0 }))
+              : Promise.resolve({ total: 0 }),
+          ]);
+        if (!cancelled)
           setStats({
-            cultures: cultures.total,
-            categories: categories.total,
-            concepts: concepts.total,
-            titres: titres.total,
-            fragments: fragments.total,
-            nomPersonnages: nomPersonnages.total,
-            lieux: lieux.total,
-            creatures: creatures.total,
-            users: users.total,
+            cultures: cultures.total, categories: categories.total,
+            concepts: concepts.total, titres: titres.total,
+            fragments: fragments.total, nomPersonnages: nomPersonnages.total,
+            lieux: lieux.total, creatures: creatures.total, users: users.total,
           });
-        }
-      } catch (e) {
-        if (!cancelled) console.error("Erreur chargement stats:", e);
+      } catch {
+        /* silenced */
       } finally {
         if (!cancelled) setStatsLoading(false);
       }
     })();
-
-    return () => {
-      cancelled = true;
-    };
+    return () => { cancelled = true; };
   }, [me?.isAdmin]);
 
+  const total = stats
+    ? stats.cultures + stats.categories + stats.concepts + stats.titres +
+      stats.fragments + stats.nomPersonnages + stats.lieux + stats.creatures
+    : 0;
+
   return (
-    <main className="min-h-screen p-6 bg-gradient-to-b from-violet-50 via-white to-pink-50 dark:from-[#120b22] dark:via-[#0f0a1b] dark:to-[#140b24]">
-      <div className="mx-auto w-full max-w-7xl space-y-6">
-        {/* Header */}
-        <Card className="bg-white border-[#d4c5f9] p-6 dark:bg-[#1a1230] dark:border-[#3e2a66]">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-semibold flex items-center gap-3">
-                <Activity className="w-8 h-8 text-[#7b3ff2]" />
-                Dashboard
-              </h1>
-              <p className="opacity-80 mt-1">Bienvenue sur la plateforme de génération créative</p>
-            </div>
-            {me ? (
-              <div className="flex items-center gap-2">
-                <span className={`text-xs px-3 py-1.5 rounded-full font-medium ${
-                  me.isAdmin 
-                    ? "bg-[#7b3ff2] text-white" 
-                    : "border border-[#d4c5f9] text-[#2d1b4e] dark:border-[#4f3a7a] dark:text-[#efe7ff]"
-                }`}>
-                  {me.isAdmin ? "🛡️ Admin" : "👤 Utilisateur"}
+    <main className="min-h-screen p-6 bg-paper">
+      <div className="mx-auto max-w-7xl space-y-5">
+        {/* ── En-tête ── */}
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="font-heading text-3xl text-ink">Tableau de bord</h1>
+            <p className="text-ink-3 text-sm mt-1">
+              Bonjour — voici l'état de ton univers.
+            </p>
+          </div>
+          {me && (
+            <span className={`font-mono text-[10px] tracking-wide uppercase rounded-md px-3 py-1.5 ${
+              me.isAdmin
+                ? "bg-ink text-paper"
+                : "border border-rule text-ink-3"
+            }`}>
+              {me.isAdmin ? "Administrateur · accès complet" : "Utilisateur"}
+            </span>
+          )}
+        </div>
+
+        {loading && <p className="text-wax text-sm">Chargement…</p>}
+        {error && <p className="text-crit text-sm">{error}</p>}
+
+        {/* ── Stats principales ── */}
+        {statsLoading ? (
+          <div className="bg-velin border border-rule rounded-xl p-6">
+            <p className="text-center text-ink-3 text-sm">Chargement des statistiques…</p>
+          </div>
+        ) : stats ? (
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+            <StatTile label="Cultures" value={stats.cultures} />
+            <StatTile label="Concepts" value={stats.concepts} />
+            <StatTile label="Personnages" value={stats.nomPersonnages} />
+            <div className="bg-ink border border-ink rounded-2xl px-5 py-4">
+              <div className="flex justify-between items-center">
+                <span className="font-mono text-[9.5px] tracking-wide uppercase text-ink-3">
+                  Ressources
                 </span>
+                <span className="w-5 h-5 rounded-full bg-wax" />
               </div>
+              <div className="font-heading text-[34px] leading-none text-paper mt-2.5">
+                {total.toLocaleString()}
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        <div className="grid grid-cols-1 lg:grid-cols-[1.6fr_1fr] gap-5 items-start">
+          {/* ── Gérer le contenu (admin) ── */}
+          <div>
+            {me?.isAdmin && stats ? (
+              <>
+                <div className="font-mono text-[9.5px] tracking-wide uppercase text-ink-3 mb-3">
+                  Gérer le contenu
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                  {ADMIN_LINKS.map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      className="bg-velin border border-rule rounded-xl px-3.5 py-3 flex items-center gap-2.5 hover:border-rule-2 transition-colors"
+                    >
+                      <span className="w-7 h-7 rounded-lg bg-paper-2 text-ink-3 flex items-center justify-center font-heading text-sm">
+                        {item.letter}
+                      </span>
+                      <div>
+                        <div className="text-[13.5px] text-ink">{item.label}</div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              </>
+            ) : stats ? (
+              <>
+                <div className="font-mono text-[9.5px] tracking-wide uppercase text-ink-3 mb-3">
+                  Statistiques détaillées
+                </div>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+                  <StatTile label="Titres" value={stats.titres} />
+                  <StatTile label="Fragments" value={stats.fragments} />
+                  <StatTile label="Lieux" value={stats.lieux} />
+                  <StatTile label="Créatures" value={stats.creatures} />
+                </div>
+              </>
             ) : null}
           </div>
 
-          {loading ? <p className="mt-4 text-[#7b3ff2]">Chargement…</p> : null}
-          {error ? <p className="mt-4 text-red-600">{error}</p> : null}
-        </Card>
+          {/* ── Panneau droit ── */}
+          <div className="space-y-3">
+            {/* Action principale */}
+            <Link
+              to="/generate"
+              className="block bg-wax hover:bg-wax-hover rounded-2xl px-5 py-4 transition-colors"
+            >
+              <div className="flex items-center gap-2 text-velin">
+                <Sparkles className="w-4 h-4" />
+                <span className="font-heading text-lg">Générer du contenu</span>
+              </div>
+              <p className="text-velin/80 text-[12.5px] mt-1">
+                Personnages, lieux, créatures…
+              </p>
+            </Link>
 
-        {/* Stats Grid */}
-        {statsLoading ? (
-          <Card className="bg-white border-[#d4c5f9] p-6 dark:bg-[#1a1230] dark:border-[#3e2a66]">
-            <p className="text-center text-[#7b3ff2]">Chargement des statistiques…</p>
-          </Card>
-        ) : stats ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard
-                icon={<Globe className="w-5 h-5" />}
-                label="Cultures"
-                value={stats.cultures}
-                color="bg-blue-500"
-                link="/cultures"
-                isAdmin={me?.isAdmin}
-              />
-              <StatCard
-                icon={<Tag className="w-5 h-5" />}
-                label="Catégories"
-                value={stats.categories}
-                color="bg-purple-500"
-                link="/categories"
-                isAdmin={me?.isAdmin}
-              />
-              <StatCard
-                icon={<Lightbulb className="w-5 h-5" />}
-                label="Concepts"
-                value={stats.concepts}
-                color="bg-yellow-500"
-                link="/concepts"
-                isAdmin={me?.isAdmin}
-              />
-              <StatCard
-                icon={<Award className="w-5 h-5" />}
-                label="Titres"
-                value={stats.titres}
-                color="bg-pink-500"
-                link="/titres"
-                isAdmin={me?.isAdmin}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <StatCard
-                icon={<BookOpen className="w-5 h-5" />}
-                label="Fragments"
-                value={stats.fragments}
-                color="bg-indigo-500"
-                link="/fragments-histoire"
-                isAdmin={me?.isAdmin}
-              />
-              <StatCard
-                icon={<User className="w-5 h-5" />}
-                label="Personnages"
-                value={stats.nomPersonnages}
-                color="bg-green-500"
-                link="/nom-personnages"
-                isAdmin={me?.isAdmin}
-              />
-              <StatCard
-                icon={<MapPin className="w-5 h-5" />}
-                label="Lieux"
-                value={stats.lieux}
-                color="bg-red-500"
-                link="/lieux"
-                isAdmin={me?.isAdmin}
-              />
-              <StatCard
-                icon={<Sparkles className="w-5 h-5" />}
-                label="Créatures"
-                value={stats.creatures}
-                color="bg-violet-500"
-                link="/creatures"
-                isAdmin={me?.isAdmin}
-              />
-              {me?.isAdmin ? (
-                <StatCard
-                  icon={<Users className="w-5 h-5" />}
-                  label="Utilisateurs"
-                  value={stats.users}
-                  color="bg-gray-500"
-                  link="/users"
-                  isAdmin={true}
-                />
-              ) : (
-                <Card className="bg-gradient-to-br from-[#7b3ff2] to-[#a67be8] text-white p-6 border-0 dark:from-[#5d2ab8] dark:to-[#7f53d1]">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-white/20 p-3 rounded-lg">
-                      <TrendingUp className="w-5 h-5" />
+            {/* Session */}
+            <div className="bg-velin border border-rule rounded-2xl px-5 py-4">
+              <div className="font-mono text-[9.5px] tracking-wide uppercase text-ink-3 mb-2">
+                Session
+              </div>
+              {me ? (
+                <div className="space-y-3">
+                  <div>
+                    <div className="text-[13.5px] text-ink">
+                      {me.isAdmin ? "Administrateur" : "Utilisateur"}
                     </div>
-                    <div>
-                      <div className="text-2xl font-bold">
-                        {stats.cultures + stats.concepts + stats.titres}
-                      </div>
-                      <div className="text-sm opacity-90">Ressources totales</div>
+                    <div className="text-[12px] text-ink-3 mt-0.5">
+                      {me.isAdmin ? "Accès complet" : "Accès standard"} · profil modifiable
                     </div>
                   </div>
-                </Card>
-              )}
-            </div>
-          </>
-        ) : null}
-
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Card className="bg-white p-6 border-[#d4c5f9] dark:bg-[#1a1230] dark:border-[#3e2a66]">
-            <h2 className="text-lg font-semibold mb-3 flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-[#7b3ff2]" />
-              Actions rapides
-            </h2>
-            <div className="flex flex-col gap-2">
-              <Button
-                asChild
-                className="justify-start bg-gradient-to-r from-[#7b3ff2] to-[#a67be8] hover:from-[#6b2fe2] hover:to-[#9657d8] text-white"
-              >
-                <Link to="/generate">
-                  <Sparkles className="w-4 h-4 mr-2" />
-                  Générer du contenu
-                </Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="justify-start border-[#d4c5f9] bg-[#7b3ff2]/10 hover:bg-[#7b3ff2]/20 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#7b3ff2]/20 dark:hover:bg-[#7b3ff2]/30 dark:text-[#efe7ff]"
-              >
-                <Link to="/docs">
-                  <BookOpen className="w-4 h-4 mr-2" />
-                  Documentation API
-                </Link>
-              </Button>
-              {me?.isAdmin ? (
-                <>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
-                  >
-                    <Link to="/cultures">
-                      <Globe className="w-4 h-4 mr-2" />
-                      Gérer les cultures
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
-                  >
-                    <Link to="/categories">
-                      <Tag className="w-4 h-4 mr-2" />
-                      Gérer les catégories
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
-                  >
-                    <Link to="/concepts">
-                      <Lightbulb className="w-4 h-4 mr-2" />
-                      Gérer les concepts
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
-                  >
-                    <Link to="/titres">
-                      <Award className="w-4 h-4 mr-2" />
-                      Gérer les titres
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
-                  >
-                    <Link to="/fragments-histoire">
-                      <BookOpen className="w-4 h-4 mr-2" />
-                      Gérer les fragments d’histoire
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
-                  >
-                    <Link to="/nom-personnages">
-                      <User className="w-4 h-4 mr-2" />
-                      Gérer les noms de personnages
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
-                  >
-                    <Link to="/univers">
-                      <Globe className="w-4 h-4 mr-2" />
-                      Gérer les univers thématiques
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
-                  >
-                    <Link to="/nom-familles">
-                      <Users className="w-4 h-4 mr-2" />
-                      Gérer les noms de famille
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
-                  >
-                    <Link to="/lieux">
-                      <MapPin className="w-4 h-4 mr-2" />
-                      Gérer les lieux
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
-                  >
-                    <Link to="/creatures">
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Gérer les créatures
-                    </Link>
-                  </Button>
-                  <Button
-                    asChild
-                    variant="outline"
-                    className="justify-start border-[#d4c5f9] bg-white hover:bg-[#7b3ff2]/10 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#1e1537] dark:hover:bg-[#7b3ff2]/25 dark:text-[#efe7ff]"
-                  >
-                    <Link to="/users">
-                      <Users className="w-4 h-4 mr-2" />
-                      Gérer les utilisateurs
-                    </Link>
-                  </Button>
-                </>
-              ) : null}
-            </div>
-          </Card>
-
-          <Card className="bg-white p-6 border-[#d4c5f9] dark:bg-[#1a1230] dark:border-[#3e2a66]">
-            <h2 className="text-lg font-semibold mb-3">Session</h2>
-            {me ? (
-              <div className="space-y-3">
-                <div className="text-sm">
-                  <span className="opacity-70 block mb-1">Identifiant</span>
-                  <div className="font-mono text-xs bg-[#7b3ff2]/5 p-2 rounded border border-[#d4c5f9] break-all dark:bg-[#241842] dark:border-[#4f3a7a]">
-                    {me.userId}
-                  </div>
-                </div>
-                <div className="text-sm">
-                  <span className="opacity-70 block mb-1">Niveau d'accès</span>
-                  <div className="mt-1 flex items-center gap-2">
-                    {me.isAdmin ? (
-                      <>
-                        <span className="bg-[#7b3ff2] text-white px-3 py-1 rounded-full text-xs font-medium">
-                          Administrateur
-                        </span>
-                        <span className="text-xs opacity-70">Accès complet</span>
-                      </>
-                    ) : (
-                      <>
-                        <span className="border border-[#d4c5f9] text-[#2d1b4e] px-3 py-1 rounded-full text-xs font-medium dark:border-[#4f3a7a] dark:text-[#efe7ff]">
-                          Utilisateur
-                        </span>
-                        <span className="text-xs opacity-70">Accès standard</span>
-                      </>
-                    )}
-                  </div>
-                </div>
-                <div>
-                  <Button
-                    variant="outline"
-                    className="border-[#d4c5f9] bg-[#7b3ff2]/10 hover:bg-[#7b3ff2]/20 text-[#2d1b4e] dark:border-[#4f3a7a] dark:bg-[#7b3ff2]/20 dark:hover:bg-[#7b3ff2]/30 dark:text-[#efe7ff]"
+                  <button
                     onClick={() => openUserProfile()}
+                    className="text-sm text-ink-blue hover:underline"
                   >
                     Modifier mon profil
-                  </Button>
-                  <p className="text-xs opacity-70 mt-1">Tu peux y modifier ton username à tout moment.</p>
+                  </button>
                 </div>
-              </div>
-            ) : (
-              <p className="opacity-70">Aucune information.</p>
-            )}
-          </Card>
+              ) : (
+                <p className="text-ink-3 text-sm">Aucune information.</p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </main>
   );
 }
 
-function StatCard({ 
-  icon, 
-  label, 
-  value, 
-  color, 
-  link, 
-  isAdmin 
-}: { 
-  icon: React.ReactNode; 
-  label: string; 
-  value: number; 
-  color: string; 
-  link: string;
-  isAdmin?: boolean;
-}) {
-  const content = (
-    <div className="flex items-center gap-3">
-      <div className={`${color} text-white p-3 rounded-lg`}>
-        {icon}
+function StatTile({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="bg-velin border border-rule rounded-2xl px-5 py-4">
+      <div className="flex justify-between items-center">
+        <span className="font-mono text-[9.5px] tracking-wide uppercase text-ink-3">
+          {label}
+        </span>
+        <span className="w-5 h-5 rounded-full bg-paper-2" />
       </div>
-      <div>
-        <div className="text-2xl font-bold text-[#2d1b4e] dark:text-[#efe7ff]">{value.toLocaleString()}</div>
-        <div className="text-sm text-[#2d1b4e]/70 dark:text-[#d6c6ff]">{label}</div>
+      <div className="font-heading text-[34px] leading-none text-ink mt-2.5">
+        {value.toLocaleString()}
       </div>
     </div>
-  );
-
-  if (isAdmin) {
-    return (
-      <Link to={link}>
-        <Card className="bg-white border-[#d4c5f9] p-6 hover:border-[#7b3ff2] hover:shadow-md transition-all cursor-pointer dark:bg-[#1a1230] dark:border-[#3e2a66] dark:hover:border-[#8f67dd]">
-          {content}
-        </Card>
-      </Link>
-    );
-  }
-
-  return (
-    <Card className="bg-white border-[#d4c5f9] p-6 dark:bg-[#1a1230] dark:border-[#3e2a66]">
-      {content}
-    </Card>
   );
 }
