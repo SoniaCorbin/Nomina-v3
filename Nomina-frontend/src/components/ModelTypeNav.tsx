@@ -1,11 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 
-type NavItem = {
-  to: string;
-  label: string;
-};
-
-const navItems: NavItem[] = [
+const navItems = [
   { to: "/dashboard", label: "Dashboard" },
   { to: "/cultures", label: "Cultures" },
   { to: "/categories", label: "Catégories" },
@@ -20,26 +15,22 @@ const navItems: NavItem[] = [
 ];
 
 export function ModelTypeNav() {
-  const location = useLocation();
-
+  const { pathname } = useLocation();
   return (
-    <nav className="mb-6 flex flex-wrap gap-2">
-      {navItems.map((item) => {
-        const isActive = location.pathname === item.to;
-        return (
-          <Link
-            key={item.to}
-            to={item.to}
-            className={`rounded-md border px-3 py-1.5 text-sm transition-colors ${
-              isActive
-                ? "border-[#7b3ff2] bg-[#7b3ff2] text-white"
-                : "border-[#d4c5f9] bg-white text-[#2d1b4e] hover:bg-[#f8f6fc]"
-            }`}
-          >
-            {item.label}
-          </Link>
-        );
-      })}
+    <nav className="mb-5 flex flex-wrap gap-1.5">
+      {navItems.map((item) => (
+        <Link
+          key={item.to}
+          to={item.to}
+          className={`font-mono text-[10.5px] uppercase tracking-wide px-3 py-1.5 rounded-md border transition-colors ${
+            pathname === item.to
+              ? "bg-ink text-paper border-ink"
+              : "bg-velin text-ink-2 border-rule hover:border-rule-2"
+          }`}
+        >
+          {item.label}
+        </Link>
+      ))}
     </nav>
   );
 }
