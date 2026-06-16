@@ -25,6 +25,7 @@ import OrganizationRoutes from "./routes/OrganizationRoutes";
 import RelationTypeRoutes from "./routes/RelationTypeRoutes";
 import EventRoutes from "./routes/EventRoutes";
 import GeneratePackRoutes from "./routes/GeneratePackRoutes";
+import BillingRoutes from "./routes/BillingRoutes";
 
 import { getUploadsRootDir } from "./utils/uploads";
 import prisma from "./utils/prisma";
@@ -165,6 +166,7 @@ app.use("/api/occupations", OccupationRoutes);
 app.use("/api/organizations", OrganizationRoutes);
 app.use("/api/relationTypes", RelationTypeRoutes);
 app.use("/api/events", EventRoutes);
+app.use("/api/billing", BillingRoutes);
 
 // 8) 404 + gestionnaire d'erreurs — DOIT être en dernier.
 app.use(notFoundHandler);

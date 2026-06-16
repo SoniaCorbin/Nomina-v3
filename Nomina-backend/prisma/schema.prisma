@@ -433,3 +433,40 @@ model PersonnageEvent {
   @@unique([personnageId, eventId])
   @@index([eventId])
 }
+
+// ─── Billing ────────────────────────────────────────────────
+// Ajouter ces modèles à la fin de prisma/schema.prisma
+model Subscription {
+  id                    Int      @id @default(autoincrement())
+  clerkUserId           String   @unique            // Clerk user Id (ex: user_2abc...)
+  stripeCustomerId      String?  @unique            // Stripe customer ID (cus_...)
+  stripeSubscriptionId  String?  @unique            // Stripe subscription ID (sub_...)
+  plan                  String   @default("free")   // "free" | "creator" | "studio"
+  status                String   @default("active") // "active" | "canceled" | "past_due"
+
+  // Quotas
+  monthlyLimit          Int      @default(1000)     // Requetes max par mois
+  currentUsage          Int      @default(0)        // Requetes utilisees ce mois
+  periodStart           DateTime @default(now())    // Debut du cycle de facturation
+  periodEnd             DateTime?                   // Fin du cycle (renouvele par webhook)
+
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  usageLogs             UsageLog[]
+
+  @@index([plan])
+  @@index([periodEnd])
+}
+
+model UsageLog {
+  id              Int         @id @default(autoincrement())
+  subscriptionId  Int
+  subscription    Subscription @relation(fields: [subscriptionId], references: [id])
+  endpoint        String                             // ex: "/api/generate/npcs"
+  tokenUsed       Int?                               // tokens OpenAi si applicable
+  createdAt       DateTime     @default(now())
+
+  @@index([subscriptionId, createdAt])
+  @@index([createdAt])
+}
