@@ -42,7 +42,7 @@ export const asyncHandler =
  * routes. Couvre Zod, AppError, erreurs Prisma connues, et tout le reste.
  */
 export function errorHandler(
-  err: unknown,
+  err: any,
   req: Request,
   res: Response,
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -88,9 +88,9 @@ export function errorHandler(
   }
 
   // 4) Erreurs CORS — explicites, pas un 500
-  if (err instanceof Error && err.message.startsWith("CORS:")) {
-    res.status(403).json({ error: err.message, reqId });
-    return;
+  if (err instanceof Error && (err as Error).message.startsWith("CORS:")) {
+  res.status(403).json({ error: (err as Error).message, reqId });
+  return;
   }
 
   // 5) Tout le reste — 500 opaque côté client, stack côté logs

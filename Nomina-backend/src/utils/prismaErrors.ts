@@ -1,8 +1,13 @@
-import { Prisma } from "@prisma/client";
-
 export function isKnownPrismaError(
   error: unknown,
-  code: Prisma.PrismaClientKnownRequestError["code"]
-): error is Prisma.PrismaClientKnownRequestError {
-  return error instanceof Prisma.PrismaClientKnownRequestError && error.code === code;
+  code: string
+): boolean {
+  if (
+    error !== null &&
+    typeof error === "object" &&
+    "code" in error
+  ) {
+    return (error as { code: string }).code === code;
+  }
+  return false;
 }
