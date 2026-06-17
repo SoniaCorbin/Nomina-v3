@@ -1,7 +1,7 @@
 {
   "version": 2,
   "functions": {
-    "api/index.ts": {
+    "dist/api/index.ts": {
       "maxDuration": 30
     }
   },
@@ -16,6 +16,6 @@
     }
   ],
   "rewrites": [
-    { "source": "/(.*)", "destination": "/api/index" }
+    { "source": "/(.*)", "destination": "dist/api/index" }
   ]
 }
