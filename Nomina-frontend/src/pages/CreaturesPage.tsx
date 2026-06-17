@@ -1,605 +1,145 @@
 import { type ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { apiFetch, ApiError, getApiBaseUrl } from "../lib/api";
-import { Button } from "../components/ui/button";
-import { Card } from "../components/ui/card";
-import { Input } from "../components/ui/input";
-import { Textarea } from "../components/ui/textarea";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
 import { ModelTypeNav } from "../components/ModelTypeNav";
 import { getErrorMessage } from "../lib/error-utils";
 
 type Culture = { id: number; name: string };
 type Category = { id: number; name: string };
-type PrenomRef = { id: number; valeur?: string | null };
-type NomFamilleRef = { id: number; valeur?: string | null };
-type PersonnageRef = {
-  id: number;
-  prenom?: PrenomRef | null;
-  nomFamille?: NomFamilleRef | null;
-};
-
-type Creature = {
-  id: number;
-  valeur: string;
-  type?: string | null;
-  description?: string | null;
-  imageUrl?: string | null;
-  personnageId?: number | null;
-  cultureId?: number | null;
-  categorieId?: number | null;
-  personnage?: PersonnageRef | null;
-  culture?: Culture | null;
-  categorie?: Category | null;
-};
-
-type FormState = {
-  valeur: string;
-  type: string;
-  description: string;
-  personnageId: string;
-  cultureId: string;
-  categorieId: string;
-};
-
+type Creature = { id: number; valeur: string; type?: string | null; description?: string | null; imageUrl?: string | null; personnageId?: number | null; cultureId?: number | null; categorieId?: number | null; culture?: Culture | null; categorie?: Category | null };
+type FormState = { valeur: string; type: string; description: string; cultureId: string; categorieId: string };
 type FieldErrors = Partial<Record<keyof FormState, string>>;
 
-function validateForm(form: FormState): FieldErrors {
-  const errs: FieldErrors = {};
-  if (!form.valeur.trim()) errs.valeur = "La valeur est obligatoire";
-  if (form.valeur.trim().length > 120) errs.valeur = "Trop long (max 120)";
-  if (form.type.trim().length > 80) errs.type = "Trop long (max 80)";
-  if (form.description.trim().length > 2000) errs.description = "Trop long (max 2000)";
-  return errs;
-}
-
-function formatPersonnageLabel(p: PersonnageRef | null | undefined): string {
-  if (!p) return "—";
-  const prenom = p.prenom?.valeur?.trim() ?? "";
-  const nom = p.nomFamille?.valeur?.trim() ?? "";
-  const label = `${prenom} ${nom}`.trim();
-  return label || `Personnage #${p.id}`;
+function validateForm(f: FormState): FieldErrors {
+  const e: FieldErrors = {};
+  if (!f.valeur.trim()) e.valeur = "Le nom est obligatoire";
+  if (f.valeur.trim().length > 120) e.valeur = "Max 120 caractères";
+  if (f.description.trim().length > 500) e.description = "Max 500 caractères";
+  return e;
 }
 
 export function CreaturesPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-
   const [items, setItems] = useState<Creature[]>([]);
   const [cultures, setCultures] = useState<Culture[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
-  const [personnages, setPersonnages] = useState<PersonnageRef[]>([]);
-
   const [selectedId, setSelectedId] = useState<number | null>(null);
-  const selected = useMemo(() => items.find((c) => c.id === selectedId) ?? null, [items, selectedId]);
-
-  const [search, setSearch] = useState("");
-  const [filterCultureId, setFilterCultureId] = useState("");
-  const [filterCategorieId, setFilterCategorieId] = useState("");
-  const [filterPersonnageId, setFilterPersonnageId] = useState("");
-  const [pageSize, setPageSize] = useState(10);
-  const [page, setPage] = useState(1);
+  const selected = useMemo(() => items.find(i => i.id === selectedId) ?? null, [items, selectedId]);
+  const [mode, setMode] = useState<"create" | "edit">("create");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadTargetId, setUploadTargetId] = useState<number | null>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-
-  const [mode, setMode] = useState<"create" | "edit">("create");
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const [form, setForm] = useState<FormState>({
-    valeur: "",
-    type: "",
-    description: "",
-    personnageId: "",
-    cultureId: "",
-    categorieId: "",
-  });
+  const [form, setForm] = useState<FormState>({ valeur: "", type: "", description: "", cultureId: "", categorieId: "" });
   const [formErrors, setFormErrors] = useState<FieldErrors>({});
 
   async function refreshAll() {
-    const [list, cs, cats, pers] = await Promise.all([
+    const [list, cs, cats] = await Promise.all([
       apiFetch<Creature[]>("/creatures", { cacheTtlMs: 0 }),
       apiFetch<Culture[]>("/cultures", { cacheTtlMs: 0 }).catch(() => [] as Culture[]),
       apiFetch<Category[]>("/categories", { cacheTtlMs: 0 }).catch(() => [] as Category[]),
-      apiFetch<PersonnageRef[]>("/personnages", { cacheTtlMs: 0 }).catch(() => [] as PersonnageRef[]),
     ]);
-
-    setItems(list);
-    setCultures(cs);
-    setCategories(cats);
-    setPersonnages(pers);
+    setItems(list); setCultures(cs); setCategories(cats);
   }
 
-  async function onRefreshClick() {
-    setError(null);
-    setSuccess(null);
-    setLoading(true);
-    try {
-      await refreshAll();
-      setSuccess("Liste rafraîchie");
-    } catch (e) {
-      const msg = e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e);
-      setError(msg);
-    } finally {
-      setLoading(false);
-    }
-  }
+  useEffect(() => { let c = false; (async () => { setLoading(true); setError(null); try { await refreshAll(); } catch (e) { if (!c) setError(e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e)); } finally { if (!c) setLoading(false); } })(); return () => { c = true; }; }, []);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        await refreshAll();
-      } catch (e) {
-        if (cancelled) return;
-        const msg = e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e);
-        setError(msg);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  const filteredItems = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return items.filter((c) => {
-      if (filterCultureId && String(c.cultureId ?? "") !== filterCultureId) return false;
-      if (filterCategorieId && String(c.categorieId ?? "") !== filterCategorieId) return false;
-      if (filterPersonnageId && String(c.personnageId ?? "") !== filterPersonnageId) return false;
-
-      if (!q) return true;
-      const personnageLabel = formatPersonnageLabel(c.personnage).toLowerCase();
-      const haystack = `${c.valeur ?? ""} ${c.type ?? ""} ${c.description ?? ""} ${personnageLabel}`.toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [items, search, filterCultureId, filterCategorieId, filterPersonnageId]);
-
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
-
-  useEffect(() => {
-    setPage(1);
-  }, [search, filterCultureId, filterCategorieId, filterPersonnageId, pageSize]);
-
-  useEffect(() => {
-    if (page > totalPages) setPage(totalPages);
-  }, [page, totalPages]);
-
-  const paginatedItems = useMemo(() => {
-    const start = (page - 1) * pageSize;
-    return filteredItems.slice(start, start + pageSize);
-  }, [filteredItems, page, pageSize]);
-
-  function resetToCreate() {
-    setMode("create");
-    setSelectedId(null);
-    setForm({
-      valeur: "",
-      type: "",
-      description: "",
-      personnageId: "",
-      cultureId: "",
-      categorieId: "",
-    });
-    setFormErrors({});
-  }
-
-  function startEdit(c: Creature) {
-    setMode("edit");
-    setSelectedId(c.id);
-    setForm({
-      valeur: c.valeur ?? "",
-      type: c.type ?? "",
-      description: c.description ?? "",
-      personnageId: c.personnageId ? String(c.personnageId) : "",
-      cultureId: c.cultureId ? String(c.cultureId) : "",
-      categorieId: c.categorieId ? String(c.categorieId) : "",
-    });
-    setFormErrors({});
-  }
-
-  function toAbsoluteImageUrl(imageUrl?: string | null): string | null {
-    if (!imageUrl) return null;
-    if (imageUrl.startsWith("http://") || imageUrl.startsWith("https://")) return imageUrl;
-    return `${getApiBaseUrl()}${imageUrl.startsWith("/") ? imageUrl : `/${imageUrl}`}`;
-  }
-
-  function triggerImageUpload(creatureId: number) {
-    setUploadTargetId(creatureId);
-    fileInputRef.current?.click();
-  }
+  function resetForm() { setMode("create"); setSelectedId(null); setForm({ valeur: "", type: "", description: "", cultureId: "", categorieId: "" }); setFormErrors({}); setSuccess(null); setError(null); }
+  function startEdit(i: Creature) { setMode("edit"); setSelectedId(i.id); setForm({ valeur: i.valeur ?? "", type: i.type ?? "", description: i.description ?? "", cultureId: i.cultureId ? String(i.cultureId) : "", categorieId: i.categorieId ? String(i.categorieId) : "" }); setFormErrors({}); setSuccess(null); setError(null); }
+  function toAbsUrl(u?: string | null) { if (!u) return null; if (u.startsWith("http")) return u; return `${getApiBaseUrl()}${u.startsWith("/") ? u : `/${u}`}`; }
+  function triggerUpload(id: number) { setUploadTargetId(id); fileInputRef.current?.click(); }
 
   async function onImageSelected(e: ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    e.target.value = "";
-
+    const file = e.target.files?.[0]; e.target.value = "";
     if (!file || !uploadTargetId) return;
-
-    if (!file.type.startsWith("image/")) {
-      setError("Le fichier doit être une image.");
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      setError("Image trop lourde (max 5 Mo).");
-      return;
-    }
-
-    setError(null);
-    setSuccess(null);
-    setUploadingImage(true);
-
-    try {
-      const fd = new FormData();
-      fd.append("image", file);
-
-      await apiFetch<{ message: string; imageUrl: string }>(`/creatures/${uploadTargetId}/image`, {
-        method: "POST",
-        body: fd,
-      });
-
-      setSuccess("Image téléversée avec succès.");
-      await refreshAll();
-    } catch (error) {
-      setError(getErrorMessage(error, "Échec du téléversement de l'image."));
-    } finally {
-      setUploadingImage(false);
-      setUploadTargetId(null);
-    }
+    if (!file.type.startsWith("image/")) { setError("Le fichier doit être une image."); return; }
+    if (file.size > 5 * 1024 * 1024) { setError("Max 5 Mo."); return; }
+    setError(null); setSuccess(null); setUploadingImage(true);
+    try { const fd = new FormData(); fd.append("image", file); await apiFetch(`/creatures/${uploadTargetId}/image`, { method: "POST", body: fd }); setSuccess("Image téléversée."); await refreshAll(); }
+    catch (err) { setError(getErrorMessage(err, "Échec du téléversement.")); }
+    finally { setUploadingImage(false); setUploadTargetId(null); }
   }
 
   async function onSubmit() {
-    setSuccess(null);
-    setError(null);
-
-    const errs = validateForm(form);
-    setFormErrors(errs);
+    setSuccess(null); setError(null);
+    const errs = validateForm(form); setFormErrors(errs);
     if (Object.keys(errs).length > 0) return;
-
     setIsSubmitting(true);
     try {
-      const body = {
-        valeur: form.valeur.trim(),
-        type: form.type.trim() ? form.type.trim() : null,
-        description: form.description.trim() ? form.description.trim() : null,
-        personnageId: form.personnageId ? Number(form.personnageId) : null,
-        cultureId: form.cultureId ? Number(form.cultureId) : null,
-        categorieId: form.categorieId ? Number(form.categorieId) : null,
-      };
-
-      if (mode === "create") {
-        await apiFetch<Creature>("/creatures", { method: "POST", body });
-        setSuccess("Créature créée");
-      } else {
-        if (!selected) throw new Error("Aucune créature sélectionnée");
-        await apiFetch<Creature>(`/creatures/${selected.id}`, { method: "PUT", body });
-        setSuccess("Créature modifiée");
-      }
-
-      await refreshAll();
-      resetToCreate();
+      const body = { valeur: form.valeur.trim(), type: form.type.trim() || null, description: form.description.trim() || null, cultureId: form.cultureId ? Number(form.cultureId) : null, categorieId: form.categorieId ? Number(form.categorieId) : null };
+      if (mode === "create") { await apiFetch("/creatures", { method: "POST", body }); setSuccess("Créature créée."); }
+      else { if (!selected) throw new Error("Aucune créature sélectionnée"); await apiFetch(`/creatures/${selected.id}`, { method: "PUT", body }); setSuccess("Créature modifiée."); }
+      await refreshAll(); resetForm();
     } catch (e) {
-      if (e instanceof ApiError && e.status === 0 && e.payload?.queued) {
-        setSuccess("Hors‑ligne: requête mise en attente (outbox)");
-        resetToCreate();
-        return;
-      }
-      const msg = e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e);
-      setError(msg);
-    } finally {
-      setIsSubmitting(false);
-    }
+      if (e instanceof ApiError && e.status === 0 && e.payload?.queued) { setSuccess("Hors-ligne : mis en attente."); resetForm(); return; }
+      setError(e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e));
+    } finally { setIsSubmitting(false); }
   }
 
-  async function onDelete(c: Creature) {
-    setSuccess(null);
-    setError(null);
-    const ok = confirm(`Supprimer la créature “${c.valeur}” ?`);
-    if (!ok) return;
-
+  async function onDelete(i: Creature) {
+    setSuccess(null); setError(null);
+    if (!confirm(`Supprimer « ${i.valeur} » ?`)) return;
     setIsSubmitting(true);
-    try {
-      await apiFetch<void>(`/creatures/${c.id}`, { method: "DELETE" });
-      setSuccess("Créature supprimée");
-      if (selectedId === c.id) setSelectedId(null);
-      await refreshAll();
-      resetToCreate();
-    } catch (e) {
-      if (e instanceof ApiError && e.status === 0 && e.payload?.queued) {
-        setSuccess("Hors‑ligne: suppression mise en attente (outbox)");
-        if (selectedId === c.id) setSelectedId(null);
-        resetToCreate();
-        return;
-      }
-      const msg = e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e);
-      setError(msg);
-    } finally {
-      setIsSubmitting(false);
-    }
+    try { await apiFetch(`/creatures/${i.id}`, { method: "DELETE" }); setSuccess("Supprimée."); if (selectedId === i.id) setSelectedId(null); await refreshAll(); resetForm(); }
+    catch (e) {
+      if (e instanceof ApiError && e.status === 0 && e.payload?.queued) { setSuccess("Hors-ligne : suppression en attente."); resetForm(); return; }
+      setError(e instanceof ApiError ? `${e.message} (HTTP ${e.status})` : String(e));
+    } finally { setIsSubmitting(false); }
   }
+
+  const inputCls = "w-full border border-rule rounded-lg bg-white px-3.5 py-2.5 text-sm text-ink placeholder:text-ink-3 focus:outline-none focus:border-wax focus:ring-1 focus:ring-wax/30";
+  const selectCls = "w-full h-9 rounded-lg border border-rule bg-velin px-3 text-sm text-ink focus:outline-none focus:border-wax focus:ring-1 focus:ring-wax/30";
+  const labelCls = "font-mono text-[9.5px] tracking-wide uppercase text-ink-3 block mb-1.5";
 
   return (
-    <main className="min-h-screen p-6">
-      <h1 className="text-3xl font-semibold mb-6">Créatures</h1>
+    <main className="min-h-screen p-6 bg-paper">
+      <h1 className="font-heading text-3xl text-ink mb-1">Créatures</h1>
       <ModelTypeNav />
+      {loading && <p className="text-ink-3 text-sm">Chargement…</p>}
+      {error && <p className="text-crit text-sm mb-3">{error}</p>}
+      {success && <p className="text-sage text-sm mb-3">{success}</p>}
+      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={e => onImageSelected(e).catch(() => undefined)} />
 
-      {loading ? <p>Chargement…</p> : null}
-      {error ? <p className="text-red-600 mb-4">{error}</p> : null}
-      {success ? <p className="text-green-700 mb-4">{success}</p> : null}
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          className="hidden"
-          onChange={(e) => onImageSelected(e).catch(() => undefined)}
-        />
-
-        <Card className="p-4 border-[#d4c5f9] lg:col-span-2">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <h2 className="text-lg font-semibold">Liste</h2>
-            <Button variant="outline" onClick={() => onRefreshClick().catch(() => undefined)} disabled={loading}>
-              Rafraîchir
-            </Button>
+      <div className="grid grid-cols-1 lg:grid-cols-[1.8fr_1fr] gap-5 items-start">
+        <div className="bg-velin border border-rule rounded-2xl overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-rule">
+            <h2 className="font-heading text-lg text-ink">Liste</h2>
+            <button onClick={() => refreshAll().catch(() => undefined)} disabled={loading} className="text-sm text-ink-blue hover:underline disabled:opacity-50">Rafraîchir</button>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-5 gap-2 mb-3">
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Rechercher (nom, type, bio, personnage)"
-              className="xl:col-span-2"
-            />
-            <select
-              value={filterCultureId}
-              onChange={(e) => setFilterCultureId(e.target.value)}
-              className="h-9 rounded-md border border-[#d4c5f9] bg-white px-3 text-sm"
-            >
-              <option value="">Toutes cultures</option>
-              {cultures.map((c) => (
-                <option key={c.id} value={String(c.id)}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filterCategorieId}
-              onChange={(e) => setFilterCategorieId(e.target.value)}
-              className="h-9 rounded-md border border-[#d4c5f9] bg-white px-3 text-sm"
-            >
-              <option value="">Toutes catégories</option>
-              {categories.map((c) => (
-                <option key={c.id} value={String(c.id)}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
-            <select
-              value={filterPersonnageId}
-              onChange={(e) => setFilterPersonnageId(e.target.value)}
-              className="h-9 rounded-md border border-[#d4c5f9] bg-white px-3 text-sm"
-            >
-              <option value="">Tous personnages</option>
-              {personnages.map((p) => (
-                <option key={p.id} value={String(p.id)}>
-                  {formatPersonnageLabel(p)}
-                </option>
-              ))}
-            </select>
+          <div className="grid grid-cols-[48px_1.3fr_0.7fr_1.2fr_130px] px-4 py-2.5 border-b border-rule font-mono text-[9.5px] tracking-wide uppercase text-ink-3">
+            <span>ID</span><span>Nom</span><span>Type</span><span>Description</span><span></span>
           </div>
-
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>ID</TableHead>
-                <TableHead>Valeur</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Image</TableHead>
-                <TableHead>Personnage lié</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedItems.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={6} className="opacity-70">
-                    Aucune créature pour ces filtres.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                paginatedItems.map((c) => (
-                  <TableRow
-                    key={c.id}
-                    className={selectedId === c.id ? "bg-muted/50" : undefined}
-                    onClick={() => setSelectedId(c.id)}
-                    style={{ cursor: "pointer" }}
-                  >
-                    <TableCell>{c.id}</TableCell>
-                    <TableCell className="font-medium">{c.valeur}</TableCell>
-                    <TableCell>{c.type ?? "—"}</TableCell>
-                    <TableCell>
-                      {c.imageUrl ? (
-                        <img
-                          src={toAbsoluteImageUrl(c.imageUrl) ?? undefined}
-                          alt={`Illustration de ${c.valeur}`}
-                          className="w-12 h-12 rounded-md border border-[#d4c5f9] object-cover"
-                        />
-                      ) : (
-                        <span className="opacity-60">—</span>
-                      )}
-                    </TableCell>
-                    <TableCell>{formatPersonnageLabel(c.personnage)}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            startEdit(c);
-                          }}
-                          disabled={isSubmitting}
-                        >
-                          Modifier
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            triggerImageUpload(c.id);
-                          }}
-                          disabled={isSubmitting || uploadingImage}
-                        >
-                          {uploadingImage && uploadTargetId === c.id ? "Upload…" : "Image"}
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onDelete(c).catch(() => undefined);
-                          }}
-                          disabled={isSubmitting}
-                        >
-                          Supprimer
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-
-          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 text-sm">
-            <div className="opacity-80">
-              {filteredItems.length} résultat(s) • page {page}/{totalPages}
+          {items.length === 0 ? (
+            <div className="px-4 py-6 text-center text-ink-3 text-sm">Aucune créature.</div>
+          ) : items.map(i => (
+            <div key={i.id} onClick={() => setSelectedId(i.id)} className={`grid grid-cols-[48px_1.3fr_0.7fr_1.2fr_130px] px-4 py-3.5 border-b border-rule/60 items-center cursor-pointer transition-colors ${selectedId === i.id ? "bg-wax-soft" : "hover:bg-paper"}`}>
+              <span className="font-mono text-xs text-ink-3">{String(i.id).padStart(2, "0")}</span>
+              <span className="font-heading text-[15px] text-ink">{i.valeur}</span>
+              <span className="text-[12.5px] text-ink-3">{i.type ?? "—"}</span>
+              <span className="text-[12.5px] text-ink-2 truncate">{i.description ?? ""}</span>
+              <div className="flex gap-1.5">
+                <button onClick={e => { e.stopPropagation(); startEdit(i); }} disabled={isSubmitting} className="text-[11px] text-ink-blue border border-ink-blue/30 rounded px-2 py-1 hover:bg-ink-blue/10 disabled:opacity-50">Modifier</button>
+                <button onClick={e => { e.stopPropagation(); onDelete(i).catch(() => undefined); }} disabled={isSubmitting} className="text-[11px] text-wax border border-wax/35 rounded px-2 py-1 hover:bg-wax-soft disabled:opacity-50">Suppr.</button>
+              </div>
             </div>
-            <div className="flex items-center gap-2">
-              <label className="opacity-80">Par page</label>
-              <select
-                value={String(pageSize)}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-                className="h-8 rounded-md border border-[#d4c5f9] bg-white px-2"
-              >
-                <option value="5">5</option>
-                <option value="10">10</option>
-                <option value="20">20</option>
-              </select>
-              <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={page <= 1}>
-                Précédent
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-                disabled={page >= totalPages}
-              >
-                Suivant
-              </Button>
+          ))}
+        </div>
+
+        <div className="bg-velin border border-rule rounded-2xl p-5">
+          <div className="font-heading text-lg text-ink mb-4">{mode === "create" ? "Nouvelle créature" : "Modifier"}</div>
+          <div className="space-y-3.5">
+            <div><label className={labelCls}>Nom</label><input value={form.valeur} onChange={e => setForm(f => ({ ...f, valeur: e.target.value }))} placeholder="Ex : Wyrm des Cendres" className={inputCls} />{formErrors.valeur && <p className="text-[11px] text-crit mt-1">{formErrors.valeur}</p>}</div>
+            <div><label className={labelCls}>Type</label><input value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))} placeholder="Ex : Dragon, Esprit, Bête…" className={inputCls} /></div>
+            <div><label className={labelCls}>Description</label><textarea value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))} rows={3} placeholder="Courte description…" className={`${inputCls} resize-none`} />{formErrors.description ? <p className="text-[11px] text-crit mt-1">{formErrors.description}</p> : <p className="text-right font-mono text-[10px] text-ink-3 mt-1">{form.description.length} / 500</p>}</div>
+            <div><label className={labelCls}>Culture</label><select value={form.cultureId} onChange={e => setForm(f => ({ ...f, cultureId: e.target.value }))} className={selectCls}><option value="">(Aucune)</option>{cultures.map(c => <option key={c.id} value={String(c.id)}>{c.name}</option>)}</select></div>
+            <div><label className={labelCls}>Catégorie</label><select value={form.categorieId} onChange={e => setForm(f => ({ ...f, categorieId: e.target.value }))} className={selectCls}><option value="">(Aucune)</option>{categories.map(c => <option key={c.id} value={String(c.id)}>{c.name}</option>)}</select></div>
+            <div className="flex gap-2.5">
+              <button onClick={() => onSubmit().catch(() => undefined)} disabled={isSubmitting} className="flex-1 bg-wax hover:bg-wax-hover text-velin rounded-lg py-2.5 text-[13.5px] font-semibold transition-colors disabled:opacity-50">{isSubmitting ? "En cours…" : mode === "create" ? "Créer" : "Enregistrer"}</button>
+              <button onClick={resetForm} disabled={isSubmitting} className="border border-rule-2 text-ink rounded-lg px-4 py-2.5 text-[13.5px] hover:bg-paper-2 transition-colors disabled:opacity-50">Annuler</button>
             </div>
           </div>
-        </Card>
-
-        <Card className="p-4 border-[#d4c5f9]">
-          <div className="flex items-center justify-between mb-3">
-            <h2 className="text-lg font-semibold">{mode === "create" ? "Créer" : "Modifier"}</h2>
-            {mode === "edit" ? (
-              <Button variant="outline" onClick={resetToCreate} disabled={isSubmitting}>
-                Annuler
-              </Button>
-            ) : null}
-          </div>
-
-          <div className="space-y-3">
-            <div>
-              <label className="text-sm opacity-80">Valeur *</label>
-              <Input
-                value={form.valeur}
-                onChange={(e) => setForm((s) => ({ ...s, valeur: e.target.value }))}
-                placeholder="Ex: Dragon d’obsidienne"
-              />
-              {formErrors.valeur ? <div className="text-sm text-red-600 mt-1">{formErrors.valeur}</div> : null}
-            </div>
-
-            <div>
-              <label className="text-sm opacity-80">Type</label>
-              <Input value={form.type} onChange={(e) => setForm((s) => ({ ...s, type: e.target.value }))} />
-              {formErrors.type ? <div className="text-sm text-red-600 mt-1">{formErrors.type}</div> : null}
-            </div>
-
-            <div>
-              <label className="text-sm opacity-80">Description / Bio</label>
-              <Textarea
-                value={form.description}
-                onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))}
-                rows={4}
-              />
-              {formErrors.description ? <div className="text-sm text-red-600 mt-1">{formErrors.description}</div> : null}
-            </div>
-
-            <div>
-              <label className="text-sm opacity-80">Personnage lié</label>
-              <select
-                value={form.personnageId}
-                onChange={(e) => setForm((s) => ({ ...s, personnageId: e.target.value }))}
-                className="mt-2 w-full h-9 rounded-md border border-[#d4c5f9] bg-white px-3 text-sm"
-              >
-                <option value="">(Aucun)</option>
-                {personnages.map((p) => (
-                  <option key={p.id} value={String(p.id)}>
-                    {formatPersonnageLabel(p)}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-sm opacity-80">Culture</label>
-              <select
-                value={form.cultureId}
-                onChange={(e) => setForm((s) => ({ ...s, cultureId: e.target.value }))}
-                className="mt-2 w-full h-9 rounded-md border border-[#d4c5f9] bg-white px-3 text-sm"
-              >
-                <option value="">(Aucune)</option>
-                {cultures.map((c) => (
-                  <option key={c.id} value={String(c.id)}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-sm opacity-80">Catégorie</label>
-              <select
-                value={form.categorieId}
-                onChange={(e) => setForm((s) => ({ ...s, categorieId: e.target.value }))}
-                className="mt-2 w-full h-9 rounded-md border border-[#d4c5f9] bg-white px-3 text-sm"
-              >
-                <option value="">(Aucune)</option>
-                {categories.map((c) => (
-                  <option key={c.id} value={String(c.id)}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <Button onClick={() => onSubmit().catch(() => undefined)} disabled={isSubmitting}>
-              {isSubmitting ? "Envoi…" : mode === "create" ? "Créer" : "Enregistrer"}
-            </Button>
-
-            <p className="text-xs opacity-70">Note: les écritures sont réservées à l’admin.</p>
-          </div>
-        </Card>
+        </div>
       </div>
     </main>
   );
