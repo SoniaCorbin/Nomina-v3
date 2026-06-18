@@ -1,4 +1,4 @@
-import { Wand2, BookOpen, Zap, Globe, Shield, Code } from "lucide-react";
+import { Wand2, BookOpen, Zap, Globe, Shield, Code, Layout, Megaphone } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "./ui/dialog";
 import { useMemo, useState } from "react";
 
@@ -6,27 +6,57 @@ const features = [
   {
     icon: Wand2,
     title: "Génération intelligente",
-    description: "Algorithmes avancés pour créer des noms uniques et mémorables adaptés à un univers narratif.",
+    description: "Algorithmes avancés pour créer des noms uniques et mémorables — personnages, marques fictives, personas UX ou identités narratives.",
     details: [
-      "Choix du type (personnage, lieu, créature) et du genre.",
+      "Choix du type (personnage, lieu, créature, persona, marque) et du genre.",
       "Préfixe optionnel pour guider la génération.",
-      "Résultats cohérents avec le style de l'univers.",
+      "Résultats cohérents avec le style de l'univers ou de la campagne.",
     ],
   },
   {
     icon: BookOpen,
     title: "Narration intégrée",
-    description: "Mini-biographies et descriptions narratives pour donner vie aux créations.",
+    description: "Mini-biographies et descriptions narratives pour donner vie aux créations — que ce soit un personnage de roman ou un profil utilisateur fictif.",
     details: [
       "Génération d'une description courte en plus du nom.",
       "Style narratif configurable selon le contexte.",
-      "Parfait pour amorcer des fiches de personnages et de lieux.",
+      "Parfait pour amorcer des fiches de personnages, de lieux ou de personas.",
+    ],
+  },
+  {
+    icon: Layout,
+    title: "Personas & Maquettes",
+    description: "Noms fictifs, profils utilisateurs et données d'exemple réalistes pour remplir tes wireframes, prototypes et présentations clients.",
+    details: [
+      "Génération de prénoms, noms de famille et profils complets.",
+      "Données cohérentes et crédibles pour les tests utilisateurs.",
+      "Fini les 'Lorem Ipsum' dans tes présentations — des noms vrais, des histoires vraies.",
+    ],
+  },
+  {
+    icon: Megaphone,
+    title: "Naming commercial",
+    description: "Noms de marques fictives, personnages de campagne et identités narratives pour les briefs créatifs, les pitchs et les présentations clients.",
+    details: [
+      "Génération de noms sonores et mémorables pour les projets publicitaires.",
+      "Personnages de campagne avec backstory pour ancrer une identité de marque.",
+      "Idéal pour les agences qui ont besoin de matière créative rapidement.",
+    ],
+  },
+  {
+    icon: Globe,
+    title: "Multi-cultures",
+    description: "Support de plusieurs cultures et sonorités pour des noms authentiques et diversifiés — fiction, historique ou campagne internationale.",
+    details: [
+      "Approche extensible par dictionnaires culturels.",
+      "Variantes de sons, suffixes et styles selon la région ou l'époque.",
+      "Idéal pour univers fantasy, SF, historique ou campagnes multimarché.",
     ],
   },
   {
     icon: Zap,
     title: "Rapide et fiable",
-    description: "API haute performance avec temps de réponse rapide et disponibilité constante.",
+    description: "API haute performance avec temps de réponse rapide et disponibilité constante — même en démo de dernière minute.",
     details: [
       "Réponses rapides pour une expérience fluide.",
       "Erreurs gérées proprement avec messages clairs.",
@@ -34,19 +64,9 @@ const features = [
     ],
   },
   {
-    icon: Globe,
-    title: "Multi-cultures",
-    description: "Support de plusieurs cultures et sonorités pour des noms authentiques et diversifiés.",
-    details: [
-      "Approche extensible par dictionnaires culturels.",
-      "Variantes de sons, suffixes et styles.",
-      "Idéal pour univers fantasy, SF ou historique.",
-    ],
-  },
-  {
     icon: Shield,
     title: "Sécurisé",
-    description: "Infrastructure sécurisée avec authentification robuste et respect de la vie privée.",
+    description: "Infrastructure sécurisée avec authentification robuste et respect de la vie privée — conforme aux exigences canadiennes (Loi 25).",
     details: [
       "Authentification via Clerk (sessions et tokens).",
       "Routes protégées pour les opérations sensibles.",
@@ -56,10 +76,10 @@ const features = [
   {
     icon: Code,
     title: "Facile à intégrer",
-    description: "Documentation complète et exemples de code pour démarrer en quelques minutes.",
+    description: "Documentation complète et exemples de code pour démarrer en quelques minutes depuis n'importe quel stack.",
     details: [
       "Endpoints clairs et faciles à consommer.",
-      "Exemples d'appels API depuis React et Electron.",
+      "Exemples d'appels API depuis React, Next.js et Electron.",
       "Documentation lisible et à jour.",
     ],
   },
@@ -87,11 +107,11 @@ export function Features() {
             Ce que Nomina <em className="italic text-wax">sait faire</em>
           </h2>
           <p className="text-ink-3 max-w-2xl mx-auto">
-            Tout le nécessaire pour créer des noms et des histoires captivantes.
+            Des outils pour les auteurs, les designers et les créatifs — tout ce qu'il faut pour nommer, raconter et convaincre.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {features.map((feature, index) => (
             <div
               key={index}
