@@ -146,16 +146,19 @@ export function GeneratePage() {
         ]);
         if(c)return;
         const [u,ca,cu,co,t,sc,oc,og,rt,ev]=s;
-        if(u.status==="fulfilled") setUnivers(u.value);
-        if(ca.status==="fulfilled") setCategories(ca.value);
-        if(cu.status==="fulfilled") setCultures(cu.value);
-        if(co.status==="fulfilled") setConcepts(co.value);
-        if(t.status==="fulfilled") setTitres(t.value);
-        if(sc.status==="fulfilled") setSocialClasses(sc.value);
-        if(oc.status==="fulfilled") setOccupations(oc.value);
-        if(og.status==="fulfilled") setOrganizations(og.value);
-        if(rt.status==="fulfilled") setRelationTypes(rt.value);
-        if(ev.status==="fulfilled") setEvents(ev.value);
+        const unwrap = (v: unknown) => Array.isArray(v) ? v : (v as any)?.data ?? [];
+
+        if(u.status==="fulfilled")  setUnivers(unwrap(u.value));
+        if(ca.status==="fulfilled") setCategories(unwrap(ca.value));
+        if(cu.status==="fulfilled") setCultures(unwrap(cu.value));
+        if(co.status==="fulfilled") setConcepts(unwrap(co.value));
+        if(t.status==="fulfilled")  setTitres(unwrap(t.value));
+        if(sc.status==="fulfilled") setSocialClasses(unwrap(sc.value));
+        if(oc.status==="fulfilled") setOccupations(unwrap(oc.value));
+        if(og.status==="fulfilled") setOrganizations(unwrap(og.value));
+        if(rt.status==="fulfilled") setRelationTypes(unwrap(rt.value));
+        if(ev.status==="fulfilled") setEvents(unwrap(ev.value));
+
         const fails=s.filter(x=>x.status==="rejected").length;
         if(fails===s.length) setError("Impossible de joindre l'API.");
         else if(fails>0) setError("Certaines listes n'ont pas pu être chargées.");
