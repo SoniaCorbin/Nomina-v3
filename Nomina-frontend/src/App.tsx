@@ -6,6 +6,9 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 import { SignedIn, SignedOut, useAuth } from "@clerk/clerk-react";
 import { setApiTokenProvider, apiFetch, ApiError } from "./lib/api";
 import { getErrorMessage } from "./lib/error-utils";
+import { FAQPage } from "./pages/FAQPage";
+import { PrivacyPage } from "./pages/PrivacyPage";
+import { TermsPage } from "./pages/TermsPage";
 
 const Features = lazy(() => import("./components/Features").then((m) => ({ default: m.Features })));
 const UseCases = lazy(() => import("./components/UseCases").then((m) => ({ default: m.UseCases })));
@@ -254,6 +257,9 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route path="/sso-callback" element={<SsoCallbackPage />} />
             <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="/faq" element={<FAQPage />} />
+            <Route path="/privacy" element={<PrivacyPage />} />
+            <Route path="/terms" element={<TermsPage />} />
           </Routes>
         </Suspense>
       </main>

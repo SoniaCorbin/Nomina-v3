@@ -316,16 +316,21 @@ export function GeneratePage() {
                             <span className="text-rule-2 ml-2">⌄</span>
                           </button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-[340px] p-0" align="start">
-                          <Command>
-                            <CommandInput placeholder="Rechercher…" />
+                        <PopoverContent className="w-[340px] p-0 bg-ink border border-rule-2 shadow-lg z-50" align="start">
+                          <Command className="bg-ink">
+                            <CommandInput placeholder="Rechercher…" className="bg-ink text-velin border-b border-rule-2" />
                             <CommandList>
                               <CommandEmpty>Aucun titre.</CommandEmpty>
-                              <CommandGroup><CommandItem value="__none__" onSelect={()=>{setTitreId("");setTitrePickerOpen(false);}}>— Aucun —</CommandItem></CommandGroup>
+                              <CommandGroup>
+                                <CommandItem value="__none__" onSelect={()=>{setTitreId("");setTitrePickerOpen(false);}} className="!text-ink hover:bg-velin"
+                                >
+                                  — Aucun — 
+                                </CommandItem>
+                              </CommandGroup>
                               {filteredTitresGrouped.map(g=>(
                                 <CommandGroup key={g.label} heading={g.label}>
                                   {g.items.map(t=>(
-                                    <CommandItem key={t.id} value={`${t.valeur} ${g.label}`} onSelect={()=>{setTitreId(t.id);setTitrePickerOpen(false);}}>
+                                    <CommandItem key={t.id} value={`${t.valeur} ${g.label}`} onSelect={()=>{setTitreId(t.id);setTitrePickerOpen(false);}} className="!text-ink hover:bg-velin">
                                       <div className="flex flex-col"><span className="truncate">{t.valeur}</span><span className="text-xs text-ink-3 truncate">{titreDescById.get(t.id)??getTitreDescription(t)}</span></div>
                                     </CommandItem>
                                   ))}
@@ -371,7 +376,7 @@ export function GeneratePage() {
                     {selectedCategorie && <span className="bg-paper-2 text-ink-3 rounded px-2 py-0.5 text-[11px]">Cat. : {selectedCategorie.name}</span>}
                     {selectedCulture && <span className="bg-paper-2 text-ink-3 rounded px-2 py-0.5 text-[11px]">Culture : {selectedCulture.name}</span>}
                     {genre && <span className="bg-paper-2 text-ink-3 rounded px-2 py-0.5 text-[11px]">Genre : {genre}</span>}
-                    {selectedTitre && <span className="bg-paper-2 text-ink-3 rounded px-2 py-0.5 text-[11px]">Titre : {selectedTitre.valeur}</span>}
+                    {selectedTitre && <span className="bg-ink-2/20 text-velin/70 rounded px-2 py-0.5 text-[11px]">Titre : {selectedTitre.valeur}</span>}
                   </div>
                 )}
 

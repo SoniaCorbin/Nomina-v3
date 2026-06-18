@@ -60,7 +60,7 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-ink border-b border-rule-2/20">
+    <header className="sticky top-0 z-50 bg-[#1a1815] border-b border-white/10">
       <div className="mx-auto max-w-7xl px-6">
         <div className="flex items-center justify-between h-[60px]">
 

@@ -15,7 +15,7 @@ export function HomePage() {
           <div className="inline-flex items-center gap-2 bg-wax-soft border border-wax/25 rounded-full px-4 py-1.5 mb-7">
             <span className="w-[5px] h-[5px] rounded-full bg-wax" />
             <span className="font-mono text-[10.5px] tracking-wide uppercase text-wax">
-              API de génération narrative
+              Génération narrative · Design · Publicité
             </span>
           </div>
 
@@ -34,8 +34,9 @@ export function HomePage() {
 
           {/* Sous-titre */}
           <p className="font-heading text-lg md:text-xl leading-relaxed text-ink-2 max-w-[54ch] mx-auto mt-6">
-            Décris un monde en quelques mots. Nomina te rend des personnages,
-            des lieux et des créatures — avec leurs histoires, prêts à habiter ton récit.
+            Décris un monde, une marque, un personnage. Nomina génère les noms,
+            les histoires et les identités — que tu écrives un roman, conçoives
+            une campagne ou remplisses une maquette.
           </p>
 
           {/* CTA */}
@@ -104,36 +105,50 @@ export function HomePage() {
       {/* ── Qu'est-ce que Nomina ── */}
       <section className="py-16 bg-paper">
         <div className="mx-auto max-w-5xl px-6">
-          <h2 className="font-heading text-3xl md:text-4xl text-ink text-center mb-10">
-            Un atelier pour tes <em className="italic text-wax">univers</em>
+          <h2 className="font-heading text-3xl md:text-4xl text-ink text-center mb-3">
+            Un atelier pour tes <em className="italic text-wax">idées</em>
           </h2>
+          <p className="text-center text-sm text-ink-3 mb-10 max-w-[48ch] mx-auto">
+            Que tu construises un récit, une identité visuelle ou une campagne — Nomina s'adapte à ton processus créatif.
+          </p>
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               {
                 title: "Créer des univers",
                 desc: "Pose les fondations d'un monde — ambiance, thèmes, repères. Nomina structure l'idée initiale.",
+                tag: "Auteurs · Jeux",
               },
               {
                 title: "Nommer avec style",
                 desc: "Génération de noms adaptés (culture, sonorités, genre) pour garder la cohérence d'un chapitre à l'autre.",
+                tag: "Auteurs · RPG",
               },
               {
                 title: "Raconter en fragments",
-                desc: "Micro-histoires, motivations et conflits pour alimenter intrigues et personnages.",
+                desc: "Micro-histoires, motivations et conflits pour alimenter intrigues et personnages secondaires.",
+                tag: "Scénaristes",
+              },
+              {
+                title: "Habiller une maquette",
+                desc: "Personas, noms fictifs, profils utilisateurs et données d'exemple pour remplir tes wireframes et présentations.",
+                tag: "UX · Pub · Design",
               },
             ].map(card => (
               <div
                 key={card.title}
-                className="bg-velin border border-rule rounded-2xl p-6 hover:border-rule-2 transition-colors"
+                className="bg-velin border border-rule rounded-2xl p-6 hover:border-rule-2 transition-colors flex flex-col"
               >
                 <div className="h-[3px] w-12 rounded-full bg-wax" />
-                <div className="mt-4 font-heading text-lg text-ink font-medium">
+                <div className="mt-4 font-heading text-lg text-ink font-medium flex-1">
                   {card.title}
                 </div>
-                <p className="mt-2 text-sm text-ink-2 leading-relaxed">
+                <p className="mt-2 text-sm text-ink-2 leading-relaxed flex-1">
                   {card.desc}
                 </p>
+                <div className="mt-4 font-mono text-[9.5px] tracking-wide uppercase text-wax/70">
+                  {card.tag}
+                </div>
               </div>
             ))}
           </div>
@@ -155,9 +170,9 @@ export function HomePage() {
         </div>
       </section>
 
-      {/* ── Sections existantes (à refaire progressivement) ── */}
+      {/* ── Sections existantes ── */}
       <Features />
-	  <UseCases />
+      <UseCases />
       <Pricing />
       <Documentation />
     </div>

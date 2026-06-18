@@ -4,7 +4,7 @@ import logoDark from "../../assets/logoSombre.jpg";
 
 export function Footer() {
   return (
-    <footer className="bg-ink border-t border-rule/20 py-14">
+    <footer className="bg-[#1a1815] border-t border-white/10 py-14">
       <div className="mx-auto max-w-6xl px-6">
         <div className="grid md:grid-cols-4 gap-10 mb-10">
           {/* ── Marque ── */}
@@ -15,34 +15,34 @@ export function Footer() {
                 NOMINA
               </span>
             </Link>
-            <p className="text-sm text-ink-3 leading-relaxed">
+            <p className="text-sm text-white/50 leading-relaxed">
               Créez, nommez, racontez — l'API de génération narrative.
             </p>
           </div>
 
           {/* ── Produit ── */}
           <div>
-            <h4 className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-3 mb-4">
+            <h4 className="font-mono text-[10px] tracking-[0.14em] uppercase text-white/35 mb-4">
               Produit
             </h4>
             <ul className="space-y-2.5">
               <li>
-                <Link to="/features" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                <Link to="/features" className="text-sm text-white/60 hover:text-white transition-colors">
                   Fonctionnalités
                 </Link>
               </li>
               <li>
-                <Link to="/pricing" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                <Link to="/pricing" className="text-sm text-white/60 hover:text-white transition-colors">
                   Tarifs
                 </Link>
               </li>
               <li>
-                <Link to="/docs" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                <Link to="/docs" className="text-sm text-white/60 hover:text-white transition-colors">
                   Documentation
                 </Link>
               </li>
               <li>
-                <Link to="/generate" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                <Link to="/generate" className="text-sm text-white/60 hover:text-white transition-colors">
                   Génération
                 </Link>
               </li>
@@ -51,46 +51,59 @@ export function Footer() {
 
           {/* ── Ressources ── */}
           <div>
-            <h4 className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-3 mb-4">
+            <h4 className="font-mono text-[10px] tracking-[0.14em] uppercase text-white/35 mb-4">
               Ressources
             </h4>
             <ul className="space-y-2.5">
               <li>
-                <Link to="/docs" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                <Link to="/docs" className="text-sm text-white/60 hover:text-white transition-colors">
                   Guide de démarrage
                 </Link>
               </li>
               <li>
-                <Link to="/pack-ia" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                <Link to="/pack-ia" className="text-sm text-white/60 hover:text-white transition-colors">
                   Pack IA
                 </Link>
               </li>
               <li>
-                <a href="https://github.com/SoniaCorbin/Nomina-v3" target="_blank" rel="noopener noreferrer" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                <a
+                  href="https://github.com/SoniaCorbin/Nomina-v3"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-sm text-white/60 hover:text-white transition-colors"
+                >
                   GitHub
                 </a>
               </li>
             </ul>
           </div>
 
-          {/* ── Entreprise ── */}
+          {/* ── Légal ── */}
           <div>
-            <h4 className="font-mono text-[10px] tracking-[0.14em] uppercase text-ink-3 mb-4">
+            <h4 className="font-mono text-[10px] tracking-[0.14em] uppercase text-white/35 mb-4">
               Légal
             </h4>
             <ul className="space-y-2.5">
               <li>
-                <a href="#/privacy" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                <Link to="/privacy" className="text-sm text-white/60 hover:text-white transition-colors">
                   Confidentialité
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#/terms" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                <Link to="/terms" className="text-sm text-white/60 hover:text-white transition-colors">
                   Conditions d'utilisation
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="mailto:contact@nomina.app" className="text-sm text-paper/70 hover:text-paper transition-colors">
+                <Link to="/faq" className="text-sm text-white/60 hover:text-white transition-colors">
+                  FAQ
+                </Link>
+              </li>
+              <li>
+                <a
+                  href="mailto:contact@nomina.app"
+                  className="text-sm text-white/60 hover:text-white transition-colors"
+                >
                   Contact
                 </a>
               </li>
@@ -100,7 +113,7 @@ export function Footer() {
 
         {/* ── Barre du bas ── */}
         <div className="pt-8 border-t border-rule/15 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="font-mono text-[11px] tracking-wide text-ink-3">
+          <p className="font-mono text-[11px] tracking-wide text-white/35">
             © 2026 Nomina · Corbin Creative Tech Inc.
           </p>
 
@@ -109,7 +122,7 @@ export function Footer() {
               href="https://github.com/SoniaCorbin/Nomina-v3"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-ink-3 hover:text-paper transition-colors"
+              className="text-white/35 hover:text-white transition-colors"
               aria-label="GitHub"
             >
               <Github className="w-4 h-4" />
@@ -118,7 +131,7 @@ export function Footer() {
               href="https://linkedin.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-ink-3 hover:text-paper transition-colors"
+              className="text-white/35 hover:text-white transition-colors"
               aria-label="LinkedIn"
             >
               <Linkedin className="w-4 h-4" />

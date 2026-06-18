@@ -134,3 +134,26 @@
     color: var(--primary);
   }
 }
+
+[cmdk-item] {
+  color: var(--ink) !important;
+}
+
+[cmdk-group-heading] {
+  color: var(--ink-3) !important;
+}
+
+[cmdk-item] {
+  color: var(--velin) !important;
+  background: transparent;
+}
+
+[cmdk-item]:hover,
+[cmdk-item][aria-selected="true"] {
+  background: rgba(255,255,255,0.08) !important;
+  color: var(--velin) !important;
+}
+
+[cmdk-group-heading] {
+  color: var(--ink-3) !important;
+}
