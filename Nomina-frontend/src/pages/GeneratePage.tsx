@@ -23,7 +23,7 @@ export function GeneratePage() {
   const [relationTypes, setRelationTypes] = useState<RelationType[]>([]);
   const [events, setEvents] = useState<StoryEvent[]>([]);
   const [titres, setTitres] = useState<Titre[]>([]);
-
+  
   const [keywords, setKeywords] = useState("");
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false);
   const [universId, setUniversId] = useState<number | "">("");
@@ -44,6 +44,12 @@ export function GeneratePage() {
   const [prefixe, setPrefixe] = useState("");
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [personaSecteur, setPersonaSecteur] = useState("");
+  const [personaAgeMin, setPersonaAgeMin] = useState("");
+  const [personaAgeMax, setPersonaAgeMax] = useState("");
+  const [namingSecteur, setNamingSecteur] = useState("");
+  const [namingTon, setNamingTon] = useState("");
+  const [namingLangue, setNamingLangue] = useState("");
   const [imagePreview, setImagePreview] = useState<{ url: string; title: string } | null>(null);
   const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const imagePreviewCloseTimer = useRef<number | null>(null);
@@ -203,6 +209,16 @@ export function GeneratePage() {
         if(relationTypeId!=="") qs.set("relationTypeId",String(relationTypeId));
         if(eventId!=="") qs.set("eventId",String(eventId));
       }
+      if (generateWhat === "personas") {
+        if (personaSecteur) qs.set("secteur", personaSecteur);
+        if (personaAgeMin)  qs.set("ageMin",  personaAgeMin);
+        if (personaAgeMax)  qs.set("ageMax",  personaAgeMax);
+      }
+      if (generateWhat === "naming") {
+        if (namingSecteur) qs.set("secteur", namingSecteur);
+        if (namingTon)     qs.set("ton",     namingTon);
+        if (namingLangue)  qs.set("langue",  namingLangue);
+      }
       if(generateWhat==="concepts") { const t=conceptTopic.trim(); if(t) qs.set("topic",t); else if(conceptId!=="") qs.set("conceptId",String(conceptId)); }
       if(["npcs","nomPersonnages","fragmentsHistoire"].includes(generateWhat)&&universId!=="") qs.set("universId",String(universId));
       if(supportsTitreChoice&&titreId!=="") qs.set("titreId",String(titreId));
@@ -303,9 +319,55 @@ export function GeneratePage() {
                     <Select label="Relation" value={relationTypeId} onChange={v=>setRelationTypeId(v?Number(v):"")} options={filteredRelationTypes.map(r=>({value:r.id,label:r.label}))} />
                     <Select label="Événement" value={eventId} onChange={v=>setEventId(v?Number(v):"")} options={filteredEvents.map(e=>({value:e.id,label:e.title}))} />
                   </>}
-                  {generateWhat==="concepts" && (
-                    <div><label className={labelCls}>Sujet</label><input value={conceptTopic} onChange={e=>{setConceptTopic(e.target.value);if(e.target.value.trim())setConceptId("");}} placeholder="Ex: chaussures, café…" className={inputCls} /></div>
+                  
+                  {generateWhat === "concepts" && (
+                    <div>
+                      <label className={labelCls}>Sujet</label>
+                      <input value={conceptTopic} onChange={e=>{setConceptTopic(e.target.value);if(e.target.value.trim())setConceptId("");}} placeholder="Ex: chaussures, café…" className={inputCls} />
+                    </div>
                   )}
+
+                  {generateWhat === "personas" && (
+                  <>
+                    <div>
+                      <label className={labelCls}>Secteur</label>
+                      <input value={personaSecteur} onChange={e => setPersonaSecteur(e.target.value)} placeholder="Ex : Technologie, Santé…" className={inputCls} />
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className={labelCls}>Âge min</label>
+                        <input type="number" min={13} max={100} value={personaAgeMin} onChange={e => setPersonaAgeMin(e.target.value)} placeholder="18" className={inputCls} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Âge max</label>
+                        <input type="number" min={13} max={100} value={personaAgeMax} onChange={e => setPersonaAgeMax(e.target.value)} placeholder="65" className={inputCls} />
+                      </div>
+                    </div>
+                  </>
+                )}
+
+                {generateWhat === "naming" && (
+                  <>
+                    <div>
+                      <label className={labelCls}>Secteur / industrie</label>
+                      <input value={namingSecteur} onChange={e => setNamingSecteur(e.target.value)} placeholder="Ex : Mode, Tech…" className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Ton souhaité</label>
+                      <input value={namingTon} onChange={e => setNamingTon(e.target.value)} placeholder="Ex : élégant, ludique…" className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Langue du nom</label>
+                      <select value={namingLangue} onChange={e => setNamingLangue(e.target.value)} className={selectCls}>
+                        <option value="">— Toutes —</option>
+                        <option value="français">Français</option>
+                        <option value="anglais">Anglais</option>
+                        <option value="latin">Latin</option>
+                        <option value="mixte">Mixte / néologisme</option>
+                      </select>
+                    </div>
+                  </>
+                )}
                   {supportsTitreChoice && (
                     <div>
                       <label className={labelCls}>Titre</label>
