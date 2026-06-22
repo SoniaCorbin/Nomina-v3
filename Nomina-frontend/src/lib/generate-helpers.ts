@@ -14,6 +14,7 @@ export type Titre = { id: number; valeur: string; type?: string | null; genre?: 
 export type GenerateResultItem = {
   id?: number | string;
   name?: string | null;
+  nom?: string | null;
   fullName?: string | null;
   displayName?: string | null;
   valeur?: string | null;
@@ -33,6 +34,20 @@ export type GenerateResultItem = {
   elevatorPitch?: string | null;
   mood?: string | null;
   universId?: number | null;
+  // Personas
+  prenom?: string | null;
+  nomFamille?: string | null;
+  age?: number | null;
+  job?: string | null;
+  secteur?: string | null;
+  motivations?: string | null;
+  frustrations?: string | null;
+  citation?: string | null;
+  appsFavorites?: string | null;
+  comportementAchat?: string | null;
+  // Naming
+  slogan?: string | null;
+  ton?: string | null;
   [key: string]: unknown;
 };
 
@@ -48,34 +63,39 @@ export type GenerateResult = {
 export type GenerateWhat =
   | "npcs" | "lieux" | "nomPersonnages" | "nomFamille"
   | "fragmentsHistoire" | "titres" | "concepts"
-  | "creatures" | "categories" | "cultures" | "universThematique";
+  | "creatures" | "categories" | "cultures" | "universThematique"
+  | "personas" | "naming";
 
 export const GENERATE_OPTIONS: { value: GenerateWhat; label: string }[] = [
-  { value: "npcs", label: "Personnage complet (bio)" },
-  { value: "nomPersonnages", label: "Prénom" },
-  { value: "nomFamille", label: "Nom de famille" },
-  { value: "lieux", label: "Lieux" },
-  { value: "titres", label: "Titres" },
-  { value: "concepts", label: "Concepts" },
-  { value: "fragmentsHistoire", label: "Fragments d'histoire" },
-  { value: "creatures", label: "Créatures" },
-  { value: "categories", label: "Catégories" },
-  { value: "cultures", label: "Cultures" },
-  { value: "universThematique", label: "Univers thématique" },
+  { value: "npcs",             label: "Personnage complet (bio)" },
+  { value: "nomPersonnages",   label: "Prénom" },
+  { value: "nomFamille",       label: "Nom de famille" },
+  { value: "lieux",            label: "Lieux" },
+  { value: "titres",           label: "Titres" },
+  { value: "concepts",         label: "Concepts" },
+  { value: "fragmentsHistoire",label: "Fragments d'histoire" },
+  { value: "creatures",        label: "Créatures" },
+  { value: "categories",       label: "Catégories" },
+  { value: "cultures",         label: "Cultures" },
+  { value: "universThematique",label: "Univers thématique" },
+  { value: "personas",         label: "Personas UX" },
+  { value: "naming",           label: "Naming de marque" },
 ];
 
 export const ENDPOINT_MAP: Record<GenerateWhat, string> = {
-  npcs: "/generate/npcs",
-  lieux: "/generate/lieux",
-  nomPersonnages: "/generate/prenoms",
-  nomFamille: "/generate/nom-famille",
+  npcs:              "/generate/npcs",
+  lieux:             "/generate/lieux",
+  nomPersonnages:    "/generate/prenoms",
+  nomFamille:        "/generate/nom-famille",
   fragmentsHistoire: "/generate/fragments-histoire",
-  titres: "/generate/titres",
-  concepts: "/generate/concepts",
-  creatures: "/creatures",
-  categories: "/generate/categories",
-  cultures: "/generate/cultures",
+  titres:            "/generate/titres",
+  concepts:          "/generate/concepts",
+  creatures:         "/creatures",
+  categories:        "/generate/categories",
+  cultures:          "/generate/cultures",
   universThematique: "/generate/univers",
+  personas:          "/generate/personas",
+  naming:            "/generate/naming",
 };
 
 export const DIRECT_LIST_TYPES = new Set<GenerateWhat>(["categories", "cultures", "universThematique", "creatures"]);
@@ -145,35 +165,60 @@ export function getTitreDescription(titre: { valeur: string; type?: string | nul
 
 export function getItemTitle(item: GenerateResultItem, what: GenerateWhat): string {
   switch (what) {
-    case "npcs": return item.fullName ?? item.name ?? "Personnage";
-    case "nomPersonnages": return item.name ?? item.displayName ?? "Personnage";
-    case "nomFamille": return item.valeur?.trim() || (item.id ? `Famille #${item.id}` : "Famille");
-    case "lieux": return item.value ?? "Lieu";
-    case "fragmentsHistoire": return item.appliesTo ? `Fragment (${item.appliesTo})` : "Fragment";
-    case "titres": return item.valeur ?? "Titre";
-    case "concepts": return item.valeur ?? "Concept";
-    case "creatures": return item.valeur ?? "Créature";
-    case "categories": return item.name ?? "Catégorie";
-    case "cultures": return item.name ?? "Culture";
-    case "universThematique": return item.name ?? "Univers";
-    default: return "Résultat";
+    case "npcs":             return item.fullName ?? item.name ?? "Personnage";
+    case "nomPersonnages":   return item.name ?? item.displayName ?? "Personnage";
+    case "nomFamille":       return item.valeur?.trim() || (item.id ? `Famille #${item.id}` : "Famille");
+    case "lieux":            return item.value ?? item.nom ?? "Lieu";
+    case "fragmentsHistoire":return item.appliesTo ? `Fragment (${item.appliesTo})` : "Fragment";
+    case "titres":           return item.valeur ?? "Titre";
+    case "concepts":         return item.valeur ?? item.nom ?? "Concept";
+    case "creatures":        return item.valeur ?? item.nom ?? "Créature";
+    case "categories":       return item.name ?? "Catégorie";
+    case "cultures":         return item.name ?? "Culture";
+    case "universThematique":return item.name ?? "Univers";
+    case "personas": {
+      const prenom = item.prenom ?? "";
+      const nomFamille = item.nomFamille ?? "";
+      const full = `${prenom} ${nomFamille}`.trim();
+      return full || (item.name ?? "Persona");
+    }
+    case "naming":           return item.nom ?? item.name ?? "Marque";
+    default:                 return "Résultat";
   }
 }
 
 export function getItemDescription(item: GenerateResultItem, what: GenerateWhat): string {
   const clamp = (s: string, n = 180) => s.length > n ? `${s.slice(0, n).trim()}…` : s;
   switch (what) {
-    case "npcs": return item.backstory ? String(item.backstory) : "Biographie générée.";
-    case "nomPersonnages": return "Prénom généré.";
-    case "nomFamille": return item.cultureId ? `Famille liée à la culture #${item.cultureId}` : "Nom de famille.";
-    case "lieux": return item.type ? `Type : ${item.type}` : "Lieu prêt à intégrer.";
-    case "fragmentsHistoire": return item.texte ? clamp(String(item.texte), 220) : "Fragment narratif.";
-    case "titres": return item.valeur ? getTitreDescription({ valeur: String(item.valeur), type: item.type ?? null, genre: item.genre ?? null }) : "Titre narratif.";
-    case "concepts": return item.elevatorPitch ? clamp(String(item.elevatorPitch), 220) : item.mood ? `Ambiance : ${item.mood}` : "Concept créatif.";
-    case "creatures": return item.description ? clamp(String(item.description), 220) : item.type ? `Type : ${item.type}` : "Créature narrative.";
-    case "categories": return item.description ? clamp(String(item.description), 180) : "Catégorie.";
-    case "cultures": return item.description ? clamp(String(item.description), 180) : "Culture narrative.";
-    case "universThematique": return item.description ? clamp(String(item.description), 180) : "Univers thématique.";
+    case "npcs":             return item.backstory ? String(item.backstory) : "Biographie générée.";
+    case "nomPersonnages":   return "Prénom généré.";
+    case "nomFamille":       return item.cultureId ? `Famille liée à la culture #${item.cultureId}` : "Nom de famille.";
+    case "lieux":            return item.type ? `Type : ${item.type}` : "Lieu prêt à intégrer.";
+    case "fragmentsHistoire":return item.texte ? clamp(String(item.texte), 220) : "Fragment narratif.";
+    case "titres":           return item.valeur ? getTitreDescription({ valeur: String(item.valeur), type: item.type ?? null, genre: item.genre ?? null }) : "Titre narratif.";
+    case "concepts":         return item.elevatorPitch ? clamp(String(item.elevatorPitch), 220) : item.mood ? `Ambiance : ${item.mood}` : "Concept créatif.";
+    case "creatures":        return item.description ? clamp(String(item.description), 220) : item.type ? `Type : ${item.type}` : "Créature narrative.";
+    case "categories":       return item.description ? clamp(String(item.description), 180) : "Catégorie.";
+    case "cultures":         return item.description ? clamp(String(item.description), 180) : "Culture narrative.";
+    case "universThematique":return item.description ? clamp(String(item.description), 180) : "Univers thématique.";
+    case "personas": {
+      const parts: string[] = [];
+      if (item.age)         parts.push(`${item.age} ans`);
+      if (item.job)         parts.push(String(item.job));
+      if (item.secteur)     parts.push(String(item.secteur));
+      if (item.motivations) parts.push(`Motivations : ${clamp(String(item.motivations), 120)}`);
+      if (item.frustrations)parts.push(`Frustrations : ${clamp(String(item.frustrations), 120)}`);
+      if (item.citation)    parts.push(`« ${clamp(String(item.citation), 100)} »`);
+      return parts.join(" · ") || "Persona UX généré.";
+    }
+    case "naming": {
+      const parts: string[] = [];
+      if (item.slogan)     parts.push(`« ${String(item.slogan)} »`);
+      if (item.secteur)    parts.push(String(item.secteur));
+      if (item.ton)        parts.push(`Ton : ${String(item.ton)}`);
+      if (item.description)parts.push(clamp(String(item.description), 180));
+      return parts.join(" · ") || "Nom de marque généré.";
+    }
     default: return "";
   }
 }

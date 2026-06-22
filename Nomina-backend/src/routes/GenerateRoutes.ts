@@ -9,6 +9,8 @@ import {
   generateConcepts,
 } from "../controllers/GenerateController";
 import { requireAuth } from "../middleware/auth.middleware";
+import { generatePersonasController, generateNamingController } from "../controllers/PersonaNamingController";
+
 
 const router = Router();
 
@@ -20,5 +22,7 @@ router.get("/lieux", requireAuth, generateLieux);
 router.get("/fragments-histoire", requireAuth, generateFragmentsHistoire);
 router.get("/titres", requireAuth, generateTitres);
 router.get("/concepts", requireAuth, generateConcepts);
+router.get("/personas", requireAuth, generatePersonasController);
+router.get("/naming", requireAuth, generateNamingController);
 
 export default router;
