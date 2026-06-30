@@ -5,13 +5,6 @@ import {
   countQuerySchema,
   optionalIdQuerySchema,
   optionalStringQuerySchema,
-  splitKeywords,
-  uniqueByNormalizedText,
-  scoreKeywordMatch,
-  asGeneratedResponse,
-  getGeneratedItems,
-  type GeneratedNpcIdea,
-  type RankedItem,
 } from "../../services/generation/generationHelpers";
 
 export const generateNpcs = async (req: Request, res: Response) => {
@@ -36,65 +29,21 @@ export const generateNpcs = async (req: Request, res: Response) => {
     return res.status(400).json({ error: "Paramètres invalides", issues: parsed.error.issues });
   }
 
-  const { count, universId, cultureId, categorieId, socialClassId, occupationId,
-    organizationId, relationTypeId, eventId, genre, seed, keywords } = parsed.data;
+  try {
+    const result = await generateNpcIdeas(parsed.data);
+    return res.json(result);
+  } catch (err: unknown) {
+    const message = err instanceof Error ? err.message : String(err);
 
-  const kws = splitKeywords(keywords);
-  const requestedCount = Math.min(count * 4, 120);
+    if (message.includes("OPENAI_API_KEY")) {
+      return res.status(503).json({ error: message });
+    }
 
-  const result = await generateNpcIdeas({
-    count: requestedCount, universId, cultureId, categorieId,
-    socialClassId, occupationId, organizationId, relationTypeId, eventId, genre, seed,
-  });
-  const generatedResult = asGeneratedResponse<GeneratedNpcIdea>(result);
-  const baseItems = getGeneratedItems(generatedResult);
-  const uniqueBaseItems = uniqueByNormalizedText(baseItems, (it) => `${it.fullName ?? it.name ?? ""}`);
+    const statusCode = (err as { status?: number })?.status ?? 500;
+    if (statusCode === 429) {
+      return res.status(429).json({ error: "Quota OpenAI dépassé. Réessayez plus tard." });
+    }
 
-  const normalizeNpcWarning = (warning: unknown, itemCount: number): string | undefined => {
-    if (itemCount === 0) return "Aucun Personnage ne match les filtres.";
-    if (typeof warning !== "string") return undefined;
-    return warning
-      .replace(/prénom/gi, "Personnage")
-      .replace(/prenom/gi, "Personnage")
-      .replace(/PNJ/gi, "Personnage");
-  };
-
-  if (kws.length === 0) {
-    const items = uniqueBaseItems.slice(0, count);
-    return res.json({
-      ...generatedResult,
-      count: items.length,
-      items,
-      warning: normalizeNpcWarning(generatedResult.warning, items.length),
-    });
+    return res.status(500).json({ error: `Erreur OpenAI: ${message}` });
   }
-
-  const ranked: RankedItem<GeneratedNpcIdea>[] = uniqueBaseItems
-    .map((it) => ({
-      item: it,
-      score: scoreKeywordMatch(`${it.name ?? ""} ${it.backstory ?? ""}`, kws),
-    }))
-    .sort((a, b) => b.score - a.score);
-
-  const matched = ranked.filter((entry) => entry.score > 0).map((entry) => entry.item);
-  const fallback = ranked.map((entry) => entry.item);
-  const items = (matched.length > 0 ? matched : fallback).slice(0, count);
-
-  return res.json({
-    ...generatedResult,
-    count: items.length,
-    filters: {
-      ...(generatedResult.filters ?? {}),
-      universId: universId ?? null,
-      keywords: kws.join(", "),
-    },
-    items,
-    info: matched.length > 0 ? `Résultats classés par pertinence pour: ${kws.join(", ")}` : undefined,
-    warning: normalizeNpcWarning(
-      matched.length === 0
-        ? `Aucun PNJ ne matche directement: ${kws.join(", ")}. Suggestions affichées.`
-        : generatedResult.warning,
-      items.length
-    ),
-  });
 };

@@ -65,8 +65,8 @@ export function UseCases() {
                   alt={uc.title}
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent" />
-                <h3 className="absolute bottom-3 left-4 font-heading text-lg text-paper font-medium">
+                <div className="absolute inset-0 bg-gradient-to-t from-ink from-10% via-ink/50 via-40% to-transparent"/>
+                <h3 className="absolute bottom-3 left-4 font-heading text-lg text-paper font-medium drop shadow-[0_2px_4px_rgba(0,0,0,0.5)]">
                   {uc.title}
                 </h3>
               </div>

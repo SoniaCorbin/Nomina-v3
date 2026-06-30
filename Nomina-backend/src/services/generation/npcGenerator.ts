@@ -1,34 +1,14 @@
-import type { Prisma } from "../../generated/prisma/client";
+import OpenAI from "openai";
 import prisma from "../../utils/prisma";
-import { createRng } from "./rng";
+import { normalizeGenreValues } from "./generationHelpers";
 
-function pick<T>(arr: T[], rnd: () => number): T {
-  return arr[Math.floor(rnd() * arr.length)];
-}
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-function capFirst(s: string) {
-  const t = s.trim();
-  if (!t) return t;
-  return t.charAt(0).toUpperCase() + t.slice(1);
-}
-
-function composeFullName(prenom: string, nomFamille: string | null | undefined) {
-  const first = (prenom ?? "").trim();
-  const family = (nomFamille ?? "").trim();
-  if (!family) return first;
-
-  const firstNorm = normalizeName(first);
-  const familyNorm = normalizeName(family);
-
-  if (firstNorm.includes(familyNorm)) return first;
-  return `${first} ${family}`.trim();
-}
-
-type GenerateNpcOptions = {
+export type GenerateNpcOptions = {
   count: number;
+  universId?: number;
   cultureId?: number;
   categorieId?: number;
-  universId?: number;
   socialClassId?: number;
   occupationId?: number;
   organizationId?: number;
@@ -36,373 +16,205 @@ type GenerateNpcOptions = {
   eventId?: number;
   genre?: string;
   seed?: string;
+  keywords?: string;
 };
 
-export async function generateNpcIdeas(options: GenerateNpcOptions) {
-  const rng = createRng(options.seed);
-  const seed = options.seed ?? rng.seed;
+export type GeneratedNpcItem = {
+  name: string;
+  fullName: string;
+  familyName: string | null;
+  genre: string | null;
+  cultureId: number | null;
+  categorieId: number | null;
+  role: string;
+  traits: string[];
+  backstory: string;
+  hook: string;
+};
 
-  const genreIn = options.genre ? normalizeGenreValues(options.genre) : undefined;
-  const isCreatureGenreRequest = (genreIn ?? []).some(isCreatureGenreValue);
+export type GenerateNpcIdeasResult = {
+  seed: string;
+  count: number;
+  filters: Record<string, unknown>;
+  items: GeneratedNpcItem[];
+  warning?: string;
+};
 
-  const linkFiltersRequested =
-    options.organizationId !== undefined ||
-    options.relationTypeId !== undefined ||
-    options.eventId !== undefined;
+// ── Client OpenAI ─────────────────────────────────────────────────────────────
 
-  const baseWhere: Prisma.PersonnageWhereInput = {
-    cultureId: options.cultureId,
-    categorieId: options.categorieId,
-    socialClassId: options.socialClassId,
-    occupationId: options.occupationId,
-    ...(options.universId !== undefined
-      ? {
-          categorie: {
-            universId: options.universId,
-          },
-        }
-      : {}),
-    genre: genreIn && genreIn.length > 0 ? { in: genreIn } : options.genre,
-  };
-
-  const strictWhere: Prisma.PersonnageWhereInput = {
-    ...baseWhere,
-    ...(options.organizationId !== undefined
-      ? {
-          memberships: {
-            some: {
-              organizationId: options.organizationId,
-            },
-          },
-        }
-      : {}),
-    ...(options.relationTypeId !== undefined
-      ? {
-          OR: [
-            {
-              fromRelations: {
-                some: {
-                  relationTypeId: options.relationTypeId,
-                },
-              },
-            },
-            {
-              toRelations: {
-                some: {
-                  relationTypeId: options.relationTypeId,
-                },
-              },
-            },
-          ],
-        }
-      : {}),
-    ...(options.eventId !== undefined
-      ? {
-          events: {
-            some: {
-              eventId: options.eventId,
-            },
-          },
-        }
-      : {}),
-  };
-
-  let personnages = await prisma.personnage.findMany({
-    where: strictWhere,
-    select: {
-      id: true,
-      genre: true,
-      cultureId: true,
-      categorieId: true,
-      prenom: { select: { valeur: true, genre: true, cultureId: true, categorieId: true } },
-      nomFamille: { select: { valeur: true } },
-    },
-  });
-
-  let relaxedLinkFilters = false;
-  let relaxedRealisticFilters = false;
-  if (personnages.length === 0 && linkFiltersRequested) {
-    personnages = await prisma.personnage.findMany({
-      where: baseWhere,
-      select: {
-        id: true,
-        genre: true,
-        cultureId: true,
-        categorieId: true,
-        prenom: { select: { valeur: true, genre: true, cultureId: true, categorieId: true } },
-        nomFamille: { select: { valeur: true } },
-      },
-    });
-    relaxedLinkFilters = personnages.length > 0;
+function getClient(): OpenAI {
+  const apiKey = process.env.OPENAI_API_KEY;
+  if (!apiKey) {
+    throw new Error("OPENAI_API_KEY manquante : configurez la variable d'environnement OPENAI_API_KEY.");
   }
+  return new OpenAI({ apiKey });
+}
 
-  const enforcePersonnageFilters =
-    options.socialClassId !== undefined ||
-    options.occupationId !== undefined;
+function getModel(): string {
+  return process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+}
 
-  if (personnages.length === 0 && enforcePersonnageFilters) {
-    const strictWhereWithoutRealistic: Prisma.PersonnageWhereInput = {
-      ...strictWhere,
-      socialClassId: undefined,
-      occupationId: undefined,
-    };
+// ── Contexte tiré de la base ──────────────────────────────────────────────────
+// On utilise la base de données comme inspiration/contexte pour le prompt,
+// plutôt que comme seule source — l'IA s'en sert pour rester cohérente avec
+// l'univers existant sans être limitée à un pool fixe de noms et de phrases.
 
-    personnages = await prisma.personnage.findMany({
-      where: strictWhereWithoutRealistic,
-      select: {
-        id: true,
-        genre: true,
-        cultureId: true,
-        categorieId: true,
-        prenom: { select: { valeur: true, genre: true, cultureId: true, categorieId: true } },
-        nomFamille: { select: { valeur: true } },
-      },
-    });
-
-    relaxedRealisticFilters = personnages.length > 0;
-  }
-
-  let names = personnages.length > 0
-    ? personnages
-        .map((p) => ({
-          id: p.id,
-          valeur: p.prenom?.valeur ?? null,
-          genre: p.genre ?? p.prenom?.genre ?? null,
-          cultureId: p.cultureId ?? p.prenom?.cultureId ?? null,
-          categorieId: p.categorieId ?? p.prenom?.categorieId ?? null,
-          familyName: p.nomFamille?.valeur ?? null,
-        }))
-        .filter((p) => !!p.valeur)
-    : await prisma.prenom.findMany({
+async function buildContext(options: GenerateNpcOptions) {
+  const [culture, categorie, univers, socialClass, occupation, organization, event, sampleFragments] =
+    await Promise.all([
+      options.cultureId
+        ? prisma.culture.findUnique({ where: { id: options.cultureId }, select: { name: true, description: true } })
+        : null,
+      options.categorieId
+        ? prisma.categorie.findUnique({ where: { id: options.categorieId }, select: { name: true } })
+        : null,
+      options.universId
+        ? prisma.universThematique.findUnique({ where: { id: options.universId }, select: { name: true } })
+        : null,
+      options.socialClassId
+        ? prisma.socialClass.findUnique({ where: { id: options.socialClassId }, select: { name: true } })
+        : null,
+      options.occupationId
+        ? prisma.occupation.findUnique({ where: { id: options.occupationId }, select: { name: true } })
+        : null,
+      options.organizationId
+        ? prisma.organization.findUnique({ where: { id: options.organizationId }, select: { name: true } })
+        : null,
+      options.eventId
+        ? prisma.event.findUnique({ where: { id: options.eventId }, select: { title: true } })
+        : null,
+      prisma.fragmentsHistoire.findMany({
         where: {
-          valeur: { not: null },
-          cultureId: options.cultureId,
-          categorieId: options.categorieId,
-          ...(options.universId !== undefined
-            ? {
-                categorie: {
-                  universId: options.universId,
-                },
-              }
-            : {}),
-          genre: genreIn && genreIn.length > 0 ? { in: genreIn } : options.genre,
+          OR: [{ appliesTo: null }, { appliesTo: { in: ["npc", "personnage", "nomPersonnage"] } }],
+          ...(options.cultureId ? { OR: [{ cultureId: options.cultureId }, { cultureId: null }] } : {}),
         },
-        select: {
-          id: true,
-          valeur: true,
-          genre: true,
-          cultureId: true,
-          categorieId: true,
-          nomFamille: { select: { valeur: true } },
-        },
-      }).then((rows) =>
-        rows.map((r) => ({
-          id: r.id,
-          valeur: r.valeur,
-          genre: r.genre,
-          cultureId: r.cultureId,
-          categorieId: r.categorieId,
-          familyName: r.nomFamille?.valeur ?? null,
-        }))
-      );
+        select: { texte: true },
+        take: 8,
+      }),
+    ]);
 
-  if (personnages.length === 0 && enforcePersonnageFilters && names.length > 0) {
-    relaxedRealisticFilters = true;
-  }
-
-  if (names.length === 0 && isCreatureGenreRequest && !enforcePersonnageFilters) {
-    const creatures = await prisma.creature.findMany({
-      where: {
-        valeur: { not: "" },
-        cultureId: options.cultureId,
-        categorieId: options.categorieId,
-        ...(options.universId !== undefined
-          ? {
-              categorie: {
-                universId: options.universId,
-              },
-            }
-          : {}),
-      },
-      select: {
-        id: true,
-        valeur: true,
-        cultureId: true,
-        categorieId: true,
-      },
-    });
-
-    names = creatures.map((c) => ({
-      id: c.id,
-      valeur: c.valeur,
-      genre: "créature",
-      cultureId: c.cultureId,
-      categorieId: c.categorieId,
-      familyName: null,
-    }));
-  }
-
-  if (names.length === 0) {
-    return {
-      seed,
-      count: 0,
-      filters: {
-        cultureId: options.cultureId ?? null,
-        categorieId: options.categorieId ?? null,
-        socialClassId: options.socialClassId ?? null,
-        occupationId: options.occupationId ?? null,
-        organizationId: options.organizationId ?? null,
-        relationTypeId: options.relationTypeId ?? null,
-        eventId: options.eventId ?? null,
-        genre: options.genre ?? null,
-      },
-      items: [],
-      warning: enforcePersonnageFilters
-        ? "Aucun Personnage ne match les filtres réalistes (classe sociale/métier)."
-        : isCreatureGenreRequest
-          ? "Aucune Créature ne match les filtres."
-        : "Aucun Prénom ne match les filtres.",
-    };
-  }
-  const uniqueNames = dedupeBy(names, (n) => normalizeName(composeFullName(n.valeur ?? "", n.familyName)));
-    
-  const fragmentWhere: Prisma.FragmentsHistoireWhereInput = {
-    OR: [
-      { appliesTo: null },
-      { appliesTo: { in: ["npc", "personnage", "nomPersonnage"] } },
-    ],
+  return {
+    culture: culture?.name ?? null,
+    cultureDesc: culture?.description ?? null,
+    categorie: categorie?.name ?? null,
+    univers: univers?.name ?? null,
+    socialClass: socialClass?.name ?? null,
+    occupation: occupation?.name ?? null,
+    organization: organization?.name ?? null,
+    event: event?.title ?? null,
+    fragmentInspiration: sampleFragments.map((f) => f.texte).filter(Boolean),
   };
-  const fragmentAnd: Prisma.FragmentsHistoireWhereInput[] = [];
+}
 
-  if (options.cultureId !== undefined) {
-    fragmentAnd.push({ OR: [{ cultureId: options.cultureId }, { cultureId: null }] });
-  }
-  if (options.categorieId !== undefined) {
-    fragmentAnd.push({ OR: [{ categorieId: options.categorieId }, { categorieId: null }] });
-  }
-  // NB: FragmentsHistoire ne sont pas liés directement à UniversThematique.
-  // On laisse la sélection via categorieId (ou sans catégorie) pour les fragments.
-  if (options.genre !== undefined) {
-    const genreValues = normalizeGenreValues(options.genre);
-    if (genreValues.length > 0) {
-      fragmentAnd.push({ OR: [{ genre: { in: genreValues } }, { genre: null }] });
-    } else {
-      fragmentAnd.push({ OR: [{ genre: options.genre }, { genre: null }] });
+// ── Prompts ───────────────────────────────────────────────────────────────────
+
+function buildSystemPrompt(): string {
+  return `Tu es un générateur de personnages fictifs pour jeux de rôle, romans et jeux vidéo.
+Tu génères du contenu en français.
+Tu dois TOUJOURS répondre avec du JSON valide et rien d'autre (pas de texte avant ou après, pas de bloc markdown).
+Respecte strictement la structure demandée. Chaque personnage doit être unique — évite de répéter les mêmes rôles, traits ou accroches d'un personnage à l'autre dans une même génération.`;
+}
+
+function buildUserPrompt(options: GenerateNpcOptions, context: Awaited<ReturnType<typeof buildContext>>): string {
+  const count = Math.max(1, Math.min(30, options.count));
+  const genreValues = options.genre ? normalizeGenreValues(options.genre) : [];
+
+  const contextLines: string[] = [];
+  if (context.univers) contextLines.push(`Univers thématique : ${context.univers}`);
+  if (context.culture) contextLines.push(`Culture : ${context.culture}${context.cultureDesc ? ` — ${context.cultureDesc}` : ""}`);
+  if (context.categorie) contextLines.push(`Catégorie : ${context.categorie}`);
+  if (context.socialClass) contextLines.push(`Classe sociale : ${context.socialClass}`);
+  if (context.occupation) contextLines.push(`Métier/occupation : ${context.occupation}`);
+  if (context.organization) contextLines.push(`Organisation d'appartenance : ${context.organization}`);
+  if (context.event) contextLines.push(`Événement lié : ${context.event}`);
+  if (genreValues.length > 0) contextLines.push(`Genre : ${genreValues[0]}`);
+  if (options.keywords) contextLines.push(`Mots-clés / thème demandé : ${options.keywords}`);
+
+  const keywordsInstruction = options.keywords
+    ? `\nIMPORTANT — instruction sur les mots-clés "${options.keywords}" :
+Si ces mots-clés désignent un personnage précis (un nom propre, un surnom, une description directe comme "${options.keywords}"), alors LE PREMIER personnage généré DOIT ÊTRE ce personnage exact — pas un personnage qui le mentionne, le cherche ou le connaît. Le prénom/nom de ce premier personnage doit correspondre ou s'inspirer directement du nom donné. Les personnages suivants peuvent être liés à lui (alliés, ennemis, témoins) si pertinent, mais le premier doit l'incarner directement.
+Si les mots-clés décrivent plutôt un thème ou une ambiance générale (ex: "forêt sombre", "trahison"), alors ignore cette règle et génère des personnages inspirés de ce thème.\n`
+    : "";
+
+  const inspirationBlock = context.fragmentInspiration.length > 0
+    ? `\nInspiration narrative existante dans cet univers (à t'en inspirer pour le ton, pas à recopier) :\n${context.fragmentInspiration.map(t => `  - ${t}`).join("\n")}\n`
+    : "";
+
+  return `Génère ${count} personnages fictifs complets.
+
+${contextLines.length > 0 ? `Contexte de l'univers :\n${contextLines.map(l => `  - ${l}`).join("\n")}\n` : ""}${inspirationBlock}${keywordsInstruction}
+Retourne UNIQUEMENT un objet JSON avec cette structure exacte :
+{
+  "items": [
+    {
+      "prenom": "Aeryn",
+      "nomFamille": "Solcrest",
+      "genre": "Féminin",
+      "role": "Archiviste itinérante",
+      "traits": ["curieuse", "déterminée"],
+      "backstory": "Biographie de 2-3 phrases, vivante et spécifique, qui mentionne un événement marquant et une motivation actuelle.",
+      "hook": "Une accroche narrative courte (secret, conflit ou objectif) qui donne envie d'en savoir plus."
     }
-  }
+  ]
+}
 
-  if (fragmentAnd.length > 0) {
-    fragmentWhere.AND = fragmentAnd;
-  }
+Règles importantes :
+- Exactement ${count} personnages dans le tableau items.
+- Chaque personnage doit être DISTINCT des autres — rôles, traits et accroches variés.
+- Si des mots-clés sont fournis, le thème doit transparaître clairement dans le rôle, la backstory ou l'accroche.
+- Les biographies doivent être originales, spécifiques et éviter les formules génériques répétées.
+- Respecte le contexte d'univers fourni si présent (culture, catégorie, classe sociale, etc.) pour la cohérence.
+- Ne retourne AUCUN texte en dehors du JSON.`;
+}
 
-  const fragments = await prisma.fragmentsHistoire.findMany({
-    where: fragmentWhere,
-    select: { id: true, texte: true, minNameLength: true, maxNameLength: true },
+// ── Fonction principale ───────────────────────────────────────────────────────
+
+export async function generateNpcIdeas(options: GenerateNpcOptions): Promise<GenerateNpcIdeasResult> {
+  const client = getClient();
+  const model = getModel();
+  const seed = options.seed ?? `npc-${Date.now()}`;
+
+  const context = await buildContext(options);
+
+  const completion = await client.chat.completions.create({
+    model,
+    temperature: 0.9,
+    response_format: { type: "json_object" },
+    messages: [
+      { role: "system", content: buildSystemPrompt() },
+      { role: "user", content: buildUserPrompt(options, context) },
+    ],
   });
 
-  const items = [];
-  const usedNameIds = new Set<number>();
+  const raw = completion.choices[0]?.message?.content ?? "{}";
 
-  for (let i = 0; i < options.count; i++) {
-    const name = pickUnique(uniqueNames, usedNameIds, rng.next);
-    const nameText = name.valeur ?? "Inconnu";
-    const familyText = (name.familyName ?? "").trim();
-    const fullName = composeFullName(nameText, familyText);
-    const nameLen = fullName.length;
-
-    const eligibleFragments = fragments.filter(f => {
-      if (f.minNameLength !== null && f.minNameLength !== undefined && nameLen < f.minNameLength) return false;
-      if (f.maxNameLength !== null && f.maxNameLength !== undefined && nameLen > f.maxNameLength) return false;
-      return true;
-    });
-
-    const fragmentCount = eligibleFragments.length >= 3 ? (rng.next() < 0.5 ? 2 : 3) : Math.min(2, eligibleFragments.length);
-    const picked = sampleWithoutReplacement(eligibleFragments, fragmentCount, rng.next);
-
-    const baseBackstory = picked
-      .map(p => p.texte)
-      .join(" ")
-      .replaceAll("{name}", fullName)
-      .trim();
-
-    // Enrichissement: texte FR déterministe (évite lorem/latin)
-    const roles = [
-      "cartographe",
-      "archiviste",
-      "éclaireur",
-      "forgeron",
-      "messager",
-      "médecin de campagne",
-      "érudit itinérant",
-      "marchande",
-      "gardien",
-      "diplomate",
-    ];
-
-    const traits = [
-      "pragmatique",
-      "audacieux",
-      "méfiant",
-      "loyal",
-      "curieux",
-      "imprévisible",
-      "patient",
-      "ambitieux",
-      "mélancolique",
-      "rusé",
-    ];
-
-    const hooks = [
-      "une dette ancienne",
-      "un pacte qu'il regrette",
-      "un héritage interdit",
-      "un secret de famille",
-      "un nom qu'on lui a volé",
-      "une promesse jamais tenue",
-      "un crime dont il n'est pas sûr",
-      "une prophétie incomplète",
-    ];
-
-    const lieux = [
-      "les ruines",
-      "les bas-fonds",
-      "la frontière",
-      "les archives",
-      "les ports",
-      "les montagnes",
-      "les plaines",
-      "les marchés",
-    ];
-
-    const role = capFirst(pick(roles, rng.next));
-    const trait1 = pick(traits, rng.next);
-    const trait2 = pick(traits, rng.next);
-    const hook = capFirst(`Porte ${pick(hooks, rng.next)}.`);
-    const extra = capFirst(
-      `On le dit ${trait1} mais parfois ${trait2}; on l'a aperçu près de ${pick(lieux, rng.next)}.`
-    );
-
-    const backstory = [baseBackstory, `Rôle: ${role}.`, `Traits: ${trait1}, ${trait2}.`, hook, extra]
-      .filter((s) => typeof s === "string" && s.trim().length > 0)
-      .join(" ")
-      .replaceAll("{name}", fullName)
-      .trim();
-
-    items.push({
-      nameId: name.id,
-      name: nameText,
-      familyName: familyText || null,
-      fullName: fullName || nameText,
-      genre: name.genre ?? null,
-      cultureId: name.cultureId ?? null,
-      categorieId: name.categorieId ?? null,
-      fragmentIds: picked.map(p => p.id),
-      backstory,
-      role,
-      traits: [trait1, trait2],
-      hook,
-    });
+  let parsed: Record<string, unknown>;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    throw new Error("Réponse OpenAI invalide : JSON non parsable.");
   }
+
+  const rawItems = Array.isArray(parsed.items) ? parsed.items : [];
+
+  const items: GeneratedNpcItem[] = rawItems.map((it: Record<string, unknown>) => {
+    const prenom = String(it.prenom ?? "Inconnu").trim();
+    const nomFamille = it.nomFamille ? String(it.nomFamille).trim() : null;
+    const fullName = nomFamille ? `${prenom} ${nomFamille}` : prenom;
+
+    return {
+      name: prenom,
+      fullName,
+      familyName: nomFamille,
+      genre: it.genre ? String(it.genre) : null,
+      cultureId: options.cultureId ?? null,
+      categorieId: options.categorieId ?? null,
+      role: String(it.role ?? "Personnage"),
+      traits: Array.isArray(it.traits) ? it.traits.map(String) : [],
+      backstory: String(it.backstory ?? ""),
+      hook: String(it.hook ?? ""),
+    };
+  });
 
   return {
     seed,
@@ -417,121 +229,9 @@ export async function generateNpcIdeas(options: GenerateNpcOptions) {
       relationTypeId: options.relationTypeId ?? null,
       eventId: options.eventId ?? null,
       genre: options.genre ?? null,
+      keywords: options.keywords ?? null,
     },
     items,
-    warning:
-      relaxedLinkFilters && relaxedRealisticFilters
-        ? "Aucun Personnage ne match les filtres réalistes (classe sociale/métier) ni Organisation/Relation/Événement. Résultats élargis automatiquement."
-        : relaxedLinkFilters
-          ? "Aucun Personnage ne match les filtres Organisation/Relation/Événement. Résultats élargis avec les autres filtres."
-          : relaxedRealisticFilters
-            ? "Aucun Personnage ne match les filtres réalistes (classe sociale/métier). Résultats élargis automatiquement."
-            : undefined,
+    warning: items.length === 0 ? "Aucun personnage généré." : undefined,
   };
-}
-
-function normalizeGenreValues(input: string): string[] {
-  const raw = input.trim();
-  if (!raw) return [];
-  const lc = raw.toLowerCase();
-
-  const out = new Set<string>();
-  const add = (s: string) => {
-    if (s && s.trim()) out.add(s);
-  };
-
-  if (["m", "masculin", "male", "homme"].includes(lc)) {
-    ["M", "m", "Masculin", "masculin", "Male", "male", "Homme", "homme"].forEach(add);
-  } else if (["f", "féminin", "feminin", "female", "femme"].includes(lc)) {
-    ["F", "f", "Féminin", "féminin", "Feminin", "feminin", "Female", "female", "Femme", "femme"].forEach(add);
-  } else if (["nb", "non-binaire", "non binaire", "nonbinaire", "neutre", "neutral", "neutre."].includes(lc)) {
-    [
-      "NB",
-      "nb",
-      "Non-binaire",
-      "non-binaire",
-      "Non binaire",
-      "non binaire",
-      "Nonbinaire",
-      "nonbinaire",
-      "Neutre",
-      "neutre",
-      "Neutral",
-      "neutral",
-    ].forEach(add);
-  } else if (isCreatureGenreValue(lc)) {
-    [
-      "Creature",
-      "creature",
-      "Créature",
-      "créature",
-      "Creatures",
-      "creatures",
-      "Créatures",
-      "créatures",
-      "Monster",
-      "monster",
-      "Monstre",
-      "monstre",
-      "Monstres",
-      "monstres",
-      "Bestiaire",
-      "bestiaire",
-    ].forEach(add);
-  } else {
-    add(raw);
-  }
-
-  return Array.from(out);
-}
-
-function normalizeName(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "")
-    .replace(/\s+/g, " ");
-}
-
-function dedupeBy<T>(arr: T[], key: (x: T) => string) {
-  const seen = new Set<string>();
-  const out: T[] = [];
-  for (const item of arr) {
-    const k = key(item);
-    if (!k) continue;
-    if (seen.has(k)) continue;
-    seen.add(k);
-    out.push(item);
-  }
-  return out;
-}
-
-function pickUnique<T extends { id: number }>(arr: T[], used: Set<number>, rnd: () => number): T {
-  if (used.size >= arr.length) return arr[Math.floor(rnd() * arr.length)];
-  let candidate = arr[Math.floor(rnd() * arr.length)];
-  while (used.has(candidate.id)) candidate = arr[Math.floor(rnd() * arr.length)];
-  used.add(candidate.id);
-  return candidate;
-}
-
-function sampleWithoutReplacement<T>(arr: T[], k: number, rnd: () => number): T[] {
-  const copy = arr.slice();
-  const out: T[] = [];
-  for (let i = 0; i < k && copy.length > 0; i++) {
-    const idx = Math.floor(rnd() * copy.length);
-    out.push(copy[idx]);
-    copy.splice(idx, 1);
-  }
-  return out;
-}
-
-function isCreatureGenreValue(value: string) {
-  const normalized = value
-    .trim()
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/\p{Diacritic}/gu, "");
-
-  return ["creature", "creatures", "monster", "monstre", "monstres", "bestiaire"].includes(normalized);
 }

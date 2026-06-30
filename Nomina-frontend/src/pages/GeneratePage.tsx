@@ -484,7 +484,7 @@ export function GeneratePage() {
                 {/* Dev mode */}
                 <details className="mt-5 border-t border-rule pt-3">
                   <summary className="text-sm text-ink-blue cursor-pointer hover:underline font-medium">Développeur — JSON brut</summary>
-                  <pre className="bg-ink text-ink-blue p-4 rounded-lg overflow-auto text-xs mt-2 max-h-80 font-mono">{JSON.stringify(result,null,2)}</pre>
+                  <pre className="bg-ink text-white/85 p-4 rounded-lg overflow-auto text-xs mt-2 max-h-80 font-mono">{JSON.stringify(result,null,2)}</pre>
                 </details>
               </div>
             ) : (
