@@ -211,7 +211,7 @@ export function PackIAPage() {
                     value={counts[key]}
                     onChange={(e) => setCount(key, Number(e.target.value))}
                     disabled={!enabled[key]}
-                    className="w-14 text-center rounded border border-rule-2/30 bg-ink/60 text-velin text-sm px-1.5 py-1 focus:outline-none focus:border-wax disabled:opacity-40"
+                    className="w-14 text-center rounded border border-rule-2/30 bg-white text-ink text-sm px-1.5 py-1 focus:outline-none focus:border-wax disabled:opacity-40"
                   />
                 </div>
               ))}

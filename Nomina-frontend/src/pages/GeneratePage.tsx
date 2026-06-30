@@ -75,28 +75,22 @@ export function GeneratePage() {
   }
   useEffect(() => () => { if (imagePreviewCloseTimer.current) clearTimeout(imagePreviewCloseTimer.current); }, []);
 
-  // ── Derived state ──
+    // ── Derived state ──
   const supportsGenre = ["npcs", "nomPersonnages", "fragmentsHistoire", "titres"].includes(generateWhat);
   const supportsCulture = ["npcs", "nomPersonnages", "fragmentsHistoire", "titres"].includes(generateWhat);
   const supportsTitreChoice = ["npcs", "nomPersonnages"].includes(generateWhat);
   const supportsNpcFilters = ["npcs", "nomPersonnages"].includes(generateWhat);
 
-  const filteredCategories = useMemo(() => universId === "" ? categories : categories.filter(c => c.universId === universId), [categories, universId]);
-  const filteredConcepts = useMemo(() => categorieId === "" ? concepts : concepts.filter(c => c.categorieId === categorieId), [concepts, categorieId]);
-
-  const filterByScope = <T extends { universId: number | null; categorieId: number | null; cultureId: number | null }>(list: T[]) =>
-    list.filter(s => {
-      if (universId !== "" && s.universId !== null && s.universId !== universId) return false;
-      if (categorieId !== "" && s.categorieId !== null && s.categorieId !== categorieId) return false;
-      if (cultureId !== "" && s.cultureId !== null && s.cultureId !== cultureId) return false;
-      return true;
-    });
-
-  const filteredSocialClasses = useMemo(() => filterByScope(socialClasses), [socialClasses, universId, categorieId, cultureId]);
-  const filteredOccupations = useMemo(() => filterByScope(occupations), [occupations, universId, categorieId, cultureId]);
-  const filteredOrganizations = useMemo(() => filterByScope(organizations), [organizations, universId, categorieId, cultureId]);
-  const filteredRelationTypes = useMemo(() => filterByScope(relationTypes), [relationTypes, universId, categorieId, cultureId]);
-  const filteredEvents = useMemo(() => filterByScope(events), [events, universId, categorieId, cultureId]);
+  // Plus de filtrage en cascade — toutes les options restent disponibles
+  // peu importe l'univers/catégorie/culture choisis, pour permettre les
+  // combinaisons créatives inattendues.
+  const filteredCategories = categories;
+  const filteredConcepts = concepts;
+  const filteredSocialClasses = socialClasses;
+  const filteredOccupations = occupations;
+  const filteredOrganizations = organizations;
+  const filteredRelationTypes = relationTypes;
+  const filteredEvents = events;
 
   const filteredTitres = useMemo(() => {
     if (!supportsTitreChoice) return [];
@@ -110,13 +104,11 @@ export function GeneratePage() {
       return m;
     };
     const matchesGenre = (tg: string | null | undefined) => { if (!genre || !tg) return true; const w=normalizeG(genre),h=normalizeG(tg); for(const v of h) if(w.has(v)) return true; return false; };
-    const allowedCatIds = new Set((universId===""?categories:categories.filter(c=>c.universId===universId)).map(c=>c.id));
+    // Plus de filtrage par catégorie/culture — tous les titres restent disponibles
     return titres
-      .filter(t => { if(categorieId!=="") return (t.categorieId??null)===categorieId; if(universId!=="") return t.categorieId!=null&&allowedCatIds.has(t.categorieId); return true; })
-      .filter(t => { if(cultureId==="") return true; return (t.cultureId??null)===cultureId; })
       .filter(t => matchesGenre(t.genre))
       .sort((a,b)=>a.valeur.localeCompare(b.valeur,"fr"));
-  }, [supportsTitreChoice, titres, categories, universId, categorieId, cultureId, genre]);
+  }, [supportsTitreChoice, titres, genre]);
 
   const filteredTitresGrouped = useMemo(() => {
     const m = new Map<string,Titre[]>();
