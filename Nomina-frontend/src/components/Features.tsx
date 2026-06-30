@@ -154,21 +154,21 @@ export function Features() {
           if (!next) setSelectedIndex(null);
         }}
       >
-        <DialogContent className="max-w-[520px] bg-ink border-rule-2/30">
+        <DialogContent className="max-w-[520px] bg-velin border-rule">
           <DialogHeader>
-            <DialogTitle className="font-heading text-xl text-paper">
+            <DialogTitle className="font-heading text-xl text-ink">
               {selected?.title ?? "Détails"}
             </DialogTitle>
           </DialogHeader>
 
           {selected ? (
             <div className="mt-2">
-              <p className="text-ink-3 text-sm">{selected.description}</p>
+              <p className="text-ink-2 text-sm">{selected.description}</p>
               <ul className="mt-4 space-y-2.5">
                 {selected.details.map((line) => (
                   <li key={line} className="flex gap-2.5 text-sm">
                     <span className="mt-1.5 inline-block h-[5px] w-[5px] rounded-full bg-wax shrink-0" />
-                    <span className="text-paper/90">{line}</span>
+                    <span className="text-ink">{line}</span>
                   </li>
                 ))}
               </ul>
